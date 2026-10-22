@@ -1,0 +1,444 @@
+<!-- app/layouts/default.vue -->
+<script setup lang="ts">
+import type { AuthUser } from '~/types/auth'
+import { useI18n } from '~/composables/useI18n'
+
+const { t, locale, setLocale, initLocale } = useI18n()
+
+// 初始化语言设置
+initLocale()
+
+// 全局登录用户。
+const user = useState<AuthUser | null>('auth:user', () => null)
+const isLoggedIn = computed(() => !!user.value)
+
+// ---------- 登录 / 注册弹窗 ----------
+const loginModalVisible = ref(false)
+const loginModalMode = ref<'login' | 'register'>('login')
+
+function openLogin(mode: 'login' | 'register' = 'login') {
+  loginModalMode.value = mode
+  loginModalVisible.value = true
+}
+
+// ---------- 顶栏滚动阴影 ----------
+const scrolled = ref(false)
+const onScroll = () => {
+  scrolled.value = window.scrollY > 4
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+})
+
+// ---------- 页脚年份 ----------
+const year = new Date().getFullYear()
+</script>
+
+<template>
+  <div class="layout-wrapper">
+    <!-- ============ 顶部导航 ============ -->
+    <header class="site-header" :class="{ 'is-scrolled': scrolled }">
+      <div class="container site-header__inner">
+        <!-- 左：Logo -->
+        <NuxtLink to="/" class="site-header__logo">
+          <span class="site-header__logo-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path
+                d="M12 21s-6.7-4.3-9.3-8.1C.6 9.9 2.2 6 6.1 6c2 0 3.5 1.1 4.4 2.4l1.5 2.1 1.5-2.1C14.4 7.1 15.9 6 17.9 6c3.9 0 5.5 3.9 3.4 6.9C18.7 16.7 12 21 12 21z"
+              />
+            </svg>
+          </span>
+          <span class="site-header__logo-text serif">{{ t('app_name') }}</span>
+        </NuxtLink>
+
+        <!-- 中：主导航 -->
+        <nav class="site-header__nav" aria-label="Main Navigation">
+          <NuxtLink to="/" class="site-header__link">{{ t('nav_home') }}</NuxtLink>
+          <NuxtLink to="/pets" class="site-header__link">{{ t('nav_pets') }}</NuxtLink>
+          <NuxtLink to="/about" class="site-header__link">{{ t('nav_about') }}</NuxtLink>
+        </nav>
+
+        <!-- 右：语言切换 + 登录按钮 / 圆形头像 -->
+        <div class="site-header__right">
+          
+          <!-- 语言切换器 -->
+          <div class="lang-switch">
+            <button 
+              type="button"
+              :class="{ 'is-active': locale === 'en' }" 
+              @click="setLocale('en')"
+            >EN</button>
+            <span class="lang-switch__divider">/</span>
+            <button 
+              type="button"
+              :class="{ 'is-active': locale === 'cn' }" 
+              @click="setLocale('cn')"
+            >中</button>
+          </div>
+
+          <!-- 登录 / 头像 -->
+          <template v-if="!isLoggedIn">
+            <button
+              type="button"
+              class="btn btn--ghost btn--sm"
+              @click="openLogin('login')"
+            >
+              {{ t('nav_login') }}
+            </button>
+            <button
+              type="button"
+              class="btn btn--primary btn--sm"
+              @click="openLogin('register')"
+            >
+              {{ t('nav_register') }}
+            </button>
+          </template>
+
+          <NuxtLink
+            v-else
+            :to="`/users/${user!.id}`"
+            class="avatar"
+            :title="user?.nickname"
+            :aria-label="user?.nickname"
+          >
+            <img
+              v-if="user?.avatarUrl"
+              class="avatar__img"
+              :src="user.avatarUrl"
+              :alt="user.nickname"
+            >
+            <span v-else class="avatar__fallback">
+              {{ user?.nickname?.charAt(0)?.toUpperCase() || '?' }}
+            </span>
+          </NuxtLink>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ 主内容 ============ -->
+    <main class="site-main">
+      <slot />
+    </main>
+
+    <!-- ============ 页脚 ============ -->
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <div class="site-footer__brand">
+          <div class="site-footer__name serif">{{ t('app_name') }}</div>
+          <p class="site-footer__desc">{{ t('footer_slogan') }}</p>
+        </div>
+
+        <div class="site-footer__cols">
+          <div class="site-footer__col">
+            <h4 class="site-footer__col-title">{{ t('footer_explore') }}</h4>
+            <NuxtLink to="/pets" class="site-footer__link">{{ t('footer_all_pets') }}</NuxtLink>
+            <NuxtLink to="/about" class="site-footer__link">{{ t('footer_about_us') }}</NuxtLink>
+          </div>
+          <div class="site-footer__col">
+            <h4 class="site-footer__col-title">{{ t('footer_help') }}</h4>
+            <NuxtLink to="/help" class="site-footer__link">{{ t('footer_usage') }}</NuxtLink>
+            <NuxtLink to="/contact" class="site-footer__link">{{ t('footer_contact') }}</NuxtLink>
+          </div>
+          <div class="site-footer__col">
+            <h4 class="site-footer__col-title">{{ t('footer_follow') }}</h4>
+            <a href="#" class="site-footer__link">{{ t('footer_weibo') }}</a>
+            <a href="#" class="site-footer__link">{{ t('footer_wechat') }}</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="site-footer__bottom">
+        <div class="container">
+          {{ t('footer_copyright', { year, app_name: t('app_name') }) }}
+        </div>
+      </div>
+    </footer>
+
+    <!-- ============ 登录 / 注册弹窗 ============ -->
+    <LoginModal
+      v-model="loginModalVisible"
+      :initial-mode="loginModalMode"
+    />
+  </div>
+</template>
+
+<style scoped lang="less">
+@import "~/assets/css/common.less";
+
+// ============================================================
+// 整体骨架
+// ============================================================
+.layout-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: @paper;
+}
+
+.site-main {
+  flex: 1;
+}
+
+// ============================================================
+// 顶部导航
+// ============================================================
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: fade(@paper, 88%);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid @border;
+  transition: box-shadow @dur-base ease;
+
+  &.is-scrolled {
+    box-shadow: @shadow-1;
+  }
+
+  &__inner {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: @sp-5;
+  }
+
+  // ---------- Logo ----------
+  &__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: @sp-2;
+    color: @ink-1;
+    text-decoration: none;
+    flex-shrink: 0;
+
+    &:hover { color: @ink-1; }
+  }
+
+  &__logo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: @accent;
+    color: @ink-1;
+    box-shadow: 0 2px 6px fade(@accent, 45%);
+  }
+
+  &__logo-text {
+    font-size: @fs-lg;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+
+  // ---------- 主导航 ----------
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: @sp-5;
+    margin-left: @sp-4;
+
+    @media (max-width: @bp-md) {
+      display: none;
+    }
+  }
+
+  &__link {
+    position: relative;
+    font-size: @fs-sm;
+    color: @ink-2;
+    transition: color @dur-fast ease;
+
+    &:hover { color: @accent; }
+
+    &.router-link-active {
+      color: @ink-1;
+      font-weight: 500;
+
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -22px;
+        height: 2px;
+        background: @accent;
+        border-radius: 1px;
+      }
+    }
+  }
+
+  // ---------- 右侧操作区 ----------
+  &__right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: @sp-4;
+  }
+}
+
+// ============================================================
+// 语言切换器
+// ============================================================
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: @fs-sm;
+  user-select: none;
+
+  button {
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    color: @ink-3;
+    cursor: pointer;
+    font-size: @fs-sm;
+    border-radius: @radius-sm;
+    transition: all @dur-fast ease;
+
+    &:hover {
+      color: @accent;
+      background: @surface-2;
+    }
+
+    &.is-active {
+      color: @ink-1;
+      font-weight: 600;
+    }
+  }
+
+  &__divider {
+    color: @border-strong;
+    font-size: 12px;
+  }
+}
+
+// ============================================================
+// 用户头像
+// ============================================================
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  text-decoration: none;
+  flex: 0 0 auto;
+  border: 1px solid @border;
+  transition: transform @dur-fast ease, box-shadow @dur-fast ease;
+
+  &:hover {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 3px @accent-soft;
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__fallback {
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: @font-serif;
+    font-size: @fs-base;
+    font-weight: 700;
+    color: @accent;
+    background: @surface-2;
+    user-select: none;
+  }
+}
+
+// ============================================================
+// 页脚
+// ============================================================
+.site-footer {
+  margin-top: auto;
+  background: @surface-2;
+  border-top: 1px solid @border;
+
+  &__inner {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: @sp-6;
+    padding-top: @sp-6;
+    padding-bottom: @sp-6;
+
+    @media (max-width: @bp-md) {
+      grid-template-columns: 1fr;
+      gap: @sp-5;
+    }
+  }
+
+  &__brand {
+    max-width: 340px;
+  }
+
+  &__name {
+    font-size: @fs-lg;
+    font-weight: 700;
+    color: @ink-1;
+    margin-bottom: @sp-2;
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: @fs-sm;
+    color: @ink-2;
+    line-height: @lh-base;
+  }
+
+  &__cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: @sp-4;
+
+    @media (max-width: @bp-sm) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    gap: @sp-2;
+  }
+
+  &__col-title {
+    margin: 0 0 @sp-1;
+    font-size: @fs-sm;
+    font-weight: 600;
+    color: @ink-1;
+  }
+
+  &__link {
+    font-size: @fs-sm;
+    color: @ink-3;
+
+    &:hover { color: @accent; }
+  }
+
+  &__bottom {
+    border-top: 1px solid @border;
+    padding: @sp-4 0;
+    text-align: center;
+    font-size: @fs-xs;
+    color: @ink-3;
+  }
+}
+</style>
