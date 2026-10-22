@@ -831,6 +831,17 @@ useHead(() => ({
             <p class="pet-album__empty-text">
               {{ isOwner ? t("pet_album_empty_owner") : t("pet_album_empty_guest") }}
             </p>
+            
+            <!-- 新增：空相册时直接展示上传按钮给主人 -->
+            <button
+              v-if="isOwner"
+              type="button"
+              class="btn btn--primary btn--sm pet-album__upload-btn"
+              @click="handleUploadPhoto"
+            >
+              <van-icon name="plus" />
+              <span>{{ t("pet_upload_photo") }}</span>
+            </button>
           </div>
         </section>
 
@@ -1586,12 +1597,26 @@ useHead(() => ({
     background: @surface-2;
     border-radius: @radius-lg;
     border: 1px dashed @border;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
   &__empty-text {
     margin: 0;
     font-size: @fs-sm;
     color: @ink-3;
+  }
+
+  // 空状态下的上传按钮样式
+  &__upload-btn {
+    margin-top: @sp-3;
+    gap: @sp-1;
+
+    :deep(.van-icon) {
+      font-size: 14px;
+    }
   }
 }
 
