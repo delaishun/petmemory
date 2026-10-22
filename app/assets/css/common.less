@@ -1052,20 +1052,19 @@ a {
     -webkit-mask: radial-gradient(transparent var(--ring-mask, 62%), #000 calc(var(--ring-mask, 62%) + 1%), #000 100%);
     mask: radial-gradient(transparent var(--ring-mask, 62%), #000 calc(var(--ring-mask, 62%) + 1%), #000 100%);
     animation: spin-effect 20s linear infinite;
-    
-    &::after {
-      content: "";
-      position: absolute;
-      inset: var(--ring-inset, -8px);
-      border-radius: 50%;
-      background-image: 
-        radial-gradient(circle at 50% 0%, #e74c3c 4px, transparent 5px),
-        radial-gradient(circle at 50% 100%, #e74c3c 4px, transparent 5px),
-        radial-gradient(circle at 0% 50%, #e74c3c 4px, transparent 5px),
-        radial-gradient(circle at 100% 50%, #e74c3c 4px, transparent 5px);
-      z-index: 4;
-      pointer-events: none;
-    }
+  }
+  &.effect-christmas::after {
+    content: "";
+    position: absolute;
+    inset: var(--ring-inset, -8px);
+    border-radius: 50%;
+    background-image: 
+      radial-gradient(circle at 50% 0%, #e74c3c 4px, transparent 5px),
+      radial-gradient(circle at 50% 100%, #e74c3c 4px, transparent 5px),
+      radial-gradient(circle at 0% 50%, #e74c3c 4px, transparent 5px),
+      radial-gradient(circle at 100% 50%, #e74c3c 4px, transparent 5px);
+    z-index: 4;
+    pointer-events: none;
   }
 
   // 3. 万圣节 (Halloween)
@@ -1083,24 +1082,23 @@ a {
     -webkit-mask: radial-gradient(transparent var(--ring-mask, 62%), #000 calc(var(--ring-mask, 62%) + 1%), #000 100%);
     mask: radial-gradient(transparent var(--ring-mask, 62%), #000 calc(var(--ring-mask, 62%) + 1%), #000 100%);
     box-shadow: 0 0 15px rgba(255, 107, 129, 0.6);
-    
-    &::after {
-      content: "❤";
-      position: absolute;
-      inset: var(--ring-inset, -8px);
-      font-size: 16px;
-      color: #e74c3c;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-shadow: 
-        0 -55px 0 #e74c3c,
-        0 55px 0 #e74c3c,
-        -55px 0 0 #e74c3c,
-        55px 0 0 #e74c3c;
-      z-index: 4;
-      pointer-events: none;
-    }
+  }
+  &.effect-valentine::after {
+    content: "❤";
+    position: absolute;
+    inset: var(--ring-inset, -8px);
+    font-size: 16px;
+    color: #e74c3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-shadow: 
+      0 -55px 0 #e74c3c,
+      0 55px 0 #e74c3c,
+      -55px 0 0 #e74c3c,
+      55px 0 0 #e74c3c;
+    z-index: 4;
+    pointer-events: none;
   }
 
   // 5. 春节 (Spring)
@@ -1132,21 +1130,20 @@ a {
     mask: radial-gradient(transparent var(--ring-mask, 62%), #000 calc(var(--ring-mask, 62%) + 1%), #000 100%);
     animation: spin-effect 18s linear infinite;
     box-shadow: 0 0 15px rgba(230, 126, 34, 0.6);
-    
-    &::after {
-      content: "";
-      position: absolute;
-      inset: var(--ring-inset, -8px);
-      border-radius: 50%;
-      background-image: 
-        radial-gradient(circle at 20% 20%, #d35400 4px, transparent 5px),
-        radial-gradient(circle at 80% 80%, #d35400 4px, transparent 5px),
-        radial-gradient(circle at 80% 20%, #e67e22 3px, transparent 4px),
-        radial-gradient(circle at 20% 80%, #e67e22 3px, transparent 4px);
-      z-index: 4;
-      pointer-events: none;
-      animation: pulse-effect 3s ease-in-out infinite alternate;
-    }
+  }
+  &.effect-thanksgiving::after {
+    content: "";
+    position: absolute;
+    inset: var(--ring-inset, -8px);
+    border-radius: 50%;
+    background-image: 
+      radial-gradient(circle at 20% 20%, #d35400 4px, transparent 5px),
+      radial-gradient(circle at 80% 80%, #d35400 4px, transparent 5px),
+      radial-gradient(circle at 80% 20%, #e67e22 3px, transparent 4px),
+      radial-gradient(circle at 20% 80%, #e67e22 3px, transparent 4px);
+    z-index: 4;
+    pointer-events: none;
+    animation: pulse-effect 3s ease-in-out infinite alternate;
   }
 
   // 8. 重阳节 (Double Ninth)：菊花金 + 光晕
@@ -1165,17 +1162,16 @@ a {
     mask: radial-gradient(transparent var(--ring-mask, 64%), #000 calc(var(--ring-mask, 64%) + 1%), #000 100%);
     box-shadow: 0 0 15px rgba(163, 228, 215, 0.6);
     animation: pulse-effect 5s ease-in-out infinite alternate;
-
-    &::after {
-      content: "";
-      position: absolute;
-      inset: var(--ring-inset, -8px);
-      border-radius: 50%;
-      background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255, 255, 255, 0.6) 4px, rgba(255, 255, 255, 0.6) 6px);
-      z-index: 4;
-      pointer-events: none;
-      opacity: 0.8;
-    }
+  }
+  &.effect-tomb-sweeping::after {
+    content: "";
+    position: absolute;
+    inset: var(--ring-inset, -8px);
+    border-radius: 50%;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255, 255, 255, 0.6) 4px, rgba(255, 255, 255, 0.6) 6px);
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0.8;
   }
 
   // 10. 端午节 (Loong Boat)：艾草翠绿
@@ -1194,21 +1190,20 @@ a {
     mask: radial-gradient(transparent var(--ring-mask, 64%), #000 calc(var(--ring-mask, 64%) + 1%), #000 100%);
     box-shadow: 0 0 20px rgba(244, 208, 63, 0.6);
     animation: spin-effect 25s linear infinite;
-    
-    &::after {
-      content: "";
-      position: absolute;
-      inset: var(--ring-inset, -8px);
-      border-radius: 50%;
-      background-image: 
-        radial-gradient(circle at 50% 0%, #fff 3px, transparent 4px),
-        radial-gradient(circle at 50% 100%, #fff 3px, transparent 4px),
-        radial-gradient(circle at 0% 50%, #fff 3px, transparent 4px),
-        radial-gradient(circle at 100% 50%, #fff 3px, transparent 4px);
-      z-index: 4;
-      pointer-events: none;
-      animation: pulse-effect 4s ease-in-out infinite alternate;
-    }
+  }
+  &.effect-mid-autumn::after {
+    content: "";
+    position: absolute;
+    inset: var(--ring-inset, -8px);
+    border-radius: 50%;
+    background-image: 
+      radial-gradient(circle at 50% 0%, #fff 3px, transparent 4px),
+      radial-gradient(circle at 50% 100%, #fff 3px, transparent 4px),
+      radial-gradient(circle at 0% 50%, #fff 3px, transparent 4px),
+      radial-gradient(circle at 100% 50%, #fff 3px, transparent 4px);
+    z-index: 4;
+    pointer-events: none;
+    animation: pulse-effect 4s ease-in-out infinite alternate;
   }
 }
 
