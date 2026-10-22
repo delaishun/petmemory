@@ -313,4 +313,16 @@ export default {
   mood_calm: 'Calm',
   mood_smile: 'Smile',
   mood_happy: 'Happy',
+
+    // About Page
+  about_title: 'About Pet Memories',
+  about_subtitle: 'Leave a warm and tender place for your beloved pet.',
+  about_album_title: 'Time Album',
+  about_album_desc: 'Upload photos anytime to keep every beautiful moment of them.',
+  about_interact_title: 'Warm Companionship',
+  about_interact_desc: 'Visit anytime to leave a message, share a conversation, or send a little gift. Every gift warms their heart and boosts their mood score!',
+  about_drawing_title: 'Custom Hand-Drawn',
+  about_drawing_desc: 'Commission a custom, 100% hand-drawn portrait. A short video of the drawing process will be recorded to witness the creation.',
+  about_vip_title: 'VIP Privileges',
+  about_vip_desc: 'VIP pets enjoy beautifully themed background panels that change with festivals. Get bonus points with VIP, and VIP time with points.',
 }

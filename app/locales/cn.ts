@@ -313,4 +313,16 @@ export default {
   mood_calm: '平静',
   mood_smile: '微笑',
   mood_happy: '开心',
+
+    // 关于页面
+  about_title: '关于宠忆',
+  about_subtitle: '在宠忆，为心爱的宠物留一片温暖的自留地。',
+  about_album_title: '时光相册',
+  about_album_desc: '随时为 ta 上传照片，留住每一个美好瞬间。',
+  about_interact_title: '温暖陪伴',
+  about_interact_desc: '随时来看看它、给它留言、与它谈心，或是送上一份小礼物。收到礼物的 ta 心情值会偷偷上涨，开心很久哦。',
+  about_drawing_title: '专属手绘',
+  about_drawing_desc: '为您与爱宠定制纯手工画作，绘画过程将录制简短视频，见证这份温暖记忆的诞生。',
+  about_vip_title: '会员尊享',
+  about_vip_desc: '成为 VIP，宠物主页将解锁精美动态背景面板，并随节日更替变幻。开通 VIP 即赠积分，购买积分亦享 VIP 时长。',
 }
