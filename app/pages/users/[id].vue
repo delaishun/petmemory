@@ -104,6 +104,23 @@ function onAvatarUpdated(updated: PublicUser) {
   }
 }
 
+// ---------- 昵称编辑 ----------
+const editNicknameModalVisible = ref(false)
+
+function handleEditNickname() {
+  editNicknameModalVisible.value = true
+}
+
+function onNicknameUpdated(updated: PublicUser) {
+  if (!user.value) return
+  // 更新页面数据
+  user.value = { ...user.value, nickname: updated.nickname }
+  // 同步顶部导航栏的昵称
+  if (me.value && me.value.id === updated.id) {
+    me.value = { ...me.value, nickname: updated.nickname }
+  }
+}
+
 // ============================================================
 // 积分展示
 // - 本人：优先读全局 me.point（宠物页送礼后 refreshMe 会更新它），
@@ -198,7 +215,7 @@ useHead(() => ({
             </button>
           </div>
 
-          <!-- 名字 + VIP 图标 -->
+          <!-- 名字 + VIP 图标 + 修改昵称 -->
           <div class="user-hero__title-wrap">
             <h1 class="user-hero__name">{{ user.nickname }}</h1>
             <van-icon
@@ -207,6 +224,16 @@ useHead(() => ({
               class="user-hero__vip-icon"
               @click="vipModalVisible = true"
             />
+            <!-- 本人可见：修改昵称 -->
+            <button
+              v-if="isSelf"
+              type="button"
+              class="user-hero__edit-nickname"
+              :aria-label="t('user_change_nickname')"
+              @click="handleEditNickname"
+            >
+              <van-icon name="edit" />
+            </button>
           </div>
 
           <!-- 本人可见的积分展示（data source 见 displayPoint） -->
@@ -271,6 +298,14 @@ useHead(() => ({
     <AvatarUploadModal
       v-model="avatarModalVisible"
       @success="onAvatarUpdated"
+    />
+
+    <!-- 修改昵称弹窗 -->
+    <EditNicknameModal
+      v-if="user"
+      v-model="editNicknameModalVisible"
+      :current-nickname="user.nickname"
+      @success="onNicknameUpdated"
     />
 
     <!-- VIP 权益说明弹窗 -->
@@ -423,6 +458,32 @@ useHead(() => ({
     
     &:active {
       transform: scale(0.95);
+    }
+  }
+
+  // 修改昵称图标
+  &__edit-nickname {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    font-size: 14px;
+    color: @ink-3;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all @dur-fast ease;
+
+    &:hover {
+      color: @accent;
+      background: @accent-soft;
+    }
+
+    &:active {
+      transform: scale(.92);
     }
   }
 

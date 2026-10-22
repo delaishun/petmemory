@@ -325,4 +325,11 @@ export default {
   about_drawing_desc: '为您与爱宠定制纯手工画作，绘画过程将录制简短视频，见证这份温暖记忆的诞生。',
   about_vip_title: '会员尊享',
   about_vip_desc: '成为 VIP，宠物主页将解锁精美动态背景面板，并随节日更替变幻。开通 VIP 即赠积分，购买积分亦享 VIP 时长。',
+
+  user_change_nickname: '修改昵称',
+  edit_nickname_title: '修改昵称',
+  edit_nickname_placeholder: '请输入 1-50 个字符的新昵称',
+  edit_nickname_empty: '昵称不能为空',
+  edit_nickname_success: '昵称已修改',
+  edit_nickname_failed: '修改失败，请稍后重试',
 }

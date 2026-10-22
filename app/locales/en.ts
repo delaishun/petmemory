@@ -325,4 +325,11 @@ export default {
   about_drawing_desc: 'Commission a custom, 100% hand-drawn portrait. A short video of the drawing process will be recorded to witness the creation.',
   about_vip_title: 'VIP Privileges',
   about_vip_desc: 'VIP pets enjoy beautifully themed background panels that change with festivals. Get bonus points with VIP, and VIP time with points.',
+
+  user_change_nickname: 'Change Nickname',
+  edit_nickname_title: 'Change Nickname',
+  edit_nickname_placeholder: 'Enter a new nickname (1-50 chars)',
+  edit_nickname_empty: 'Nickname cannot be empty',
+  edit_nickname_success: 'Nickname updated',
+  edit_nickname_failed: 'Update failed, please try again',
 }
