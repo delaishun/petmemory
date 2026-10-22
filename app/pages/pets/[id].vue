@@ -4,14 +4,14 @@ import type { AuthUser, MeResponse } from "~/types/auth";
 import type { EditablePet } from "~/components/EditPetModal.vue";
 import type { PetGiftSummary } from "~/components/GiftModal.vue";
 import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant";
-import { useI18n } from '~/composables/useI18n'
-import { useEffectBackgrounds } from '~/composables/usePetEffect'
+import { useI18n } from "~/composables/useI18n";
+import { useEffectBackgrounds } from "~/composables/usePetEffect";
 
 // ============================================================
 // 国际化 & 特效逻辑
 // ============================================================
-const { t, locale } = useI18n()
-const { getEffectClass, getEffectStyle } = useEffectBackgrounds()
+const { t, locale } = useI18n();
+const { getEffectClass, getEffectStyle } = useEffectBackgrounds();
 
 // ============================================================
 // 类型
@@ -154,9 +154,10 @@ const { data: giftRecords, refresh: refreshGiftRecords } = await useAsyncData<
 );
 
 // 获取主页公开对话
-const { data: publicChat, refresh: refreshPublicChat } = await useAsyncData<
-  PublicChatResponse
->(
+const {
+  data: publicChat,
+  refresh: refreshPublicChat,
+} = await useAsyncData<PublicChatResponse>(
   () => `pet:${slug.value}:public-chat`,
   () => $api<PublicChatResponse>(`/api/pets/${slug.value}/public-chat`)
 );
@@ -172,12 +173,12 @@ const giftItems = computed<GiftRecordPublic[]>(() => giftRecords.value ?? []);
 // 心情状态文本
 // ============================================================
 const moodStatusText = computed(() => {
-  if (!pet.value) return ''
-  const score = pet.value.moodScore
-  if (score > 150) return t('mood_happy')
-  if (score > 50) return t('mood_smile')
-  return t('mood_calm')
-})
+  if (!pet.value) return "";
+  const score = pet.value.moodScore;
+  if (score > 150) return t("mood_happy");
+  if (score > 50) return t("mood_smile");
+  return t("mood_calm");
+});
 
 // ============================================================
 // 登录 & 主人判断
@@ -258,18 +259,20 @@ async function toggleChatVisibility() {
     isChatPublic.value = !isChatPublic.value;
     showToast({
       type: "success",
-      message: isChatPublic.value ? t('chat_visibility_public') : t('chat_visibility_private'),
+      message: isChatPublic.value
+        ? t("chat_visibility_public")
+        : t("chat_visibility_private"),
     });
     await refreshPublicChat();
   } catch (err: any) {
-    showToast(err?.data?.error || t('msg_operation_failed'));
+    showToast(err?.data?.error || t("msg_operation_failed"));
   }
 }
 
 // ============================================================
 // VIP 权益弹窗
 // ============================================================
-const vipModalVisible = ref(false)
+const vipModalVisible = ref(false);
 
 // ============================================================
 // 编辑弹窗
@@ -308,15 +311,15 @@ const uploadPhotoModalVisible = ref(false);
 
 function handleUploadPhoto() {
   if (!me.value) {
-    showDialog({ message: t('msg_please_login') });
+    showDialog({ message: t("msg_please_login") });
     return;
   }
 
   if (!me.value.isVip) {
     showDialog({
-      title: t('vip_feature_title'),
-      message: t('vip_feature_album_desc'),
-      confirmButtonText: t('btn_i_know'),
+      title: t("vip_feature_title"),
+      message: t("vip_feature_album_desc"),
+      confirmButtonText: t("btn_i_know"),
     });
     return;
   }
@@ -354,10 +357,10 @@ async function handleDeletePhoto(photo: PhotoPublic) {
 
   try {
     await showConfirmDialog({
-      title: t('dialog_delete_photo_title'),
-      message: t('dialog_delete_photo_desc'),
-      confirmButtonText: t('btn_delete'),
-      cancelButtonText: t('btn_cancel'),
+      title: t("dialog_delete_photo_title"),
+      message: t("dialog_delete_photo_desc"),
+      confirmButtonText: t("btn_delete"),
+      cancelButtonText: t("btn_cancel"),
       confirmButtonColor: "#C25A5A",
     });
   } catch {
@@ -370,10 +373,10 @@ async function handleDeletePhoto(photo: PhotoPublic) {
     });
 
     photos.value = (photos.value ?? []).filter((p) => p.id !== photo.id);
-    showToast({ type: "success", message: t('msg_deleted') });
+    showToast({ type: "success", message: t("msg_deleted") });
   } catch (err: any) {
     showToast(
-      err?.data?.error || err?.data?.message || err?.message || t('msg_delete_failed')
+      err?.data?.error || err?.data?.message || err?.message || t("msg_delete_failed")
     );
   }
 }
@@ -402,7 +405,7 @@ const messageModalVisible = ref(false);
 
 function handleMessage() {
   if (!me.value) {
-    showDialog({ message: t('msg_please_login') });
+    showDialog({ message: t("msg_please_login") });
     return;
   }
   messageModalVisible.value = true;
@@ -425,10 +428,10 @@ async function handleDeleteMessage(message: MessagePublic) {
 
   try {
     await showConfirmDialog({
-      title: t('dialog_delete_msg_title'),
-      message: t('dialog_delete_msg_desc'),
-      confirmButtonText: t('btn_delete'),
-      cancelButtonText: t('btn_cancel'),
+      title: t("dialog_delete_msg_title"),
+      message: t("dialog_delete_msg_desc"),
+      confirmButtonText: t("btn_delete"),
+      cancelButtonText: t("btn_cancel"),
       confirmButtonColor: "#C25A5A",
     });
   } catch {
@@ -446,10 +449,10 @@ async function handleDeleteMessage(message: MessagePublic) {
         total: messages.value.total - 1,
       };
     }
-    showToast({ type: "success", message: t('msg_deleted') });
+    showToast({ type: "success", message: t("msg_deleted") });
   } catch (err: any) {
     showToast(
-      err?.data?.error || err?.data?.message || err?.message || t('msg_delete_failed')
+      err?.data?.error || err?.data?.message || err?.message || t("msg_delete_failed")
     );
   }
 }
@@ -479,7 +482,7 @@ async function loadMoreMessages() {
       total: more.total,
     };
   } catch (err: any) {
-    showToast(err?.data?.error || t('common_load_failed'));
+    showToast(err?.data?.error || t("common_load_failed"));
   } finally {
     loadingMoreMessages.value = false;
   }
@@ -493,7 +496,7 @@ const giftModalVisible = ref(false);
 
 function handleGift() {
   if (!me.value) {
-    showDialog({ message: t('msg_please_login') });
+    showDialog({ message: t("msg_please_login") });
     return;
   }
   giftModalVisible.value = true;
@@ -518,11 +521,7 @@ async function refreshMe() {
 async function onGiftsSent(summary: PetGiftSummary[]) {
   giftSummary.value = summary;
   // 礼物明细、宠物（含新心情值）、当前用户积分三者互不依赖，并行刷新
-  await Promise.all([
-    refreshGiftRecords(),
-    refreshPet(),
-    refreshMe(),
-  ]);
+  await Promise.all([refreshGiftRecords(), refreshPet(), refreshMe()]);
 }
 
 // ============================================================
@@ -545,20 +544,20 @@ const chatModalVisible = ref(false);
 
 function handleChat() {
   if (!me.value) {
-    showDialog({ message: t('msg_please_login') });
+    showDialog({ message: t("msg_please_login") });
     return;
   }
 
   if (!isOwner.value) {
-    showDialog({ message: t('vip_feature_chat_owner_only') });
+    showDialog({ message: t("vip_feature_chat_owner_only") });
     return;
   }
 
   if (!me.value.isVip) {
     showDialog({
-      title: t('vip_feature_title'),
-      message: t('vip_feature_chat_desc'),
-      confirmButtonText: t('btn_i_know'),
+      title: t("vip_feature_title"),
+      message: t("vip_feature_chat_desc"),
+      confirmButtonText: t("btn_i_know"),
     });
     return;
   }
@@ -584,10 +583,10 @@ function formatTime(iso: string): string {
   const hour = 60 * minute;
   const day = 24 * hour;
 
-  if (diff < minute) return t('time_just_now');
-  if (diff < hour) return t('time_mins_ago', { n: Math.floor(diff / minute) });
-  if (diff < day) return t('time_hours_ago', { n: Math.floor(diff / hour) });
-  if (diff < 7 * day) return t('time_days_ago', { n: Math.floor(diff / day) });
+  if (diff < minute) return t("time_just_now");
+  if (diff < hour) return t("time_mins_ago", { n: Math.floor(diff / minute) });
+  if (diff < day) return t("time_hours_ago", { n: Math.floor(diff / hour) });
+  if (diff < 7 * day) return t("time_days_ago", { n: Math.floor(diff / day) });
 
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -635,7 +634,11 @@ const defaultOwnerAvatar =
 
 const genderText = computed(() => {
   if (!pet.value) return "";
-  return pet.value.gender === 1 ? t('gender_boy') : pet.value.gender === 2 ? t('gender_girl') : "";
+  return pet.value.gender === 1
+    ? t("gender_boy")
+    : pet.value.gender === 2
+    ? t("gender_girl")
+    : "";
 });
 
 const introParts = computed(() => {
@@ -643,34 +646,34 @@ const introParts = computed(() => {
   const p = pet.value;
   const parts: string[] = [];
 
-  if (locale.value === 'en') {
+  if (locale.value === "en") {
     // 英文拼接逻辑
     if (p.species && p.breed) {
-      parts.push(`${t('intro_is_a')} ${p.species}${t('intro_breed_is')} ${p.breed}`);
+      parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")} ${p.breed}`);
     } else if (p.species) {
-      parts.push(`${t('intro_is_a')} ${p.species}`);
+      parts.push(`${t("intro_is_a")} ${p.species}`);
     } else if (p.breed) {
       parts.push(`breed ${p.breed}`);
     }
-    
+
     if (genderText.value) parts.push(genderText.value);
-    if (p.hometown) parts.push(`${t('from')} ${p.hometown}`);
-    if (p.birthday) parts.push(`${t('intro_born_on')} ${p.birthday}`);
+    if (p.hometown) parts.push(`${t("from")} ${p.hometown}`);
+    if (p.birthday) parts.push(`${t("intro_born_on")} ${p.birthday}`);
   } else {
     // 中文拼接逻辑
     if (p.species && p.breed) {
-      parts.push(`${t('intro_is_a')} ${p.species}${t('intro_breed_is')}${p.breed}`);
+      parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")}${p.breed}`);
     } else if (p.species) {
-      parts.push(`${t('intro_is_a')} ${p.species}`);
+      parts.push(`${t("intro_is_a")} ${p.species}`);
     } else if (p.breed) {
       parts.push(`品种是${p.breed}`);
     }
 
     if (genderText.value) parts.push(genderText.value);
-    if (p.hometown) parts.push(`${t('from')}${p.hometown}`);
-    if (p.birthday) parts.push(`${p.birthday} ${t('intro_born_on')}`);
+    if (p.hometown) parts.push(`${t("from")}${p.hometown}`);
+    if (p.birthday) parts.push(`${p.birthday} ${t("intro_born_on")}`);
   }
-  
+
   return parts;
 });
 
@@ -679,7 +682,9 @@ const introParts = computed(() => {
 // ============================================================
 
 useHead(() => ({
-  title: pet.value ? `${pet.value.name} · ${t('app_name')}` : `${t('nav_pets')} · ${t('app_name')}`,
+  title: pet.value
+    ? `${pet.value.name} · ${t("app_name")}`
+    : `${t("nav_pets")} · ${t("app_name")}`,
 }));
 </script>
 
@@ -695,21 +700,24 @@ useHead(() => ({
 
       <!-- 加载失败 -->
       <div v-else-if="error || !pet" class="empty">
-        <p class="empty__title">{{ t('pet_not_found') }}</p>
-        <p class="empty__desc">{{ t('pet_not_found_desc') }}</p>
-        <NuxtLink to="/" class="btn btn--primary mt-4">{{ t('btn_back_home') }}</NuxtLink>
+        <p class="empty__title">{{ t("pet_not_found") }}</p>
+        <p class="empty__desc">{{ t("pet_not_found_desc") }}</p>
+        <NuxtLink to="/" class="btn btn--primary mt-4">{{ t("btn_back_home") }}</NuxtLink>
       </div>
 
       <!-- 宠物主页 -->
       <template v-else>
         <!-- 头部：绑定动态样式和特效类名 -->
-        <div 
-          class="pet-hero" 
+        <div
+          class="pet-hero"
           :style="getEffectStyle(isVipPet)"
           :class="{ 'is-vip-panel': isVipPet }"
         >
           <!-- 头像包裹层：绑定特效类名 (保留原头像) -->
-          <div class="pet-hero__avatar-wrap avatar-effect" :class="getEffectClass(isVipPet)">
+          <div
+            class="pet-hero__avatar-wrap avatar-effect"
+            :class="getEffectClass(isVipPet)"
+          >
             <img
               class="pet-hero__avatar"
               :src="pet.avatarUrl || defaultPetAvatar"
@@ -721,7 +729,9 @@ useHead(() => ({
           <div class="pet-hero__content">
             <h1 class="pet-hero__name">
               {{ pet.name }}
-              <span v-if="pet.status === 0" class="pet-hero__hidden-tag"> {{ t('pet_hidden') }} </span>
+              <span v-if="pet.status === 0" class="pet-hero__hidden-tag">
+                {{ t("pet_hidden") }}
+              </span>
             </h1>
 
             <!-- 心情值展示 -->
@@ -731,23 +741,26 @@ useHead(() => ({
                 <span class="pet-mood__score">{{ pet.moodScore }} / 300</span>
               </div>
               <div class="pet-mood__bar">
-                <div class="pet-mood__fill" :style="{ width: `${(pet.moodScore / 300) * 100}%` }" />
+                <div
+                  class="pet-mood__fill"
+                  :style="{ width: `${(pet.moodScore / 300) * 100}%` }"
+                />
               </div>
             </div>
 
             <p v-if="introParts.length" class="pet-hero__intro">
               {{ pet.name
               }}<span v-for="(part, i) in introParts" :key="i"
-                >{{ i === 0 ? " " : (locale === 'en' ? ", " : "，") }}{{ part }}</span
-              >{{ locale === 'en' ? '.' : '。' }}
+                >{{ i === 0 ? " " : locale === "en" ? ", " : "，" }}{{ part }}</span
+              >{{ locale === "en" ? "." : "。" }}
             </p>
             <p v-else class="pet-hero__intro pet-hero__intro--empty">
-              {{ t('pet_no_bio') }}
+              {{ t("pet_no_bio") }}
             </p>
 
             <!-- 主人信息区，包含 VIP 图标 -->
             <div class="pet-hero__owner">
-              {{ t('pet_owner') }}{{ locale === 'en' ? ': ' : '：' }}
+              {{ t("pet_owner") }}{{ locale === "en" ? ": " : "：" }}
               <NuxtLink :to="`/users/${pet.owner.id}`" class="pet-hero__owner-link">
                 {{ pet.owner.nickname }}
               </NuxtLink>
@@ -767,7 +780,7 @@ useHead(() => ({
         <section class="pet-album">
           <div class="section-title">
             <div class="section-title__left">
-              <h2 class="section-title__main">{{ t('pet_album') }}</h2>
+              <h2 class="section-title__main">{{ t("pet_album") }}</h2>
               <button
                 v-if="isOwner && photos && photos.length"
                 type="button"
@@ -781,7 +794,7 @@ useHead(() => ({
             </div>
 
             <span v-if="photos && photos.length" class="pet-album__count">
-              {{ photos.length }} / 20 {{ locale === 'en' ? 'photos' : '张' }}
+              {{ photos.length }} / 20 {{ locale === "en" ? "photos" : "张" }}
             </span>
           </div>
 
@@ -816,7 +829,7 @@ useHead(() => ({
 
           <div v-else class="pet-album__empty">
             <p class="pet-album__empty-text">
-              {{ isOwner ? t('pet_album_empty_owner') : t('pet_album_empty_guest') }}
+              {{ isOwner ? t("pet_album_empty_owner") : t("pet_album_empty_guest") }}
             </p>
           </div>
         </section>
@@ -827,9 +840,11 @@ useHead(() => ({
         <section v-if="giftItems.length" class="pet-gifts">
           <div class="section-title">
             <div class="section-title__left">
-              <h2 class="section-title__main">{{ t('pet_gifts') }}</h2>
+              <h2 class="section-title__main">{{ t("pet_gifts") }}</h2>
             </div>
-            <span class="pet-gifts__total"> {{ t('pet_gifts_total', { n: totalGiftCount }) }} </span>
+            <span class="pet-gifts__total">
+              {{ t("pet_gifts_total", { n: totalGiftCount }) }}
+            </span>
           </div>
 
           <div class="gift-grid">
@@ -852,7 +867,7 @@ useHead(() => ({
         <section class="pet-public-chat">
           <div class="section-title">
             <div class="section-title__left">
-              <h2 class="section-title__main">{{ t('pet_chat_title') }}</h2>
+              <h2 class="section-title__main">{{ t("pet_chat_title") }}</h2>
             </div>
             <!-- 本人可见的切换按钮 -->
             <button
@@ -861,7 +876,7 @@ useHead(() => ({
               class="btn btn--sm pet-public-chat__toggle"
               @click="toggleChatVisibility"
             >
-              {{ isChatPublic ? t('chat_hide') : t('chat_show') }}
+              {{ isChatPublic ? t("chat_hide") : t("chat_show") }}
             </button>
           </div>
 
@@ -869,14 +884,18 @@ useHead(() => ({
           <div class="pet-expression" v-if="pet.currentExpressionUrl || pet.isGenerating">
             <div class="pet-expression__top">
               <div class="pet-expression__circle">
-                <img v-if="pet.currentExpressionUrl" :src="pet.currentExpressionUrl" alt="Pet Expression" />
+                <img
+                  v-if="pet.currentExpressionUrl"
+                  :src="pet.currentExpressionUrl"
+                  alt="Pet Expression"
+                />
                 <van-loading v-else type="spinner" color="#E8A87C" size="24" />
               </div>
               <div class="pet-expression__hint">
-                {{ t('pet_expression_mood_hint', { name: pet.name }) }}
+                {{ t("pet_expression_mood_hint", { name: pet.name }) }}
               </div>
             </div>
-            
+
             <!-- 下方的心情显示条 -->
             <div class="pet-mood pet-expression__mood">
               <div class="pet-mood__label">
@@ -884,13 +903,19 @@ useHead(() => ({
                 <span class="pet-mood__score">{{ pet.moodScore }} / 300</span>
               </div>
               <div class="pet-mood__bar">
-                <div class="pet-mood__fill" :style="{ width: `${(pet.moodScore / 300) * 100}%` }" />
+                <div
+                  class="pet-mood__fill"
+                  :style="{ width: `${(pet.moodScore / 300) * 100}%` }"
+                />
               </div>
             </div>
           </div>
 
           <!-- 1. 有真实对话（且对你可见） -->
-          <div v-if="publicChat?.hasConversation && publicChat?.messages.length" class="pet-public-chat__list">
+          <div
+            v-if="publicChat?.hasConversation && publicChat?.messages.length"
+            class="pet-public-chat__list"
+          >
             <div
               v-for="msg in publicChat.messages"
               :key="msg.id"
@@ -913,7 +938,12 @@ useHead(() => ({
           <!-- 2. 无对话（或对话被隐藏） -->
           <div v-else class="pet-public-chat__empty">
             <p class="pet-public-chat__empty-text">
-              {{ t('pet_public_chat_empty', { petName: publicChat?.petName || '', ownerNickname: publicChat?.ownerNickname || '' }) }}
+              {{
+                t("pet_public_chat_empty", {
+                  petName: publicChat?.petName || "",
+                  ownerNickname: publicChat?.ownerNickname || "",
+                })
+              }}
             </p>
           </div>
         </section>
@@ -924,10 +954,10 @@ useHead(() => ({
         <section class="pet-messages">
           <div class="section-title">
             <div class="section-title__left">
-              <h2 class="section-title__main">{{ t('pet_messages') }}</h2>
+              <h2 class="section-title__main">{{ t("pet_messages") }}</h2>
             </div>
             <span v-if="messages && messages.total" class="pet-messages__count">
-              {{ t('pet_messages_count', { n: messages.total }) }}
+              {{ t("pet_messages_count", { n: messages.total }) }}
             </span>
           </div>
 
@@ -966,7 +996,9 @@ useHead(() => ({
                     {{ msg.author.nickname }}
                   </span>
 
-                  <span v-if="msg.author.isOwner" class="msg-item__tag"> {{ t('pet_owner_tag') }} </span>
+                  <span v-if="msg.author.isOwner" class="msg-item__tag">
+                    {{ t("pet_owner_tag") }}
+                  </span>
                   <span class="msg-item__time">
                     {{ formatTime(msg.createdAt) }}
                   </span>
@@ -994,7 +1026,7 @@ useHead(() => ({
                 :disabled="loadingMoreMessages"
                 @click="loadMoreMessages"
               >
-                {{ loadingMoreMessages ? t('pets_loading') : t('pet_load_more_msg') }}
+                {{ loadingMoreMessages ? t("pets_loading") : t("pet_load_more_msg") }}
               </button>
             </div>
           </div>
@@ -1002,7 +1034,7 @@ useHead(() => ({
           <!-- 空状态 -->
           <div v-else class="pet-messages__empty">
             <p class="pet-messages__empty-text">
-              {{ isLoggedIn ? t('pet_msg_empty_owner') : t('pet_msg_empty_guest') }}
+              {{ isLoggedIn ? t("pet_msg_empty_owner") : t("pet_msg_empty_guest") }}
             </p>
           </div>
         </section>
@@ -1014,13 +1046,13 @@ useHead(() => ({
           <!-- 当前积分（登录后展示，送礼后会随 refreshMe 更新） -->
           <div v-if="isLoggedIn && myPoint !== undefined" class="pet-actions__points">
             <van-icon name="gold-coin-o" />
-            <span>{{ t('user_points', { n: myPoint }) }}</span>
+            <span>{{ t("user_points", { n: myPoint }) }}</span>
           </div>
 
           <!-- 第一行：主人操作 -->
           <div class="pet-actions__row">
             <button v-if="isOwner" type="button" class="btn btn--lg" @click="handleEdit">
-              {{ t('pet_edit_info') }}
+              {{ t("pet_edit_info") }}
             </button>
             <button
               v-if="isOwner"
@@ -1028,7 +1060,7 @@ useHead(() => ({
               class="btn btn--primary btn--lg"
               @click="handleUploadPhoto"
             >
-              {{ t('pet_upload_photo') }}
+              {{ t("pet_upload_photo") }}
             </button>
             <button
               v-if="isOwner"
@@ -1037,14 +1069,18 @@ useHead(() => ({
               @click="handleChat"
             >
               <van-icon name="chat-o" />
-              <span>{{ t('pet_chat') }}</span>
+              <span>{{ t("pet_chat") }}</span>
             </button>
           </div>
-          
+
           <!-- 第二行：留言/赠礼 -->
           <div class="pet-actions__row">
-            <button type="button" class="btn btn--lg" @click="handleMessage">{{ t('pet_leave_msg') }}</button>
-            <button type="button" class="btn btn--lg" @click="handleGift">{{ t('pet_send_gift') }}</button>
+            <button type="button" class="btn btn--lg" @click="handleMessage">
+              {{ t("pet_leave_msg") }}
+            </button>
+            <button type="button" class="btn btn--lg" @click="handleGift">
+              {{ t("pet_send_gift") }}
+            </button>
           </div>
         </div>
       </template>
@@ -1062,19 +1098,22 @@ useHead(() => ({
     >
       <div class="expression-modal">
         <template v-if="!pet?.currentExpressionUrl">
-          <h3 class="expression-modal__title">{{ t('pet_expression_generating') }}</h3>
-          <p class="expression-modal__subtitle">{{ t('pet_expression_please_wait') }}</p>
+          <h3 class="expression-modal__title">{{ t("pet_expression_generating") }}</h3>
+          <p class="expression-modal__subtitle">{{ t("pet_expression_please_wait") }}</p>
           <div class="expression-modal__circle">
             <span>loading...</span>
           </div>
         </template>
         <template v-else>
-          <h3 class="expression-modal__title">{{ t('pet_expression_done') }}</h3>
+          <h3 class="expression-modal__title">{{ t("pet_expression_done") }}</h3>
           <div class="expression-modal__circle expression-modal__circle--has-img">
             <img :src="pet.currentExpressionUrl" alt="expression" />
           </div>
-          <button class="btn btn--primary expression-modal__close" @click="expressionModalVisible = false">
-            {{ t('btn_close') }}
+          <button
+            class="btn btn--primary expression-modal__close"
+            @click="expressionModalVisible = false"
+          >
+            {{ t("btn_close") }}
           </button>
         </template>
       </div>
@@ -1134,12 +1173,12 @@ useHead(() => ({
           <img :src="currentGiftRecord.giftImageUrl" :alt="currentGiftRecord.giftName" />
         </div>
         <p class="gift-record__label">
-          {{ t('gift_record_label') }}<strong>{{ currentGiftRecord.giftName }}</strong>
+          {{ t("gift_record_label") }}<strong>{{ currentGiftRecord.giftName }}</strong>
         </p>
 
         <div class="gift-record__divider" />
 
-        <p class="gift-record__from">{{ t('gift_record_from') }}</p>
+        <p class="gift-record__from">{{ t("gift_record_from") }}</p>
 
         <NuxtLink
           v-if="currentGiftRecord.sender.id"
@@ -1160,7 +1199,7 @@ useHead(() => ({
         <div v-else class="gift-record__sender gift-record__sender--anon">
           <img class="gift-record__avatar" :src="defaultOwnerAvatar" alt="anon" />
           <span class="gift-record__name">
-            {{ currentGiftRecord.sender.nickname || t('gift_record_anon') }}
+            {{ currentGiftRecord.sender.nickname || t("gift_record_anon") }}
           </span>
         </div>
 
@@ -1173,7 +1212,7 @@ useHead(() => ({
           class="btn btn--primary gift-record__close"
           @click="giftRecordModalVisible = false"
         >
-          {{ t('btn_close') }}
+          {{ t("btn_close") }}
         </button>
       </div>
     </van-popup>
@@ -1188,17 +1227,17 @@ useHead(() => ({
       <div class="vip-popup">
         <div class="vip-popup__header">
           <van-icon name="gem-o" class="vip-popup__icon" />
-          <h3 class="vip-popup__title">{{ t('user_vip_title') }}</h3>
+          <h3 class="vip-popup__title">{{ t("user_vip_title") }}</h3>
         </div>
-        
+
         <ul class="vip-popup__list">
           <li class="vip-popup__item">
             <van-icon name="chat-o" class="vip-popup__item-icon" />
-            <span>{{ t('user_vip_desc_1') }}</span>
+            <span>{{ t("user_vip_desc_1") }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="photo-o" class="vip-popup__item-icon" />
-            <span>{{ t('user_vip_desc_2') }}</span>
+            <span>{{ t("user_vip_desc_2") }}</span>
           </li>
         </ul>
 
@@ -1207,7 +1246,7 @@ useHead(() => ({
           class="btn btn--primary vip-popup__close"
           @click="vipModalVisible = false"
         >
-          {{ t('btn_i_know') }}
+          {{ t("btn_i_know") }}
         </button>
       </div>
     </van-popup>
@@ -1264,7 +1303,7 @@ useHead(() => ({
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    min-height: 447px; 
+    min-height: 447px;
     justify-content: center;
     position: relative;
     overflow: hidden;
@@ -1304,32 +1343,29 @@ useHead(() => ({
     --ring-mask: 64%;
 
     // 局部覆盖：详情页头像较大，调整节日的“装饰品”尺寸
-    &.effect-valentine::before::after {
-      text-shadow: 
-        0 -75px 0 #e74c3c,
-        0 75px 0 #e74c3c,
-        -75px 0 0 #e74c3c,
+    &.effect-valentine::after {
+      text-shadow: 0 -75px 0 #e74c3c, 0 75px 0 #e74c3c, -75px 0 0 #e74c3c,
         75px 0 0 #e74c3c;
     }
-    &.effect-christmas::before::after {
-      background-image: 
-        radial-gradient(circle at 50% 0%, #e74c3c 6px, transparent 7px),
+
+    &.effect-christmas::after {
+      background-image: radial-gradient(circle at 50% 0%, #e74c3c 6px, transparent 7px),
         radial-gradient(circle at 50% 100%, #e74c3c 6px, transparent 7px),
         radial-gradient(circle at 0% 50%, #e74c3c 6px, transparent 7px),
         radial-gradient(circle at 100% 50%, #e74c3c 6px, transparent 7px),
         radial-gradient(circle at 85% 15%, #e74c3c 5px, transparent 6px),
         radial-gradient(circle at 15% 85%, #e74c3c 5px, transparent 6px);
     }
-    &.effect-thanksgiving::before::after {
-      background-image: 
-        radial-gradient(circle at 20% 20%, #d35400 6px, transparent 7px),
+
+    &.effect-thanksgiving::after {
+      background-image: radial-gradient(circle at 20% 20%, #d35400 6px, transparent 7px),
         radial-gradient(circle at 80% 80%, #d35400 6px, transparent 7px),
         radial-gradient(circle at 80% 20%, #e67e22 5px, transparent 6px),
         radial-gradient(circle at 20% 80%, #e67e22 5px, transparent 6px);
     }
-    &.effect-mid-autumn::before::after {
-      background-image: 
-        radial-gradient(circle at 50% 0%, #fff 5px, transparent 6px),
+
+    &.effect-mid-autumn::after {
+      background-image: radial-gradient(circle at 50% 0%, #fff 5px, transparent 6px),
         radial-gradient(circle at 50% 100%, #fff 5px, transparent 6px),
         radial-gradient(circle at 0% 50%, #fff 5px, transparent 6px),
         radial-gradient(circle at 100% 50%, #fff 5px, transparent 6px);
@@ -1399,7 +1435,7 @@ useHead(() => ({
     text-decoration: underline;
     text-underline-offset: 2px;
     transition: color @dur-fast ease;
-    
+
     &:hover {
       color: @accent;
     }
@@ -1416,7 +1452,7 @@ useHead(() => ({
     &:hover {
       transform: scale(1.1) rotate(5deg);
     }
-    
+
     &:active {
       transform: scale(0.95);
     }
@@ -1433,10 +1469,24 @@ useHead(() => ({
     border-radius: @radius-pill;
   }
 
-  &--skeleton { gap: @sp-4; }
-  &__avatar-skeleton { width: 140px; height: 140px; border-radius: 50%; }
-  &__name-skeleton { width: 160px; height: 32px; border-radius: @radius-sm; }
-  &__intro-skeleton { width: 260px; height: 20px; border-radius: @radius-sm; }
+  &--skeleton {
+    gap: @sp-4;
+  }
+  &__avatar-skeleton {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+  }
+  &__name-skeleton {
+    width: 160px;
+    height: 32px;
+    border-radius: @radius-sm;
+  }
+  &__intro-skeleton {
+    width: 260px;
+    height: 20px;
+    border-radius: @radius-sm;
+  }
 }
 
 // ============================================================
@@ -1471,7 +1521,7 @@ useHead(() => ({
     background: @surface-2;
     border-radius: @radius-pill;
     overflow: hidden;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
   &__fill {
@@ -1872,7 +1922,7 @@ useHead(() => ({
     }
 
     &:active {
-      transform: scale(.97);
+      transform: scale(0.97);
     }
   }
 
@@ -1946,7 +1996,7 @@ useHead(() => ({
     font-size: @fs-xs;
     padding: 4px 10px;
     color: @ink-2;
-    
+
     &:hover {
       color: @accent;
       border-color: @accent;
@@ -1983,17 +2033,17 @@ useHead(() => ({
 // ============================================================
 .pet-expression {
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   align-items: flex-start; /* 改为左对齐，让下方的横条与头像对齐 */
   gap: @sp-4; /* 头像区域和下方进度条的间距 */
   margin-top: @sp-4;
   margin-bottom: @sp-2;
-  padding-left: @sp-1; 
+  padding-left: @sp-1;
 
   &__top {
     display: flex;
     align-items: center;
-    justify-content: space-between; 
+    justify-content: space-between;
     gap: @sp-3;
     width: 100%;
   }
@@ -2010,7 +2060,7 @@ useHead(() => ({
     overflow: hidden;
     box-shadow: @shadow-1;
     transition: all 0.3s ease;
-    flex-shrink: 0; 
+    flex-shrink: 0;
 
     img {
       width: 100%;
@@ -2030,15 +2080,15 @@ useHead(() => ({
     font-size: @fs-xs;
     color: @ink-3;
     line-height: 1.5;
-    text-align: right; 
-    max-width: 200px; 
+    text-align: right;
+    max-width: 200px;
   }
 
   // 针对表情区的心情条做宽度限制
   &__mood {
     width: 160px; /* 固定宽度，比 120px 的头像长一点 */
     max-width: 100%; /* 防止在极窄屏幕上溢出 */
-    margin-top: 0; 
+    margin-top: 0;
     padding: @sp-2 @sp-3;
     background: @surface;
     border: 1px solid @border;
@@ -2218,7 +2268,7 @@ useHead(() => ({
     &--has-img {
       border: none;
       box-shadow: 0 0 0 3px @accent-soft;
-      
+
       img {
         width: 100%;
         height: 100%;
