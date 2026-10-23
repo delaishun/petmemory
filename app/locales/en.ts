@@ -332,4 +332,56 @@ export default {
   edit_nickname_empty: 'Nickname cannot be empty',
   edit_nickname_success: 'Nickname updated',
   edit_nickname_failed: 'Update failed, please try again',
+
+    // Privacy Policy Page
+  privacy_title: 'Privacy Policy',
+  privacy_last_updated: 'Last Updated',
+  privacy_intro: 'Welcome to Pet Memories. We take your privacy very seriously and are committed to protecting your personal information. This Privacy Policy is designed to explain how we collect, use, store, and protect your information.',
+  
+  privacy_sec1_title: '1. Information We Collect',
+  privacy_sec1_desc: 'To provide you with our complete services, we collect the following information:\n- Account Information: When you log in via email or third-party services (like Google), we collect your email address, nickname, and avatar.\n- Pet Information: Profile information of the pets you create, including name, species, birthday, and pet photos.\n- Interaction Information: Your messages on the platform, gift records, and the content of your conversations with the pet AI.',
+  
+  privacy_sec2_title: '2. How We Use Your Information',
+  privacy_sec2_desc: 'We use the collected information solely to provide and improve our services:\n- To maintain your login state and display your personal profile.\n- To provide the pet AI chat feature (conversation content is sent to third-party large language models for processing).\n- To generate customized AI cartoon expressions based on pet photos.\n- To process your gifts and point changes.',
+  
+  privacy_sec3_title: '3. Sharing and Disclosure of Information',
+  privacy_sec3_desc: 'We do not sell your personal information. We only share necessary data with third parties under the following circumstances:\n- Third-party Login: When using Google login, data sharing is governed by Google\'s privacy policy.\n- Cloud Services: We use Alibaba Cloud OSS to store your images and third-party AI services (like DeepSeek, Qwen) to process conversations and images.\n- Legal Requirements: As required by laws, regulations, or mandatory government requests.',
+  
+  privacy_sec4_title: '4. Data Security',
+  privacy_sec4_desc: 'We implement industry-standard security measures to protect your information. Your passwords are encrypted using the bcrypt algorithm, and data transmission is encrypted using HTTPS. However, please note that no method of transmission over the Internet or electronic storage is 100% secure.',
+  
+  privacy_sec5_title: '5. Your Rights',
+  privacy_sec5_desc: 'You have the right to access, modify, or delete your personal information at any time (such as changing your nickname, updating your avatar, deleting album photos, and messages). If you wish to delete your account and permanently erase your data, please contact us.',
+  
+  privacy_sec6_title: '6. Policy Updates',
+  privacy_sec6_desc: 'We may update this Privacy Policy from time to time. The updated version will be posted on this page along with an updated "Last Updated" date. We encourage you to review this page periodically for the latest information.',
+  
+  privacy_contact_title: '7. Contact Us',
+  privacy_contact_desc: 'If you have any questions or suggestions regarding this Privacy Policy, please contact us at:',
+
+    // Terms of Service Page
+  terms_title: 'Terms of Service',
+  terms_last_updated: 'Last Updated',
+  terms_intro: 'Welcome to Pet Memories. Please read these Terms of Service carefully before accessing or using our website and related services. By accessing or using our service, you agree to be bound by these terms.',
+
+  terms_sec1_title: '1. Account Registration and Security',
+  terms_sec1_desc: 'To use certain features, you need to register an account. You agree to provide true, accurate information and to safeguard your account and password. You are entirely responsible for all activities that occur under your account. If you notice any unauthorized use of your account, please notify us immediately.',
+
+  terms_sec2_title: '2. User Conduct',
+  terms_sec2_desc: 'You agree to comply with all applicable laws and regulations when using our service, and not to: \n- Post, upload, or transmit any content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, or otherwise objectionable. \n- Infringe upon the intellectual property rights, privacy rights, or other legitimate rights of others. \n- Attempt to gain unauthorized access to the website, servers, or databases. \n- Use the service for any fraudulent or illegal activities. \n- Abuse the AI chat feature or generate inappropriate or harmful content.',
+
+  terms_sec3_title: '3. User Content and Intellectual Property',
+  terms_sec3_desc: 'You retain the intellectual property rights to the pet photos, messages, and other content you upload to the platform. However, by uploading content, you grant us a non-exclusive license to display, store, and process such content within the scope of this platform. The design, source code, logo, and other related intellectual property of the platform belong to Pet Memories.',
+
+  terms_sec4_title: '4. Points and VIP Services',
+  terms_sec4_desc: 'Points and VIP membership services on the platform are virtual goods. The specific benefits and validity period of VIP services are subject to the display on the page and the agreement at the time of purchase. Please use your virtual assets reasonably; we are not responsible for point losses caused by your personal operational errors.',
+
+  terms_sec5_title: '5. Disclaimer',
+  terms_sec5_desc: 'The AI chat and AI image generation services provided by this platform are based on third-party large language models, and we cannot guarantee the absolute accuracy, completeness, or applicability of the generated content. This platform is intended to provide pet memorial and emotional support services and cannot replace professional medical or psychological advice. You assume the risks associated with using this service.',
+
+  terms_sec6_title: '6. Modifications and Termination',
+  terms_sec6_desc: 'We reserve the right to modify or replace these Terms of Service at any time. Modified terms will be posted on this page. Your continued use of the service will be deemed acceptance of the modified terms. If you violate these terms, we have the right to suspend or terminate your account.',
+
+  terms_contact_title: '7. Contact Us',
+  terms_contact_desc: 'If you have any questions or suggestions regarding these Terms of Service, please contact us at:',
 }

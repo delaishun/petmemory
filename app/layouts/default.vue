@@ -143,6 +143,9 @@ const year = new Date().getFullYear()
             <h4 class="site-footer__col-title">{{ t('footer_help') }}</h4>
             <NuxtLink to="/help" class="site-footer__link">{{ t('footer_usage') }}</NuxtLink>
             <NuxtLink to="/contact" class="site-footer__link">{{ t('footer_contact') }}</NuxtLink>
+            <!-- 新增：隐私政策与服务条款链接 -->
+            <NuxtLink to="/terms" class="site-footer__link">{{ t('terms_title') }}</NuxtLink>
+            <NuxtLink to="/privacy" class="site-footer__link">{{ t('privacy_title') }}</NuxtLink>
           </div>
           <div class="site-footer__col">
             <h4 class="site-footer__col-title">{{ t('footer_follow') }}</h4>
