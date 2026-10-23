@@ -533,6 +533,13 @@ useHead(() => ({
   padding-top: @sp-5;
   border-top: 1px solid @border;
 
+  // 👇 新增：专门针对第一个版块（关于宠忆），去掉标题下方的横线
+  &:first-of-type {
+    .section-title {
+      border-bottom: none; 
+    }
+  }
+
   // 移除了之前的 first-of-type 负边距，让它自然排在 banner 下方并保留分割线
 
   .section-title__left {
