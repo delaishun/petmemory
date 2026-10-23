@@ -533,14 +533,7 @@ useHead(() => ({
   padding-top: @sp-5;
   border-top: 1px solid @border;
 
-  // 第一个 section（这里是“关于宠忆”）不需要顶部分割线和 padding
-  &:first-of-type {
-    border-top: none;
-    padding-top: 0;
-    margin-top: -40px; // 负边距让它稍微往上移一点，压住一点渐变背景，更自然
-    position: relative;
-    z-index: 2;
-  }
+  // 移除了之前的 first-of-type 负边距，让它自然排在 banner 下方并保留分割线
 
   .section-title__left {
     display: flex;
