@@ -57,7 +57,7 @@ const sections = computed(() => [
           <h2 class="terms-section__title">{{ t('terms_contact_title') }}</h2>
           <p class="terms-section__desc">
             {{ t('terms_contact_desc') }} 
-            <a href="mailto:support@petmemory.me">support@petmemory.me</a>
+            <a href="mailto:fczx1999@gmail.com">fczx1999@gmail.com</a>
           </p>
         </section>
       </div>
