@@ -175,15 +175,24 @@ useHead(() => ({
 <template>
   <div class="home-page">
     <div class="container">
-      <!-- 首屏欢迎语 -->
+      <!-- 首屏欢迎语 (Banner) -->
       <header class="home-hero">
         <h1 class="home-hero__title">{{ t('app_name') }}</h1>
-        
-        <!-- 新增：明确的用途说明 -->
-        <p class="home-hero__desc">
-          {{ t('home_seo_desc') }}
-        </p>
       </header>
+
+      <!-- ============================================ -->
+      <!-- 关于宠忆 (移动到 Banner 下方)                  -->
+      <!-- ============================================ -->
+      <section class="home-section">
+        <div class="section-title">
+          <div class="section-title__left">
+            <h2 class="section-title__main">{{ t('home_about_title') }}</h2>
+          </div>
+        </div>
+        <div class="home-about">
+          <p class="home-about__desc">{{ t('home_seo_desc') }}</p>
+        </div>
+      </section>
 
       <!-- ============================================ -->
       <!-- 1. 最近更新的宠物                             -->
@@ -335,21 +344,7 @@ useHead(() => ({
       </section>
 
       <!-- ============================================ -->
-      <!-- 4. 关于宠忆                                   -->
-      <!-- ============================================ -->
-      <section class="home-section">
-        <div class="section-title">
-          <div class="section-title__left">
-            <h2 class="section-title__main">{{ t('home_about_title') }}</h2>
-          </div>
-        </div>
-        <div class="home-about">
-          <p class="home-about__desc">{{ t('home_about_desc') }}</p>
-        </div>
-      </section>
-
-      <!-- ============================================ -->
-      <!-- 5. 宠物手绘                                   -->
+      <!-- 4. 宠物手绘                                   -->
       <!-- ============================================ -->
       <section class="home-section">
         <div class="section-title">
@@ -510,7 +505,7 @@ useHead(() => ({
     position: relative;
     z-index: 1;
     margin: 0;
-    margin-top: -30px; /* 👈 向上移动 */
+    margin-top: -30px;
     font-size: 52px; 
     font-family: 'Comic Sans MS', 'Chalkboard SE', 'YouYuan', 'PingFang SC', sans-serif;
     font-weight: 800;
@@ -520,29 +515,6 @@ useHead(() => ({
 
     @media (max-width: @bp-sm) {
       font-size: 40px;
-    }
-  }
-
-  // 👇 新增：网站用途说明文字的样式
-  &__desc {
-    position: relative;
-    z-index: 1;
-    margin-top: @sp-3;
-    max-width: 640px;
-    font-size: 15px;
-    line-height: 1.6;
-    color: @ink-2;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.85); /* 半透明白底，防止被背景图干扰看不清 */
-    padding: 10px 20px;
-    border-radius: @radius-lg;
-    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(4px);
-    font-weight: 500;
-
-    @media (max-width: @bp-sm) {
-      font-size: 14px;
-      padding: 8px 16px;
     }
   }
 
@@ -561,9 +533,13 @@ useHead(() => ({
   padding-top: @sp-5;
   border-top: 1px solid @border;
 
+  // 第一个 section（这里是“关于宠忆”）不需要顶部分割线和 padding
   &:first-of-type {
     border-top: none;
     padding-top: 0;
+    margin-top: -40px; // 负边距让它稍微往上移一点，压住一点渐变背景，更自然
+    position: relative;
+    z-index: 2;
   }
 
   .section-title__left {
@@ -865,7 +841,7 @@ useHead(() => ({
 // 4. 关于宠忆
 // ============================================================
 .home-about {
-  padding: @sp-7 @sp-5;
+  padding: @sp-6 @sp-5;
   background: @surface;
   border: 1px solid @border;
   border-radius: @radius-lg;
@@ -874,11 +850,17 @@ useHead(() => ({
 
   &__desc {
     margin: 0 auto;
-    max-width: 640px;
+    max-width: 700px;
     font-size: @fs-base;
     color: @ink-2;
     line-height: @lh-loose;
-    white-space: pre-line;
+    white-space: pre-line; /* 允许换行 */
+    text-align: justify; /* 两端对齐更好看 */
+    text-justify: inter-ideograph;
+    
+    @media (max-width: @bp-sm) {
+      text-align: left;
+    }
   }
 }
 
