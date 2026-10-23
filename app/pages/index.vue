@@ -158,11 +158,17 @@ function formatFullTime(iso: string): string {
 }
 
 // ============================================================
-// 标题
+// 标题 & SEO
 // ============================================================
 
 useHead(() => ({
   title: `${t('app_name')} · ${t('home_slogan')}`,
+  meta: [
+    {
+      name: 'description',
+      content: t('home_seo_desc'),
+    },
+  ],
 }));
 </script>
 
@@ -172,6 +178,11 @@ useHead(() => ({
       <!-- 首屏欢迎语 -->
       <header class="home-hero">
         <h1 class="home-hero__title">{{ t('app_name') }}</h1>
+        
+        <!-- 新增：明确的用途说明 -->
+        <p class="home-hero__desc">
+          {{ t('home_seo_desc') }}
+        </p>
       </header>
 
       <!-- ============================================ -->
@@ -499,7 +510,7 @@ useHead(() => ({
     position: relative;
     z-index: 1;
     margin: 0;
-    margin-top: -30px; /* 👈 新增这行，负数表示向上移动 */
+    margin-top: -30px; /* 👈 向上移动 */
     font-size: 52px; 
     font-family: 'Comic Sans MS', 'Chalkboard SE', 'YouYuan', 'PingFang SC', sans-serif;
     font-weight: 800;
@@ -509,6 +520,29 @@ useHead(() => ({
 
     @media (max-width: @bp-sm) {
       font-size: 40px;
+    }
+  }
+
+  // 👇 新增：网站用途说明文字的样式
+  &__desc {
+    position: relative;
+    z-index: 1;
+    margin-top: @sp-3;
+    max-width: 640px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: @ink-2;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.85); /* 半透明白底，防止被背景图干扰看不清 */
+    padding: 10px 20px;
+    border-radius: @radius-lg;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(4px);
+    font-weight: 500;
+
+    @media (max-width: @bp-sm) {
+      font-size: 14px;
+      padding: 8px 16px;
     }
   }
 

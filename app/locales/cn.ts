@@ -9,7 +9,7 @@ export default {
   nav_register: '注册',
   nav_logout: '退出登录',
   nav_my_profile: '个人主页',
-  
+
   // 首页
   home_slogan: '为每一份陪伴，留一个温柔的位置。',
   home_recent_pets: '最近访问',
@@ -19,15 +19,15 @@ export default {
   home_empty_pets: '还没有宠物入住',
   home_empty_gifts: '还没有人送出礼物',
   home_empty_messages: '还没有人留言',
-    // 首页 - 关于我们
+  // 首页 - 关于我们
   home_about_title: '关于宠忆',
   home_about_desc: '在宠忆，为心爱的宠物留一片温暖的自留地。\n你可以随时来看看它、给它留言、与它谈心，或是送上一份小礼物。\n收到礼物的它，会偷偷开心很久哦。',
-    // 首页 - 宠物手绘
+  // 首页 - 宠物手绘
   home_drawing_title: '宠物手绘',
   home_drawing_desc: '为您与爱宠定制专属手绘画像，留下美好回忆。\n每一幅画作皆为纯手工绘制，拒绝 AI 生成。\n绘画过程将录制简短视频，让您见证作品诞生。',
   home_drawing_example_label: '手绘示例',
   home_drawing_artist_label: '画师',
-    // 首页 - 宠物手绘
+  // 首页 - 宠物手绘
   home_drawing_cta: '定制宠物手绘',
 
   // 宠物列表页
@@ -52,7 +52,7 @@ export default {
   pet_chat: '和 ta 说句话',
   pet_hidden: '已隐藏',
   pet_no_bio: '主人还没有填写 ta 的信息',
-  
+
   // 用户页
   user_my_pets: '我的宠物',
   user_pets: 'ta 的宠物',
@@ -95,14 +95,14 @@ export default {
   gift_record_to: '送给',
   btn_close: '关闭',
 
-    // 通用补充
+  // 通用补充
   common_load_failed: '加载失败',
   common_retry_later: '请稍后重试',
   btn_back_home: '回到首页',
   pets_count_pre: '已有',
   pets_count_suf: '位小朋友在这里安家',
 
-    // 宠物详情页补充
+  // 宠物详情页补充
   pet_not_found: '找不到这只宠物',
   pet_not_found_desc: 'ta 的主页可能已经关闭',
   pet_gifts_total: '共 {n} 件',
@@ -139,7 +139,7 @@ export default {
   intro_breed_is: '，品种是',
   intro_born_on: '出生',
 
-    // 用户页补充
+  // 用户页补充
   user_not_found: '找不到这位用户',
   user_not_found_desc: 'ta 可能已经离开了',
   user_profile: '用户',
@@ -148,7 +148,7 @@ export default {
   user_logout_confirm_desc: '退出后需要重新登录才能管理宠物',
   btn_logout: '退出',
 
-    // 添加宠物弹窗补充
+  // 添加宠物弹窗补充
   add_pet_title: '添加宠物',
   add_pet_subtitle: '为 ta 建立一个温暖的主页',
   upload_avatar: '上传头像',
@@ -165,7 +165,7 @@ export default {
   btn_confirm: '确认',
   btn_processing: '处理中…',
   date_picker_title: '选择生日',
-  
+
   err_select_image: '请选择图片文件',
   err_name_required: '请输入宠物名字',
   err_name_too_long: '名字不能超过 50 个字符',
@@ -174,7 +174,7 @@ export default {
   err_create_failed: '创建失败，请稍后重试',
   msg_pet_created: '宠物主页已创建',
 
-    // 头像上传弹窗补充
+  // 头像上传弹窗补充
   avatar_upload_title: '更换头像',
   avatar_upload_subtitle: '上传后将裁剪为 200×200 的正方形',
   avatar_select_image: '选择图片',
@@ -183,7 +183,7 @@ export default {
   avatar_update_success: '头像已更新',
   avatar_upload_failed: '上传失败，请稍后重试',
 
-    // 编辑宠物弹窗补充
+  // 编辑宠物弹窗补充
   edit_pet_title: '编辑宠物信息',
   edit_pet_subtitle: '修改后立即生效',
   switch_hide_title: '隐藏主页',
@@ -192,7 +192,7 @@ export default {
   msg_saved: '已保存',
   err_save_failed: '保存失败，请稍后重试',
 
-    // 赠礼弹窗补充
+  // 赠礼弹窗补充
   gift_modal_title: '赠礼',
   gift_modal_subtitle: '送上一份心意',
   gift_modal_subtitle_with_pet: '为 {petName} 送上一份心意',
@@ -208,7 +208,7 @@ export default {
   aria_decrease: '减少',
   aria_increase: '增加',
 
-    // 登录/注册弹窗补充
+  // 登录/注册弹窗补充
   auth_title_login: '欢迎回来',
   auth_title_register: '创建账号',
   auth_title_reset: '重置密码',
@@ -254,7 +254,7 @@ export default {
   auth_msg_reset_success: '密码已重置，请重新登录',
   auth_err_operation_failed: '操作失败，请稍后重试',
 
-    // 留言弹窗补充
+  // 留言弹窗补充
   message_modal_title: '留言',
   message_modal_subtitle: '写点什么吧',
   message_modal_subtitle_with_pet: '给 {petName} 留一句话',
@@ -264,7 +264,7 @@ export default {
   message_btn_sending: '提交中…',
   msg_missing_slug: '缺少宠物标识',
 
-    // 宠物对话弹窗补充
+  // 宠物对话弹窗补充
   pet_chat_modal_title: '和 {petName} 说说话',
   pet_chat_modal_title_no_name: '和 ta 说说话',
   pet_chat_limit_reached: '今天的对话额度已经用完',
@@ -277,7 +277,7 @@ export default {
   pet_chat_placeholder_limit: '今天的额度用完了，过一会儿再来吧',
   pet_chat_placeholder: '说点什么…',
 
-    // 上传照片弹窗补充
+  // 上传照片弹窗补充
   upload_photo_title: '上传相册照片',
   upload_photo_subtitle: '支持批量选择，可一次上传多张',
   upload_photo_select: '点击选择图片',
@@ -300,21 +300,21 @@ export default {
   upload_progress_all_done: '全部完成',
   upload_progress_partial_fail: '成功 {ok} / {total}，失败 {fail}',
 
-    // 表情生成弹窗
+  // 表情生成弹窗
   pet_expression_generating: '宠物表情正在生成',
   pet_expression_please_wait: '请等待',
   pet_expression_done: '表情生成完毕',
-    // 表情提示
+  // 表情提示
   pet_expression_mood_hint: '赠送礼物会使 {name} 心情更好。',
 
   user_points: '积分',
 
-    // 宠物心情状态
+  // 宠物心情状态
   mood_calm: '平静',
   mood_smile: '微笑',
   mood_happy: '开心',
 
-    // 关于页面
+  // 关于页面
   about_title: '关于宠忆',
   about_subtitle: '在宠忆，为心爱的宠物留一片温暖的自留地。',
   about_album_title: '时光相册',
@@ -333,55 +333,69 @@ export default {
   edit_nickname_success: '昵称已修改',
   edit_nickname_failed: '修改失败，请稍后重试',
 
-    // 隐私政策页面
+  // 隐私政策页面
   privacy_title: '隐私政策',
   privacy_last_updated: '最后更新日期',
-  privacy_intro: '欢迎使用“宠忆”（Pet Memories）。我们非常重视您的隐私，并致力于保护您的个人信息。本隐私政策旨在向您说明我们如何收集、使用、存储和保护您的信息。',
-  
-  privacy_sec1_title: '1. 我们收集的信息',
-  privacy_sec1_desc: '为了向您提供完整的服务，我们会收集以下信息：\n- 账号信息：当您使用邮箱或第三方（如 Google）登录时，我们会收集您的邮箱地址、昵称和头像。\n- 宠物信息：您创建的宠物档案信息，包括名字、品种、生日、以及宠物照片。\n- 互动信息：您在平台上的留言、送出的礼物记录，以及您与宠物 AI 的对话内容。',
-  
-  privacy_sec2_title: '2. 我们如何使用您的信息',
-  privacy_sec2_desc: '我们收集的信息仅用于为您提供和改进服务：\n- 维持您的登录状态和个人主页展示。\n- 提供宠物 AI 对话功能（对话内容会发送给第三方大语言模型进行处理）。\n- 根据宠物照片生成专属的 AI 卡通表情。\n- 处理您的赠礼和积分变动。',
-  
-  privacy_sec3_title: '3. 信息的共享与披露',
-  privacy_sec3_desc: '我们不会出售您的个人信息。仅在以下情况下，我们会与第三方共享必要的数据：\n- 第三方登录：使用 Google 登录时，数据共享受 Google 隐私政策约束。\n- 云服务：我们使用阿里云 OSS 存储您的图片，使用第三方 AI 服务（如 DeepSeek、通义千问）处理对话和图像。\n- 法律要求：根据法律法规或政府强制要求提供。',
-  
-  privacy_sec4_title: '4. 数据安全',
-  privacy_sec4_desc: '我们采取行业标准的安全措施来保护您的信息。您的密码经过 bcrypt 算法加密存储，数据传输全程使用 HTTPS 加密。但请注意，没有任何互联网传输或电子存储方法是 100% 安全的。',
-  
-  privacy_sec5_title: '5. 您的权利',
-  privacy_sec5_desc: '您有权随时访问、修改或删除您的个人信息（如修改昵称、更换头像、删除相册照片和留言）。如果您希望注销账号并彻底删除数据，请联系我们。',
-  
-  privacy_sec6_title: '6. 政策更新',
-  privacy_sec6_desc: '我们可能会不时更新本隐私政策。更新后的版本将发布在此页面上，并更新“最后更新日期”。建议您定期查看本页面以了解最新信息。',
-  
-  privacy_contact_title: '7. 联系我们',
-  privacy_contact_desc: '如果您对本隐私政策有任何疑问或建议，请通过以下方式联系我们：',
+  privacy_intro: '“宠忆”（Pet Memories，以下简称“我们”或“本平台”）深知个人信息对您的重要性，并会尽全力保护您的个人信息安全可靠。本隐私政策旨在向您说明，当您访问和使用我们的网站（https://www.petmemory.me）及相关服务时，我们如何收集、使用、共享、存储和保护您的个人信息。请在使用本服务前仔细阅读。',
 
-    // 服务条款页面
+  privacy_sec1_title: '1. 我们收集的信息',
+  privacy_sec1_desc: '为了向您提供完整服务，我们会收集以下类型的信息：\n\n- 账号与身份信息：当您使用邮箱注册时，我们会收集您的邮箱和密码（加密存储）。当您选择使用第三方服务（如 Google OAuth）登录时，我们会收集您授权提供的 Google 账号基本信息，包括：您的电子邮箱地址、公开姓名（昵称）以及头像 URL。\n- 宠物信息：您在平台创建的宠物档案，包括名字、物种、生日、简介以及宠物照片。\n- 互动信息：您在使用过程中留下的留言、赠送礼物的记录、积分变动记录。\n- AI 对话内容：您与宠物 AI 之间的对话文本，用于维持对话上下文和生成回复。',
+
+  privacy_sec2_title: '2. 我们如何使用您的信息',
+  privacy_sec2_desc: '我们将收集到的信息用于以下用途：\n\n- 身份验证与登录：使用 Google OAuth 返回的邮箱等信息来识别您的身份并保持登录状态。\n- 服务提供：展示您的主页、宠物档案、相册及留言。\n- AI 处理：为了生成宠物回复和专属卡通表情，我们需要将您的对话文本发送给第三方大语言模型（如 DeepSeek），将宠物照片发送给图像处理 API（如通义千问）。此过程仅用于实时生成结果。\n- 安全与风控：防止欺诈、滥用和保障平台安全。',
+
+  privacy_sec3_title: '3. 信息的共享与披露',
+  privacy_sec3_desc: '我们绝不会将您的个人信息出售给任何第三方。仅在以下必要情况下，我们会共享数据：\n\n- 第三方登录服务：当您使用 Google 登录时，身份验证过程受 Google 隐私政策约束。\n- 云存储服务：我们使用阿里云 OSS 存储您的头像和照片。\n- 第三方 AI 服务：如上述，我们会将必要的文本和图片发送给第三方 AI 提供商以完成您请求的功能。\n- 法律强制要求：根据法律法规、法庭传票或政府部门的强制性要求，我们可能会披露您的信息。',
+
+  privacy_sec4_title: '4. Cookie 与同类技术',
+  privacy_sec4_desc: '我们使用 Cookie（以及类似技术如 LocalStorage）来确保网站的正常运行。例如，我们会使用 Cookie 存储您的登录 Token（加密的凭证），以便您刷新页面时无需重复登录。您可以在浏览器设置中管理或清除 Cookie，但这可能会影响您使用部分功能。',
+
+  privacy_sec5_title: '5. 数据安全与保留期限',
+  privacy_sec5_desc: '我们采用行业标准的安全措施（如 HTTPS 加密传输、密码 bcrypt 加密存储）保护您的数据。我们仅在为您提供服务所必需的期限内保留您的个人信息，除非法律要求或允许更长的保留期。当您注销账号或要求删除时，我们会及时删除或匿名化处理您的数据。',
+
+  privacy_sec6_title: '6. 您的权利（如何删除数据）',
+  privacy_sec6_desc: '您有权随时访问、更正您的信息（如修改昵称、上传新头像）。您也可以随时删除您上传的相册照片和留言。如果您希望彻底注销账号并删除所有相关联的数据（包括您的账号信息、宠物信息、AI 对话记录等），请发送邮件至下方的联系邮箱，我们会在收到请求后的 7 个工作日内为您处理。',
+
+  privacy_sec7_title: '7. 未成年人保护',
+  privacy_sec7_desc: '本平台不面向 14 周岁以下的儿童提供服务。我们不会有意收集儿童的个人信息。如果您是监护人并发现您的孩子向我们提供了个人信息，请联系我们，我们将予以删除。',
+
+  privacy_sec8_title: '8. 政策更新与通知',
+  privacy_sec8_desc: '我们可能会根据业务发展或法律法规的变化不时更新本隐私政策。任何重大变更，我们会通过网站公告、弹窗提示或邮件等方式通知您。更新后的条款自发布于本页面之日起生效。建议您定期查阅此页面。',
+
+  privacy_contact_title: '9. 联系我们',
+  privacy_contact_desc: '如果您对本隐私政策有任何疑问、意见或数据删除请求，请随时通过以下邮箱联系我们：',
+
+  // 服务条款页面
   terms_title: '服务条款',
   terms_last_updated: '最后更新日期',
-  terms_intro: '欢迎使用“宠忆”（Pet Memories）。在访问或使用我们的网站及相关服务之前，请仔细阅读本服务条款。您访问或使用本服务即表示您同意受本条款的约束。',
+  terms_intro: '欢迎使用“宠忆”（Pet Memories）。本服务条款（以下简称“条款”）是您与“宠忆”之间就访问和使用我们的网站（https://www.petmemory.me）及相关服务所订立的具有法律约束力的协议。请在使用本服务前仔细阅读。您访问或使用本服务，即表示您同意接受本条款的所有内容。',
 
   terms_sec1_title: '1. 账号注册与安全',
-  terms_sec1_desc: '为了使用部分功能，您需要注册一个账号。您承诺提供真实、准确的信息，并妥善保管您的账号和密码。您对您账号下发生的所有活动负全部责任。若发现任何未经授权使用您账号的情况，请立即通知我们。',
+  terms_sec1_desc: '为了使用部分功能，您需要注册一个账号。您可以通过提供邮箱密码，或使用第三方服务（如 Google 账号）进行授权登录。\n您承诺提供真实、准确的信息，并妥善保管您的账号凭证。您对您账号下发生的所有活动负全部责任。若发现任何未经授权使用您账号的情况，请立即通知我们。',
 
   terms_sec2_title: '2. 用户行为规范',
-  terms_sec2_desc: '您同意在使用本服务时遵守所有适用的法律法规，并且不进行以下行为：\n- 发布、上传或传播任何违法、有害、威胁、辱骂、骚扰、诽谤、粗俗、淫秽或其他令人反感的内容。\n- 侵犯他人的知识产权、隐私权或其他合法权益。\n- 试图未经授权访问网站、服务器或数据库。\n- 利用本服务进行任何欺诈或非法活动。\n- 滥用 AI 对话功能，或生成违规、有害的内容。',
+  terms_sec2_desc: '您同意在使用本服务时遵守所有适用的法律法规，并且不进行以下行为：\n- 发布、上传或传播任何违法、有害、威胁、辱骂、骚扰、诽谤、粗俗、淫秽或其他令人反感的内容。\n- 侵犯他人的知识产权、隐私权或其他合法权益。\n- 试图未经授权访问网站、服务器、数据库或实施任何破坏网络安全的行为。\n- 利用本服务进行任何欺诈、非法活动或滥用平台资源。\n- 滥用 AI 对话功能，刻意生成违规、有害或敏感的内容。',
 
   terms_sec3_title: '3. 用户内容与知识产权',
-  terms_sec3_desc: '您保留您上传到本平台的宠物照片、留言等内容的知识产权。但是，通过上传内容，您授予我们在本平台范围内展示、存储和处理这些内容的非独占许可。平台的设计、源代码、Logo 及其他相关知识产权归“宠忆”所有。',
+  terms_sec3_desc: '您保留您上传到本平台的宠物照片、留言等原创内容的知识产权。但是，通过上传内容，您授予我们在全球范围内、非独占的、免版税的许可，允许我们在运营、提供和推广本平台服务的过程中展示、存储、处理和分发这些内容。\n本平台的设计、源代码、Logo、UI 界面及相关知识产权均归“宠忆”所有，未经书面许可，不得复制或使用。',
 
-  terms_sec4_title: '4. 积分与 VIP 服务',
-  terms_sec4_desc: '平台内的积分（Point）和 VIP 会员服务属于虚拟商品。VIP 服务的具体权益和有效期以页面展示及购买时的约定为准。请合理使用您的虚拟资产，我们不对因您个人操作失误导致的积分损失负责。',
+  terms_sec4_title: '4. 积分与 VIP 会员服务',
+  terms_sec4_desc: '平台内的积分（Point）和 VIP 会员服务属于虚拟商品。VIP 服务的具体权益（如相册上传、专属特效、AI 对话次数）和有效期以页面展示及购买时的约定为准。积分用于购买平台内的虚拟礼物，积分消耗后不可退还。请合理使用您的虚拟资产，我们不对因您个人操作失误（如错误赠送礼物）导致的积分损失负责。',
 
-  terms_sec5_title: '5. 免责声明',
-  terms_sec5_desc: '本平台提供的 AI 对话及 AI 图像生成服务基于第三方大语言模型，我们无法保证生成内容的绝对准确性、完整性或适用性。本平台旨在提供宠物纪念与情感寄托服务，不能替代专业的医疗或心理建议。您需自行承担使用本服务产生的风险。',
+  terms_sec5_title: '5. 免责声明（含 AI 服务）',
+  terms_sec5_desc: '本平台提供的 AI 对话及 AI 图像生成服务基于第三方大语言模型（如 DeepSeek、通义千问）。“宠忆”无法保证 AI 生成内容的绝对准确性、完整性或适用性，也不承担由此产生的任何法律责任。本平台旨在提供宠物纪念与情感寄托服务，不能替代专业的医疗、心理或法律建议。您需自行承担使用本服务（包括依赖 AI 生成内容）产生的风险。',
 
-  terms_sec6_title: '6. 条款修改与终止',
-  terms_sec6_desc: '我们保留随时修改或替换本服务条款的权利。修改后的条款将在本页面公布。如果您继续使用本服务，将被视为接受修改后的条款。如果您违反本条款，我们有权暂停或终止您的账号。',
+  terms_sec6_title: '6. 第三方链接与服务',
+  terms_sec6_desc: '本服务可能包含指向第三方网站或服务的链接（例如通过 Google OAuth 登录）。我们不控制且不对第三方的隐私政策、条款或行为负责。当您使用第三方服务时，您需遵守该第三方的政策。',
 
-  terms_contact_title: '7. 联系我们',
+  terms_sec7_title: '7. 条款修改与终止',
+  terms_sec7_desc: '我们保留随时修改或替换本服务条款的权利。修改后的条款将在本页面公布。如果您在条款变更后继续使用本服务，将被视为接受修改后的条款。\n如果您严重违反本条款，我们有权在不事先通知的情况下暂停或永久终止您的账号及访问权限。',
+
+  terms_sec8_title: '8. 适用法律与争议解决',
+  terms_sec8_desc: '本条款的成立、生效、履行、解释及争议的解决，均适用中华人民共和国法律。若您与我们发生任何争议，应首先友好协商解决；协商不成的，您同意将争议提交至“宠忆”运营者所在地有管辖权的人民法院诉讼解决。',
+
+  terms_contact_title: '9. 联系我们',
   terms_contact_desc: '如果您对本服务条款有任何疑问或建议，请通过以下方式联系我们：',
+
+  home_seo_desc: '「宠忆」是一个专为心爱宠物打造的纪念与陪伴平台。在这里，您可以免费建立宠物主页、上传相册、留言纪念，还能与宠物进行 AI 跨时空对话，留下最温暖的回忆。',
 }

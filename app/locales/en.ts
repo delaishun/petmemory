@@ -9,7 +9,7 @@ export default {
   nav_register: 'Register',
   nav_logout: 'Logout',
   nav_my_profile: 'My Profile',
-  
+
   // 首页
   home_slogan: 'Leaving a gentle place for every companionship.',
   home_recent_pets: 'Recently Visited',
@@ -19,15 +19,15 @@ export default {
   home_empty_pets: 'No pets yet',
   home_empty_gifts: 'No gifts sent yet',
   home_empty_messages: 'No messages yet',
-    // 首页 - 关于我们
+  // 首页 - 关于我们
   home_about_title: 'About Warm Memories',
   home_about_desc: 'At Warm Memories, leave a warm place for your beloved pet.\nYou can visit them anytime, leave a message, have a chat, or send a little gift.\nThey will be secretly delighted to receive it.',
-    // 首页 - 宠物手绘
+  // 首页 - 宠物手绘
   home_drawing_title: 'Custom Hand-Drawn Portraits',
   home_drawing_desc: 'Custom hand-drawn portraits for you and your beloved pet to cherish beautiful memories.\nEvery artwork is 100% hand-drawn, no AI involved.\nA short video of the drawing process will be recorded, allowing you to witness the artwork come to life.',
   home_drawing_example_label: 'Example',
   home_drawing_artist_label: 'Artist',
-    // 首页 - 宠物手绘
+  // 首页 - 宠物手绘
   home_drawing_cta: 'Custom Pet Portrait',
 
   // 宠物列表页
@@ -52,7 +52,7 @@ export default {
   pet_chat: 'Chat',
   pet_hidden: 'Hidden',
   pet_no_bio: 'Owner hasn\'t filled in info yet',
-  
+
   // 用户页
   user_my_pets: 'My Pets',
   user_pets: 'Their Pets',
@@ -85,7 +85,7 @@ export default {
   time_hours_ago: '{n} hours ago',
   time_days_ago: '{n} days ago',
 
-    // 首页弹窗及留言补全
+  // 首页弹窗及留言补全
   home_gift_tooltip: '{sender} sent a gift to {pet}',
   msg_to: 'to',
   msg_action: 'left a message',
@@ -95,14 +95,14 @@ export default {
   gift_record_to: 'To',
   btn_close: 'Close',
 
-    // 通用补充
+  // 通用补充
   common_load_failed: 'Failed to load',
   common_retry_later: 'Please try again later',
   btn_back_home: 'Back to Home',
   pets_count_pre: 'We have',
   pets_count_suf: 'pets have found a home here',
 
-    // 宠物详情页补充
+  // 宠物详情页补充
   pet_not_found: 'Pet not found',
   pet_not_found_desc: 'Their profile might be closed.',
   pet_gifts_total: '{n} items total',
@@ -139,7 +139,7 @@ export default {
   intro_breed_is: ', breed',
   intro_born_on: 'born on',
 
-    // 用户页补充
+  // 用户页补充
   user_not_found: 'User not found',
   user_not_found_desc: 'They might have left.',
   user_profile: 'User',
@@ -148,7 +148,7 @@ export default {
   user_logout_confirm_desc: 'You will need to log in again to manage pets.',
   btn_logout: 'Logout',
 
-    // 添加宠物弹窗补充
+  // 添加宠物弹窗补充
   add_pet_title: 'Add Pet',
   add_pet_subtitle: 'Create a warm profile for them',
   upload_avatar: 'Upload Avatar',
@@ -165,7 +165,7 @@ export default {
   btn_confirm: 'Confirm',
   btn_processing: 'Processing...',
   date_picker_title: 'Select Birthday',
-  
+
   err_select_image: 'Please select an image file',
   err_name_required: 'Please enter pet name',
   err_name_too_long: 'Name cannot exceed 50 characters',
@@ -174,7 +174,7 @@ export default {
   err_create_failed: 'Creation failed, please try again later',
   msg_pet_created: 'Pet profile created',
 
-    // 头像上传弹窗补充
+  // 头像上传弹窗补充
   avatar_upload_title: 'Change Avatar',
   avatar_upload_subtitle: 'Will be cropped to a 200×200 square',
   avatar_select_image: 'Select Image',
@@ -183,7 +183,7 @@ export default {
   avatar_update_success: 'Avatar updated',
   avatar_upload_failed: 'Upload failed, please try again later',
 
-    // 编辑宠物弹窗补充
+  // 编辑宠物弹窗补充
   edit_pet_title: 'Edit Pet Info',
   edit_pet_subtitle: 'Changes take effect immediately',
   switch_hide_title: 'Hide Profile',
@@ -192,7 +192,7 @@ export default {
   msg_saved: 'Saved',
   err_save_failed: 'Save failed, please try again later',
 
-    // 赠礼弹窗补充
+  // 赠礼弹窗补充
   gift_modal_title: 'Send Gift',
   gift_modal_subtitle: 'Send a token of appreciation',
   gift_modal_subtitle_with_pet: 'Send a token of appreciation to {petName}',
@@ -208,7 +208,7 @@ export default {
   aria_decrease: 'Decrease',
   aria_increase: 'Increase',
 
-    // 登录/注册弹窗补充
+  // 登录/注册弹窗补充
   auth_title_login: 'Welcome Back',
   auth_title_register: 'Create Account',
   auth_title_reset: 'Reset Password',
@@ -254,7 +254,7 @@ export default {
   auth_msg_reset_success: 'Password reset successfully, please log in again',
   auth_err_operation_failed: 'Operation failed, please try again later',
 
-    // 留言弹窗补充
+  // 留言弹窗补充
   message_modal_title: 'Leave a Message',
   message_modal_subtitle: 'Write something...',
   message_modal_subtitle_with_pet: 'Leave a message for {petName}',
@@ -264,7 +264,7 @@ export default {
   message_btn_sending: 'Sending...',
   msg_missing_slug: 'Missing pet identifier',
 
-    // 宠物对话弹窗补充
+  // 宠物对话弹窗补充
   pet_chat_modal_title: 'Talk to {petName}',
   pet_chat_modal_title_no_name: 'Talk to them',
   pet_chat_limit_reached: 'Daily chat limit reached',
@@ -277,7 +277,7 @@ export default {
   pet_chat_placeholder_limit: 'Daily limit reached, please come back later',
   pet_chat_placeholder: 'Say something...',
 
-    // 上传照片弹窗补充
+  // 上传照片弹窗补充
   upload_photo_title: 'Upload Album Photos',
   upload_photo_subtitle: 'Supports multiple selection, upload multiple at once',
   upload_photo_select: 'Click to select images',
@@ -300,21 +300,21 @@ export default {
   upload_progress_all_done: 'All done',
   upload_progress_partial_fail: 'Success {ok} / {total}, failed {fail}',
 
-    // 表情生成弹窗
+  // 表情生成弹窗
   pet_expression_generating: 'Pet expression is generating',
   pet_expression_please_wait: 'Please wait',
   pet_expression_done: 'Expression generated',
-    // 表情提示
+  // 表情提示
   pet_expression_mood_hint: 'Gifting will make {name} happier.',
 
   user_points: 'Points',
 
-    // 宠物心情状态
+  // 宠物心情状态
   mood_calm: 'Calm',
   mood_smile: 'Smile',
   mood_happy: 'Happy',
 
-    // About Page
+  // About Page
   about_title: 'About Pet Memories',
   about_subtitle: 'Leave a warm and tender place for your beloved pet.',
   about_album_title: 'Time Album',
@@ -333,55 +333,69 @@ export default {
   edit_nickname_success: 'Nickname updated',
   edit_nickname_failed: 'Update failed, please try again',
 
-    // Privacy Policy Page
+  // Privacy Policy Page
   privacy_title: 'Privacy Policy',
   privacy_last_updated: 'Last Updated',
-  privacy_intro: 'Welcome to Pet Memories. We take your privacy very seriously and are committed to protecting your personal information. This Privacy Policy is designed to explain how we collect, use, store, and protect your information.',
-  
-  privacy_sec1_title: '1. Information We Collect',
-  privacy_sec1_desc: 'To provide you with our complete services, we collect the following information:\n- Account Information: When you log in via email or third-party services (like Google), we collect your email address, nickname, and avatar.\n- Pet Information: Profile information of the pets you create, including name, species, birthday, and pet photos.\n- Interaction Information: Your messages on the platform, gift records, and the content of your conversations with the pet AI.',
-  
-  privacy_sec2_title: '2. How We Use Your Information',
-  privacy_sec2_desc: 'We use the collected information solely to provide and improve our services:\n- To maintain your login state and display your personal profile.\n- To provide the pet AI chat feature (conversation content is sent to third-party large language models for processing).\n- To generate customized AI cartoon expressions based on pet photos.\n- To process your gifts and point changes.',
-  
-  privacy_sec3_title: '3. Sharing and Disclosure of Information',
-  privacy_sec3_desc: 'We do not sell your personal information. We only share necessary data with third parties under the following circumstances:\n- Third-party Login: When using Google login, data sharing is governed by Google\'s privacy policy.\n- Cloud Services: We use Alibaba Cloud OSS to store your images and third-party AI services (like DeepSeek, Qwen) to process conversations and images.\n- Legal Requirements: As required by laws, regulations, or mandatory government requests.',
-  
-  privacy_sec4_title: '4. Data Security',
-  privacy_sec4_desc: 'We implement industry-standard security measures to protect your information. Your passwords are encrypted using the bcrypt algorithm, and data transmission is encrypted using HTTPS. However, please note that no method of transmission over the Internet or electronic storage is 100% secure.',
-  
-  privacy_sec5_title: '5. Your Rights',
-  privacy_sec5_desc: 'You have the right to access, modify, or delete your personal information at any time (such as changing your nickname, updating your avatar, deleting album photos, and messages). If you wish to delete your account and permanently erase your data, please contact us.',
-  
-  privacy_sec6_title: '6. Policy Updates',
-  privacy_sec6_desc: 'We may update this Privacy Policy from time to time. The updated version will be posted on this page along with an updated "Last Updated" date. We encourage you to review this page periodically for the latest information.',
-  
-  privacy_contact_title: '7. Contact Us',
-  privacy_contact_desc: 'If you have any questions or suggestions regarding this Privacy Policy, please contact us at:',
+  privacy_intro: 'Pet Memories ("we", "us", or "our") fully understands the importance of personal information to you and will do our utmost to protect the security and reliability of your personal information. This Privacy Policy is designed to explain how we collect, use, share, store, and protect your information when you visit and use our website (https://www.petmemory.me) and related services. Please read this carefully before using our services.',
 
-    // Terms of Service Page
+  privacy_sec1_title: '1. Information We Collect',
+  privacy_sec1_desc: 'To provide you with complete services, we collect the following types of information:\n\n- Account & Identity Information: When you register with an email, we collect your email and password (encrypted). When you choose to log in using third-party services (like Google OAuth), we collect basic information authorized by your Google account, including: your email address, public name (nickname), and profile picture URL.\n- Pet Information: Pet profiles you create on the platform, including name, species, birthday, bio, and pet photos.\n- Interaction Information: Messages you leave, gift sending records, and point change records.\n- AI Chat Content: The text of your conversations with the pet AI, used to maintain context and generate replies.',
+
+  privacy_sec2_title: '2. How We Use Your Information',
+  privacy_sec2_desc: 'We use the collected information for the following purposes:\n\n- Authentication: Using the email and other info returned by Google OAuth to identify you and keep you logged in.\n- Service Provision: Displaying your profile, pet profiles, albums, and messages.\n- AI Processing: To generate pet replies and custom cartoon expressions, we send your chat text to third-party large language models (like DeepSeek) and pet photos to image processing APIs (like Qwen). This is only for real-time result generation.\n- Security & Risk Control: To prevent fraud, abuse, and ensure platform security.',
+
+  privacy_sec3_title: '3. Sharing and Disclosure of Information',
+  privacy_sec3_desc: 'We will never sell your personal information to any third party. We only share data under the following necessary circumstances:\n\n- Third-Party Login Services: When you log in with Google, the authentication process is governed by Google\'s Privacy Policy.\n- Cloud Storage: We use Alibaba Cloud OSS to store your avatars and photos.\n- Third-Party AI Services: As mentioned above, necessary text and images are sent to third-party AI providers to fulfill your requested features.\n- Legal Requirements: We may disclose your information in response to legal processes, court orders, or mandatory government requests.',
+
+  privacy_sec4_title: '4. Cookies and Similar Technologies',
+  privacy_sec4_desc: 'We use cookies (and similar technologies like LocalStorage) to ensure the normal operation of the website. For example, we use cookies to store your login Token (encrypted credential) so you don\'t have to log in repeatedly when refreshing the page. You can manage or clear cookies in your browser settings, but this may affect some functionalities.',
+
+  privacy_sec5_title: '5. Data Security and Retention',
+  privacy_sec5_desc: 'We implement industry-standard security measures (such as HTTPS encrypted transmission, bcrypt password hashing) to protect your data. We retain your personal information only for as long as necessary to provide you with services, unless a longer retention period is required or permitted by law. When you delete your account or request deletion, we will promptly delete or anonymize your data.',
+
+  privacy_sec6_title: '6. Your Rights (How to Delete Data)',
+  privacy_sec6_desc: 'You have the right to access and correct your information at any time (e.g., change nickname, upload new avatar). You can also delete your uploaded album photos and messages at any time. If you wish to completely delete your account and permanently erase all associated data (including account info, pet info, AI chat history, etc.), please email us at the contact address below. We will process your request within 7 business days of receipt.',
+
+  privacy_sec7_title: '7. Children\'s Privacy',
+  privacy_sec7_desc: 'This platform is not intended for children under the age of 14. We do not knowingly collect personal information from children. If you are a parent or guardian and discover that your child has provided us with personal information, please contact us, and we will delete it.',
+
+  privacy_sec8_title: '8. Policy Updates and Notifications',
+  privacy_sec8_desc: 'We may update this Privacy Policy from time to time based on business developments or changes in laws and regulations. We will notify you of any material changes through website announcements, pop-up prompts, or emails. Updated terms take effect on the date they are posted on this page. We recommend reviewing this page periodically.',
+
+  privacy_contact_title: '9. Contact Us',
+  privacy_contact_desc: 'If you have any questions, comments, or data deletion requests regarding this Privacy Policy, please contact us at:',
+
+  // Terms of Service Page
   terms_title: 'Terms of Service',
   terms_last_updated: 'Last Updated',
-  terms_intro: 'Welcome to Pet Memories. Please read these Terms of Service carefully before accessing or using our website and related services. By accessing or using our service, you agree to be bound by these terms.',
+  terms_intro: 'Welcome to Pet Memories. These Terms of Service ("Terms") constitute a legally binding agreement between you and Pet Memories regarding your access to and use of our website (https://www.petmemory.me) and related services. Please read these Terms carefully before using our services. By accessing or using the service, you agree to be bound by all these Terms.',
 
   terms_sec1_title: '1. Account Registration and Security',
-  terms_sec1_desc: 'To use certain features, you need to register an account. You agree to provide true, accurate information and to safeguard your account and password. You are entirely responsible for all activities that occur under your account. If you notice any unauthorized use of your account, please notify us immediately.',
+  terms_sec1_desc: 'To use certain features, you need to register an account. You can register by providing an email and password, or by authorizing through third-party services (such as a Google account). \nYou agree to provide true, accurate information and to safeguard your account credentials. You are entirely responsible for all activities that occur under your account. If you notice any unauthorized use of your account, please notify us immediately.',
 
   terms_sec2_title: '2. User Conduct',
-  terms_sec2_desc: 'You agree to comply with all applicable laws and regulations when using our service, and not to: \n- Post, upload, or transmit any content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, or otherwise objectionable. \n- Infringe upon the intellectual property rights, privacy rights, or other legitimate rights of others. \n- Attempt to gain unauthorized access to the website, servers, or databases. \n- Use the service for any fraudulent or illegal activities. \n- Abuse the AI chat feature or generate inappropriate or harmful content.',
+  terms_sec2_desc: 'You agree to comply with all applicable laws and regulations when using our service, and not to: \n- Post, upload, or transmit any content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, or otherwise objectionable. \n- Infringe upon the intellectual property rights, privacy rights, or other legitimate rights of others. \n- Attempt to gain unauthorized access to the website, servers, databases, or engage in any activity that disrupts network security. \n- Use the service for any fraudulent, illegal activities, or abuse of platform resources. \n- Abuse the AI chat feature to deliberately generate inappropriate, harmful, or sensitive content.',
 
   terms_sec3_title: '3. User Content and Intellectual Property',
-  terms_sec3_desc: 'You retain the intellectual property rights to the pet photos, messages, and other content you upload to the platform. However, by uploading content, you grant us a non-exclusive license to display, store, and process such content within the scope of this platform. The design, source code, logo, and other related intellectual property of the platform belong to Pet Memories.',
+  terms_sec3_desc: 'You retain the intellectual property rights to the original content, such as pet photos and messages, you upload to the platform. However, by uploading content, you grant us a worldwide, non-exclusive, royalty-free license to display, store, process, and distribute such content in the course of operating, providing, and promoting our platform services. \nThe design, source code, logo, UI, and related intellectual property of the platform belong to Pet Memories and may not be copied or used without written permission.',
 
   terms_sec4_title: '4. Points and VIP Services',
-  terms_sec4_desc: 'Points and VIP membership services on the platform are virtual goods. The specific benefits and validity period of VIP services are subject to the display on the page and the agreement at the time of purchase. Please use your virtual assets reasonably; we are not responsible for point losses caused by your personal operational errors.',
+  terms_sec4_desc: 'Points and VIP membership services on the platform are virtual goods. The specific benefits (e.g., album upload, exclusive effects, AI chat limits) and validity period of VIP services are subject to the display on the page and the agreement at the time of purchase. Points are used to purchase virtual gifts on the platform and are non-refundable once consumed. Please use your virtual assets reasonably; we are not responsible for point losses caused by your personal operational errors (such as sending gifts by mistake).',
 
-  terms_sec5_title: '5. Disclaimer',
-  terms_sec5_desc: 'The AI chat and AI image generation services provided by this platform are based on third-party large language models, and we cannot guarantee the absolute accuracy, completeness, or applicability of the generated content. This platform is intended to provide pet memorial and emotional support services and cannot replace professional medical or psychological advice. You assume the risks associated with using this service.',
+  terms_sec5_title: '5. Disclaimer (Including AI Services)',
+  terms_sec5_desc: 'The AI chat and AI image generation services provided by this platform are based on third-party large language models (like DeepSeek, Qwen). Pet Memories cannot guarantee the absolute accuracy, completeness, or applicability of the AI-generated content and assumes no legal liability arising therefrom. This platform is intended for pet memorial and emotional support and cannot replace professional medical, psychological, or legal advice. You assume the risks associated with using this service, including relying on AI-generated content.',
 
-  terms_sec6_title: '6. Modifications and Termination',
-  terms_sec6_desc: 'We reserve the right to modify or replace these Terms of Service at any time. Modified terms will be posted on this page. Your continued use of the service will be deemed acceptance of the modified terms. If you violate these terms, we have the right to suspend or terminate your account.',
+  terms_sec6_title: '6. Third-Party Links and Services',
+  terms_sec6_desc: 'The service may contain links to third-party websites or services (e.g., logging in via Google OAuth). We do not control and are not responsible for the privacy policies, terms, or practices of third parties. When using third-party services, you must comply with their policies.',
 
-  terms_contact_title: '7. Contact Us',
+  terms_sec7_title: '7. Modifications and Termination',
+  terms_sec7_desc: 'We reserve the right to modify or replace these Terms at any time. Modified terms will be posted on this page. Your continued use of the service after changes constitutes acceptance of the modified Terms. \nIf you materially violate these Terms, we have the right to suspend or permanently terminate your account and access without prior notice.',
+
+  terms_sec8_title: '8. Governing Law and Dispute Resolution',
+  terms_sec8_desc: 'The formation, validity, performance, interpretation, and resolution of disputes under these Terms shall be governed by the laws of the People\'s Republic of China. Any dispute arising between you and us shall first be resolved through friendly negotiation; if negotiation fails, you agree to submit the dispute to the competent people\'s court in the place where the operator of Pet Memories is located.',
+
+  terms_contact_title: '9. Contact Us',
   terms_contact_desc: 'If you have any questions or suggestions regarding these Terms of Service, please contact us at:',
+
+  home_seo_desc: 'Pet Memories is a dedicated platform for commemorating and accompanying your beloved pets. You can freely create pet profiles, upload photo albums, leave messages, and even have AI conversations with them across time and space.',
 }

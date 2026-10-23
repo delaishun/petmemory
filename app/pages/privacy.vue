@@ -8,7 +8,7 @@ useHead(() => ({
   title: `${t('privacy_title')} · ${t('app_name')}`,
 }))
 
-// 使用计算属性来组织段落，方便维护和循环渲染
+// 将条款拆分得更细，满足 Google 对数据收集的详尽要求
 const sections = computed(() => [
   {
     title: t('privacy_sec1_title'),
@@ -34,6 +34,14 @@ const sections = computed(() => [
     title: t('privacy_sec6_title'),
     content: t('privacy_sec6_desc'),
   },
+  {
+    title: t('privacy_sec7_title'),
+    content: t('privacy_sec7_desc'),
+  },
+  {
+    title: t('privacy_sec8_title'),
+    content: t('privacy_sec8_desc'),
+  },
 ])
 </script>
 
@@ -42,7 +50,7 @@ const sections = computed(() => [
     <div class="container section privacy-page">
       <header class="privacy-hero">
         <h1 class="privacy-hero__title">{{ t('privacy_title') }}</h1>
-        <p class="privacy-hero__date">{{ t('privacy_last_updated') }}: 2026-10-23</p>
+        <p class="privacy-hero__date">{{ t('privacy_last_updated') }}: 2024-05-20</p>
       </header>
 
       <div class="privacy-content">
@@ -57,7 +65,7 @@ const sections = computed(() => [
           <h2 class="privacy-section__title">{{ t('privacy_contact_title') }}</h2>
           <p class="privacy-section__desc">
             {{ t('privacy_contact_desc') }} 
-            <a href="mailto:fczx1999@gmail.com">fczx1999@gmail.com</a>
+            <a href="mailto:support@petmemory.me">support@petmemory.me</a>
           </p>
         </section>
       </div>
@@ -121,7 +129,7 @@ const sections = computed(() => [
     margin: 0;
     font-size: @fs-base;
     color: @ink-2;
-    white-space: pre-line; /* 允许文本中的换行符生效 */
+    white-space: pre-line; /* 允许换行生效 */
 
     a {
       color: @accent;

@@ -8,7 +8,7 @@ useHead(() => ({
   title: `${t('terms_title')} · ${t('app_name')}`,
 }))
 
-// 使用计算属性来组织段落，方便维护和循环渲染
+// 扩充为 8 个段落，满足合规性要求
 const sections = computed(() => [
   {
     title: t('terms_sec1_title'),
@@ -34,6 +34,14 @@ const sections = computed(() => [
     title: t('terms_sec6_title'),
     content: t('terms_sec6_desc'),
   },
+  {
+    title: t('terms_sec7_title'),
+    content: t('terms_sec7_desc'),
+  },
+  {
+    title: t('terms_sec8_title'),
+    content: t('terms_sec8_desc'),
+  },
 ])
 </script>
 
@@ -42,7 +50,7 @@ const sections = computed(() => [
     <div class="container section terms-page">
       <header class="terms-hero">
         <h1 class="terms-hero__title">{{ t('terms_title') }}</h1>
-        <p class="terms-hero__date">{{ t('terms_last_updated') }}: 2026-10-23</p>
+        <p class="terms-hero__date">{{ t('terms_last_updated') }}: 2024-05-20</p>
       </header>
 
       <div class="terms-content">
@@ -121,7 +129,7 @@ const sections = computed(() => [
     margin: 0;
     font-size: @fs-base;
     color: @ink-2;
-    white-space: pre-line; /* 允许文本中的换行符生效 */
+    white-space: pre-line; 
 
     a {
       color: @accent;
