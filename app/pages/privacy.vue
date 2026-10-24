@@ -42,6 +42,11 @@ const sections = computed(() => [
     title: t('privacy_sec8_title'),
     content: t('privacy_sec8_desc'),
   },
+  {
+    // 新增的 Google API 声明
+    title: t('privacy_sec9_title'),
+    content: t('privacy_sec9_desc'),
+  },
 ])
 </script>
 
@@ -50,7 +55,7 @@ const sections = computed(() => [
     <div class="container section privacy-page">
       <header class="privacy-hero">
         <h1 class="privacy-hero__title">{{ t('privacy_title') }}</h1>
-        <p class="privacy-hero__date">{{ t('privacy_last_updated') }}: 2024-05-20</p>
+        <p class="privacy-hero__date">{{ t('privacy_last_updated') }}: 2026-10-24</p>
       </header>
 
       <div class="privacy-content">
@@ -65,7 +70,7 @@ const sections = computed(() => [
           <h2 class="privacy-section__title">{{ t('privacy_contact_title') }}</h2>
           <p class="privacy-section__desc">
             {{ t('privacy_contact_desc') }} 
-            <a href="mailto:support@petmemory.me">support@petmemory.me</a>
+            <a href="mailto:fczx1999@gmail.com">fczx1999@gmail.com</a>
           </p>
         </section>
       </div>

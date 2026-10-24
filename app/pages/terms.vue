@@ -8,7 +8,7 @@ useHead(() => ({
   title: `${t('terms_title')} · ${t('app_name')}`,
 }))
 
-// 扩充为 8 个段落，满足合规性要求
+// 扩充为 9 个段落，明确加入数据删除条款
 const sections = computed(() => [
   {
     title: t('terms_sec1_title'),
@@ -39,8 +39,14 @@ const sections = computed(() => [
     content: t('terms_sec7_desc'),
   },
   {
+    // 新增：账号注销与数据删除
     title: t('terms_sec8_title'),
     content: t('terms_sec8_desc'),
+  },
+  {
+    // 顺延：适用法律与争议解决
+    title: t('terms_sec9_title'),
+    content: t('terms_sec9_desc'),
   },
 ])
 </script>
@@ -50,7 +56,7 @@ const sections = computed(() => [
     <div class="container section terms-page">
       <header class="terms-hero">
         <h1 class="terms-hero__title">{{ t('terms_title') }}</h1>
-        <p class="terms-hero__date">{{ t('terms_last_updated') }}: 2024-05-20</p>
+        <p class="terms-hero__date">{{ t('terms_last_updated') }}: 2026-10-24</p>
       </header>
 
       <div class="terms-content">
