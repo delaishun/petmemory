@@ -83,19 +83,13 @@ const year = new Date().getFullYear()
 
           <!-- 登录 / 头像 -->
           <template v-if="!isLoggedIn">
+            <!-- 只保留登录按钮，并使用深色样式 -->
             <button
               type="button"
-              class="btn btn--ghost btn--sm"
+              class="btn btn--dark btn--sm"
               @click="openLogin('login')"
             >
               {{ t('nav_login') }}
-            </button>
-            <button
-              type="button"
-              class="btn btn--primary btn--sm"
-              @click="openLogin('register')"
-            >
-              {{ t('nav_register') }}
             </button>
           </template>
 
@@ -143,7 +137,7 @@ const year = new Date().getFullYear()
             <h4 class="site-footer__col-title">{{ t('footer_help') }}</h4>
             <NuxtLink to="/help" class="site-footer__link">{{ t('footer_usage') }}</NuxtLink>
             <NuxtLink to="/contact" class="site-footer__link">{{ t('footer_contact') }}</NuxtLink>
-            <!-- 新增：隐私政策与服务条款链接 -->
+            <!-- 隐私政策与服务条款链接 -->
             <NuxtLink to="/terms" class="site-footer__link">{{ t('terms_title') }}</NuxtLink>
             <NuxtLink to="/privacy" class="site-footer__link">{{ t('privacy_title') }}</NuxtLink>
           </div>
@@ -442,6 +436,21 @@ const year = new Date().getFullYear()
     text-align: center;
     font-size: @fs-xs;
     color: @ink-3;
+  }
+}
+
+// ============================================================
+// 按钮新增：深色样式
+// ============================================================
+.btn--dark {
+  color: @surface;
+  background: @ink-1;
+  border-color: @ink-1;
+
+  &:hover {
+    color: @surface;
+    background: lighten(@ink-1, 10%);
+    border-color: lighten(@ink-1, 10%);
   }
 }
 </style>
