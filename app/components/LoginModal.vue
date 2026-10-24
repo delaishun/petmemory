@@ -11,7 +11,6 @@ const { t } = useI18n()
 
 interface Props {
   modelValue: boolean
-  /** 打开时以哪种模式显示，默认 login */
   initialMode?: 'login' | 'register' | 'reset'
 }
 
@@ -66,6 +65,16 @@ const token = useCookie<string | null>('token', {
 })
 const userState = useState<AuthUser | null>('auth:user', () => null)
 
+// ---------- Google SDK 环境配置 ----------
+const config = useRuntimeConfig()
+const googleClientId = config.public.googleClientId
+// 声明 window.google 类型，防止 TS 报错
+declare global {
+  interface Window {
+    google: any
+  }
+}
+
 // ---------- 校验规则 ----------
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -76,13 +85,11 @@ const isPasswordConfirmed = computed(
 )
 const isCodeValid = computed(() => /^\d{6}$/.test(form.code.trim()))
 
-/** 忘记密码按钮：邮箱合法即可点击 */
 const canForgotPassword = computed(() => {
   if (loading.value) return false
   return isEmailValid.value
 })
 
-/** 发送验证码按钮 */
 const canSendCode = computed(() => {
   if (sendingCode.value) return false
   if (countdown.value > 0) return false
@@ -92,19 +99,15 @@ const canSendCode = computed(() => {
     if (!isPasswordValid.value) return false
     if (!isPasswordConfirmed.value) return false
   }
-  // reset 模式只要求邮箱合法
-
   return true
 })
 
-/** 发送按钮文案 */
 const sendCodeText = computed(() => {
   if (sendingCode.value) return t('auth_sending_code')
   if (countdown.value > 0) return t('auth_resend_code', { n: countdown.value })
   return t('auth_send_code')
 })
 
-/** 主按钮文案 */
 const submitText = computed(() => {
   if (loading.value) return t('auth_btn_processing')
   if (mode.value === 'login') return t('auth_btn_login')
@@ -112,7 +115,6 @@ const submitText = computed(() => {
   return t('auth_btn_reset')
 })
 
-// ---------- 头部 / 底部文案 ----------
 const titleText = computed(() => {
   if (mode.value === 'login') return t('auth_title_login')
   if (mode.value === 'register') return t('auth_title_register')
@@ -152,7 +154,6 @@ function switchMode(m: Mode) {
   form.confirmPassword = ''
   form.code = ''
 
-  // 进出 reset 模式时清空密码（登录密码 vs 新密码 语义不同）
   if (oldMode === 'reset' || m === 'reset') {
     form.password = ''
   }
@@ -236,45 +237,27 @@ function handleForgotPassword() {
 // ---------- 发送验证码 ----------
 async function handleSendCode() {
   if (!canSendCode.value) return
-
   sendingCode.value = true
   errors.global = ''
 
   try {
     const { $api } = useNuxtApp()
-
     if (mode.value === 'reset') {
       await $api('/api/auth/send-reset-code', {
         method: 'POST',
-        body: {
-          email: form.email.trim().toLowerCase(),
-        },
+        body: { email: form.email.trim().toLowerCase() },
       })
     } else {
       await $api('/api/auth/send-code', {
         method: 'POST',
-        body: {
-          email: form.email.trim().toLowerCase(),
-          password: form.password,
-        },
+        body: { email: form.email.trim().toLowerCase(), password: form.password },
       })
     }
-
-    showToast({
-      type: 'success',
-      message: t('auth_msg_code_sent'),
-    })
+    showToast({ type: 'success', message: t('auth_msg_code_sent') })
     startCountdown(60)
-
-    nextTick(() => {
-      document.getElementById('auth-code')?.focus()
-    })
+    nextTick(() => { document.getElementById('auth-code')?.focus() })
   } catch (err: any) {
-    errors.global =
-      err?.data?.error ||
-      err?.data?.message ||
-      err?.message ||
-      t('auth_err_send_failed')
+    errors.global = err?.data?.error || err?.data?.message || err?.message || t('auth_err_send_failed')
   } finally {
     sendingCode.value = false
   }
@@ -288,7 +271,7 @@ function applyAuthResult(res: AuthResponse) {
   visible.value = false
 }
 
-// ---------- 提交 ----------
+// ---------- 提交表单 ----------
 async function handleSubmit() {
   if (loading.value) return
   if (!validate()) return
@@ -298,40 +281,24 @@ async function handleSubmit() {
 
   try {
     const { $api } = useNuxtApp()
-
     if (mode.value === 'login') {
       const res = await $api<AuthResponse>('/api/auth/login', {
         method: 'POST',
-        body: {
-          email: form.email.trim().toLowerCase(),
-          password: form.password,
-        },
+        body: { email: form.email.trim().toLowerCase(), password: form.password },
       })
       applyAuthResult(res)
     } else if (mode.value === 'register') {
       const res = await $api<AuthResponse>('/api/auth/register', {
         method: 'POST',
-        body: {
-          email: form.email.trim().toLowerCase(),
-          password: form.password,
-          code: form.code.trim(),
-        },
+        body: { email: form.email.trim().toLowerCase(), password: form.password, code: form.code.trim() },
       })
       applyAuthResult(res)
     } else {
-      // reset
       await $api('/api/auth/reset-password', {
         method: 'POST',
-        body: {
-          email: form.email.trim().toLowerCase(),
-          newPassword: form.password,
-          code: form.code.trim(),
-        },
+        body: { email: form.email.trim().toLowerCase(), newPassword: form.password, code: form.code.trim() },
       })
-
       showToast({ type: 'success', message: t('auth_msg_reset_success') })
-
-      // 切回登录模式，保留邮箱，清空密码和验证码
       mode.value = 'login'
       form.password = ''
       form.confirmPassword = ''
@@ -341,20 +308,67 @@ async function handleSubmit() {
       countdown.value = 0
     }
   } catch (err: any) {
-    errors.global =
-      err?.data?.error ||
-      err?.data?.message ||
-      err?.message ||
-      t('auth_err_operation_failed')
+    errors.global = err?.data?.error || err?.data?.message || err?.message || t('auth_err_operation_failed')
   } finally {
     loading.value = false
   }
 }
 
-// ---------- Google 登录 ----------
+// ============================================================
+// Google 登录逻辑
+// ============================================================
+let googleInitialized = false
+
+// 初始化 Google SDK
+function initGoogleSDK() {
+  if (!window.google || googleInitialized) return
+  window.google.accounts.id.initialize({
+    client_id: googleClientId,
+    callback: handleGoogleCallback,
+    cancel_on_tap_outside: true,
+  })
+  googleInitialized = true
+}
+
+// 点击自定义按钮时触发 Google 弹窗
 function handleGoogleLogin() {
   if (loading.value) return
-  window.location.href = '/api/auth/google'
+  initGoogleSDK()
+  
+  if (window.google) {
+    // 使用官方 API 弹出账号选择器
+    window.google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // 如果浏览器拦截了弹窗（或者没有登录任何 Google 账号），给出提示
+        showToast('无法弹出 Google 登录，请检查浏览器设置')
+      }
+    })
+  } else {
+    showToast('Google 登录组件加载中，请稍后再试')
+  }
+}
+
+// Google 认证成功后的回调
+async function handleGoogleCallback(response: any) {
+  if (!response.credential) return
+  loading.value = true
+  errors.global = ''
+
+  try {
+    const { $api } = useNuxtApp()
+    // 调用后端新增的 /api/auth/google 接口
+    const res = await $api<AuthResponse>('/api/auth/google', {
+      method: 'POST',
+      body: { credential: response.credential },
+    })
+    
+    showToast({ type: 'success', message: t('auth_title_login') }) // 或者 '登录成功'
+    applyAuthResult(res)
+  } catch (err: any) {
+    errors.global = err?.data?.error || err?.data?.message || err?.message || 'Google 登录失败'
+  } finally {
+    loading.value = false
+  }
 }
 
 // ---------- 副作用 ----------
@@ -363,7 +377,11 @@ watch(
   (open) => {
     if (open) {
       mode.value = props.initialMode
-      nextTick(() => emailInputRef.value?.focus())
+      nextTick(() => {
+        emailInputRef.value?.focus()
+        // 弹窗打开时顺便初始化一下 Google SDK
+        initGoogleSDK()
+      })
     } else {
       resetForm()
       mode.value = 'login'
@@ -380,7 +398,6 @@ watch(
   },
 )
 
-// 邮箱变化时重置倒计时
 watch(
   () => form.email,
   () => {
@@ -399,6 +416,8 @@ function handleEsc(e: KeyboardEvent) {
 
 onMounted(() => {
   document.addEventListener('keydown', handleEsc)
+  // 提前尝试初始化
+  initGoogleSDK()
 })
 
 onBeforeUnmount(() => {
@@ -416,13 +435,11 @@ onBeforeUnmount(() => {
     teleport="body"
   >
     <div class="auth">
-      <!-- 标题 -->
       <header class="auth__header">
         <h2 class="auth__title">{{ titleText }}</h2>
         <p class="auth__subtitle">{{ subtitleText }}</p>
       </header>
 
-      <!-- 表单 -->
       <form class="auth__form" novalidate @submit.prevent="handleSubmit">
         <!-- 邮箱 -->
         <div class="field">
@@ -440,7 +457,7 @@ onBeforeUnmount(() => {
           <span v-if="errors.email" class="field__error">{{ errors.email }}</span>
         </div>
 
-        <!-- 密码 / 新密码 -->
+        <!-- 密码 -->
         <div class="field">
           <label class="field__label" for="auth-password">
             {{ mode === 'reset' ? t('auth_new_password') : t('auth_password') }}
@@ -454,12 +471,10 @@ onBeforeUnmount(() => {
             :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
             :disabled="loading"
           />
-          <span v-if="errors.password" class="field__error">
-            {{ errors.password }}
-          </span>
+          <span v-if="errors.password" class="field__error">{{ errors.password }}</span>
         </div>
 
-        <!-- 确认密码（仅注册） -->
+        <!-- 确认密码 -->
         <div v-if="mode === 'register'" class="field">
           <label class="field__label" for="auth-confirm">{{ t('auth_confirm_password') }}</label>
           <input
@@ -471,12 +486,10 @@ onBeforeUnmount(() => {
             autocomplete="new-password"
             :disabled="loading"
           />
-          <span v-if="errors.confirmPassword" class="field__error">
-            {{ errors.confirmPassword }}
-          </span>
+          <span v-if="errors.confirmPassword" class="field__error">{{ errors.confirmPassword }}</span>
         </div>
 
-        <!-- 验证码（注册 / 重置密码） -->
+        <!-- 验证码 -->
         <div v-if="mode === 'register' || mode === 'reset'" class="field">
           <label class="field__label" for="auth-code">{{ t('auth_code') }}</label>
           <input
@@ -490,17 +503,13 @@ onBeforeUnmount(() => {
             autocomplete="one-time-code"
             :disabled="loading"
           />
-          <span v-if="errors.code" class="field__error">
-            {{ errors.code }}
-          </span>
+          <span v-if="errors.code" class="field__error">{{ errors.code }}</span>
         </div>
 
-        <!-- 全局错误 -->
         <p v-if="errors.global" class="auth__error">{{ errors.global }}</p>
 
         <!-- 按钮区 -->
         <div class="auth__actions">
-          <!-- register / reset：发送验证码在左 -->
           <button
             v-if="mode === 'register' || mode === 'reset'"
             type="button"
@@ -511,7 +520,6 @@ onBeforeUnmount(() => {
             {{ sendCodeText }}
           </button>
 
-          <!-- 主按钮 -->
           <button
             type="submit"
             class="btn btn--primary btn--lg auth__submit"
@@ -520,7 +528,6 @@ onBeforeUnmount(() => {
             {{ submitText }}
           </button>
 
-          <!-- login 模式：忘记密码在右 -->
           <button
             v-if="mode === 'login'"
             type="button"
@@ -533,7 +540,7 @@ onBeforeUnmount(() => {
         </div>
       </form>
 
-      <!-- 分割线 + Google -->
+      <!-- 分割线 + Google 按钮 -->
       <template v-if="mode !== 'reset'">
         <div class="auth__divider">
           <span>{{ t('auth_or') }}</span>
@@ -555,25 +562,18 @@ onBeforeUnmount(() => {
         </button>
       </template>
 
-      <!-- 模式切换 -->
       <footer class="auth__footer">
         <template v-if="mode === 'login'">
           <span>{{ t('auth_no_account') }}</span>
-          <a href="javascript:;" @click.prevent="switchMode('register')">
-            {{ t('auth_go_register') }}
-          </a>
+          <a href="javascript:;" @click.prevent="switchMode('register')">{{ t('auth_go_register') }}</a>
         </template>
         <template v-else-if="mode === 'register'">
           <span>{{ t('auth_has_account') }}</span>
-          <a href="javascript:;" @click.prevent="switchMode('login')">
-            {{ t('auth_go_login') }}
-          </a>
+          <a href="javascript:;" @click.prevent="switchMode('login')">{{ t('auth_go_login') }}</a>
         </template>
         <template v-else>
           <span>{{ t('auth_remembered') }}</span>
-          <a href="javascript:;" @click.prevent="switchMode('login')">
-            {{ t('auth_go_login') }}
-          </a>
+          <a href="javascript:;" @click.prevent="switchMode('login')">{{ t('auth_go_login') }}</a>
         </template>
       </footer>
     </div>
@@ -583,6 +583,7 @@ onBeforeUnmount(() => {
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
+/* 样式完全没有变，原样保留 */
 .auth {
   padding: @sp-6 @sp-5 @sp-5;
 
@@ -629,7 +630,6 @@ onBeforeUnmount(() => {
     line-height: 1.5;
   }
 
-  // 按钮区
   &__actions {
     display: flex;
     gap: @sp-2;
@@ -641,7 +641,6 @@ onBeforeUnmount(() => {
     }
   }
 
-  // 次要按钮（发送验证码 / 忘记密码）
   &__ghost {
     letter-spacing: .02em;
     font-size: @fs-sm;
