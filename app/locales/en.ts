@@ -1,7 +1,7 @@
 // app/locales/en.ts
 export default {
   // 全局
-  app_name: 'Pet Memories',
+  app_name: 'Pet Memory',
   nav_home: 'Home',
   nav_pets: 'Pets',
   nav_about: 'About',
@@ -20,11 +20,11 @@ export default {
   home_empty_gifts: 'No gifts sent yet',
   home_empty_messages: 'No messages yet',
   // 首页 - 关于我们
-  home_about_title: 'About Warm Memories',
-  home_about_desc: 'At Warm Memories, leave a warm place for your beloved pet.\nYou can visit them anytime, leave a message, have a chat, or send a little gift.\nThey will be secretly delighted to receive it.',
+  home_about_title: 'About Pet Memory',
+  home_about_desc: 'At Pet Memory, leave a warm place for your beloved pet.\nYou can visit them anytime, leave a message, have a chat, or send a little gift.\nThey will be secretly delighted to receive it.',
   // 首页 - 宠物手绘
   home_drawing_title: 'Custom Hand-Drawn Portraits',
-  home_drawing_desc: 'Custom hand-drawn portraits for you and your beloved pet to cherish beautiful memories.\nEvery artwork is 100% hand-drawn, no AI involved.\nA short video of the drawing process will be recorded, allowing you to witness the artwork come to life.',
+  home_drawing_desc: 'Custom hand-drawn portraits for you and your beloved pet to cherishme beautiful memories.\nEvery artwork is 100% hand-drawn, no AI involved.\nA short video of the drawing process will be recorded, allowing you to witness the artwork come to life.',
   home_drawing_example_label: 'Example',
   home_drawing_artist_label: 'Artist',
   // 首页 - 宠物手绘
@@ -315,7 +315,7 @@ export default {
   mood_happy: 'Happy',
 
   // About Page
-  about_title: 'About Pet Memories',
+  about_title: 'About Pet Memory',
   about_subtitle: 'Leave a warm and tender place for your beloved pet.',
   about_album_title: 'Time Album',
   about_album_desc: 'Upload photos anytime to keep every beautiful moment of them.',
@@ -336,7 +336,7 @@ export default {
   // Privacy Policy Page
   privacy_title: 'Privacy Policy',
   privacy_last_updated: 'Last Updated',
-  privacy_intro: 'Pet Memories ("we", "us", or "our") fully understands the importance of personal information to you and will do our utmost to protect the security and reliability of your personal information. This Privacy Policy is designed to explain how we collect, use, share, store, and protect your information when you visit and use our website (https://www.petmemory.me) and related services. Please read this carefully before using our services.',
+  privacy_intro: 'Pet Memory ("we", "us", or "our") fully understands the importance of personal information to you and will do our utmost to protect the security and reliability of your personal information. This Privacy Policy is designed to explain how we collect, use, share, store, and protect your information when you visit and use our website (https://www.petmemory.me) and related services. Please read this carefully before using our services.',
 
   privacy_sec1_title: '1. Information We Collect',
   privacy_sec1_desc: 'To provide you with complete services, we collect the following types of information:\n\n- Account & Identity Information: When you register with an email, we collect your email and password (encrypted). When you choose to log in using third-party services (like Google OAuth), we collect basic information authorized by your Google account, including: your email address, public name (nickname), and profile picture URL.\n- Pet Information: Pet profiles you create on the platform, including name, species, birthday, bio, and pet photos.\n- Interaction Information: Messages you leave, gift sending records, and point change records.\n- AI Chat Content: The text of your conversations with the pet AI, used to maintain context and generate replies.',
@@ -368,7 +368,7 @@ export default {
   // Terms of Service Page
   terms_title: 'Terms of Service',
   terms_last_updated: 'Last Updated',
-  terms_intro: 'Welcome to Pet Memories. These Terms of Service ("Terms") constitute a legally binding agreement between you and Pet Memories regarding your access to and use of our website (https://www.petmemory.me) and related services. Please read these Terms carefully before using our services. By accessing or using the service, you agree to be bound by all these Terms.',
+  terms_intro: 'Welcome to Pet Memory. These Terms of Service ("Terms") constitute a legally binding agreement between you and Pet Memory regarding your access to and use of our website (https://www.petmemory.me) and related services. Please read these Terms carefully before using our services. By accessing or using the service, you agree to be bound by all these Terms.',
 
   terms_sec1_title: '1. Account Registration and Security',
   terms_sec1_desc: 'To use certain features, you need to register an account. You can register by providing an email and password, or by authorizing through third-party services (such as a Google account). \nYou agree to provide true, accurate information and to safeguard your account credentials. You are entirely responsible for all activities that occur under your account. If you notice any unauthorized use of your account, please notify us immediately.',
@@ -377,7 +377,7 @@ export default {
   terms_sec2_desc: 'You agree to comply with all applicable laws and regulations when using our service, and not to: \n- Post, upload, or transmit any content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, or otherwise objectionable. \n- Infringe upon the intellectual property rights, privacy rights, or other legitimate rights of others. \n- Attempt to gain unauthorized access to the website, servers, databases, or engage in any activity that disrupts network security. \n- Use the service for any fraudulent, illegal activities, or abuse of platform resources. \n- Abuse the AI chat feature to deliberately generate inappropriate, harmful, or sensitive content.',
 
   terms_sec3_title: '3. User Content and Intellectual Property',
-  terms_sec3_desc: 'You retain the intellectual property rights to the original content, such as pet photos and messages, you upload to the platform. However, by uploading content, you grant us a worldwide, non-exclusive, royalty-free license to display, store, process, and distribute such content in the course of operating, providing, and promoting our platform services. \nThe design, source code, logo, UI, and related intellectual property of the platform belong to Pet Memories and may not be copied or used without written permission.',
+  terms_sec3_desc: 'You retain the intellectual property rights to the original content, such as pet photos and messages, you upload to the platform. However, by uploading content, you grant us a worldwide, non-exclusive, royalty-free license to display, store, process, and distribute such content in the course of operating, providing, and promoting our platform services. \nThe design, source code, logo, UI, and related intellectual property of the platform belong to Pet Memory and may not be copied or used without written permission.',
 
   terms_sec4_title: '4. Points and VIP Services',
   terms_sec4_desc: 'Points and VIP membership services on the platform are virtual goods. The specific benefits (e.g., album upload, exclusive effects, AI chat limits) and validity period of VIP services are subject to the display on the page and the agreement at the time of purchase. Points are used to purchase virtual gifts on the platform and are non-refundable once consumed. Please use your virtual assets reasonably; we are not responsible for point losses caused by your personal operational errors (such as sending gifts by mistake).',
@@ -392,10 +392,10 @@ export default {
   terms_sec7_desc: 'We reserve the right to modify or replace these Terms at any time. Modified terms will be posted on this page. Your continued use of the service after changes constitutes acceptance of the modified Terms. \nIf you materially violate these Terms, we have the right to suspend or permanently terminate your account and access without prior notice.',
 
   terms_sec8_title: '8. Governing Law and Dispute Resolution',
-  terms_sec8_desc: 'The formation, validity, performance, interpretation, and resolution of disputes under these Terms shall be governed by the laws of the People\'s Republic of China. Any dispute arising between you and us shall first be resolved through friendly negotiation; if negotiation fails, you agree to submit the dispute to the competent people\'s court in the place where the operator of Pet Memories is located.',
+  terms_sec8_desc: 'The formation, validity, performance, interpretation, and resolution of disputes under these Terms shall be governed by the laws of the People\'s Republic of China. Any dispute arising between you and us shall first be resolved through friendly negotiation; if negotiation fails, you agree to submit the dispute to the competent people\'s court in the place where the operator of Pet Memory is located.',
 
   terms_contact_title: '9. Contact Us',
   terms_contact_desc: 'If you have any questions or suggestions regarding these Terms of Service, please contact us at:',
 
-  home_seo_desc: 'Pet Memories is a dedicated platform for commemorating and accompanying your beloved pets. You can freely create pet profiles, upload photo albums, leave messages, and even have AI conversations with them across time and space.',
+  home_seo_desc: 'Pet Memory is a dedicated platform for commemorating and accompanying your beloved pets. You can freely create pet profiles, upload photo albums, leave messages, and even have AI conversations with them across time and space.',
 }
