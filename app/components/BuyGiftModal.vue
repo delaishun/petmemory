@@ -120,20 +120,19 @@ async function loadGifts() {
 }
 
 // 默认选中凑够 $5
-// 默认选中凑够 $5
 function initDefaultSelection() {
   quantities.value = {}
   exchangeSelections.value = {}
   
-  // 👈 1. 根据你的要求，设定鲜花 3 个，星星 2 个
+  // 👈 修改点：默认选中 鲜花 3，小球 2
   const presetQuantities: Record<string, number> = {
     flower: 3,
-    star: 2
+    ball: 2
   }
 
   let currentTotal = 0
 
-  // 2. 应用预设数量
+  // 应用预设数量
   gifts.value.forEach(gift => {
     const presetQty = presetQuantities[gift.code]
     if (presetQty) {
@@ -142,14 +141,11 @@ function initDefaultSelection() {
     }
   })
 
-  // 3. 兜底逻辑：如果因为礼物下架等原因导致预设加起来不到 $5
-  // 则自动用剩下的最贵礼物凑够 $5
+  // 兜底逻辑：如果因为礼物下架等原因导致预设加起来不到 $5
   if (currentTotal < MIN_PURCHASE_PRICE) {
     const sortedGifts = [...gifts.value].sort((a, b) => b.price - a.price)
     for (const gift of sortedGifts) {
       if (currentTotal >= MIN_PURCHASE_PRICE) break
-      
-      // 如果这个礼物还没被选中过
       if (!quantities.value[gift.code]) {
         const needed = Math.ceil((MIN_PURCHASE_PRICE - currentTotal) / gift.price)
         quantities.value[gift.code] = needed
@@ -193,7 +189,6 @@ async function initPaddle() {
     paddle.Initialize({
       token: paddleClientToken,
       eventCallback: (event: any) => {
-        // 监听支付成功事件
         if (event.name === 'checkout.completed') {
           showToast({ type: 'success', message: '支付成功！礼物已发放到仓库' })
           visible.value = false
@@ -232,7 +227,11 @@ function toggleExchange(code: string) {
 // 发起支付 / 兑换
 // ============================================================
 async function handlePurchase() {
-  if (!isPurchaseValid.value) return
+  // 👈 双重保险：金额不足时直接拦截
+  if (!isPurchaseValid.value) {
+    showToast(`最低支付金额为 $5.00，当前仅 $${totalDollarPrice.value}`)
+    return
+  }
   
   submitting.value = true
   try {
@@ -256,7 +255,7 @@ async function handlePurchase() {
       items: res.paddleItems,
       customData: {
         userId: me.value?.id,
-        items: res.items // 原封不动传给后端 Webhook 扣库存
+        items: res.items
       }
     })
   } catch (err: any) {
@@ -279,7 +278,6 @@ async function handleExchange() {
     })
 
     showToast({ type: 'success', message: '兑换成功！' })
-    // 前端本地先扣除积分，避免接口刷新延迟带来的视觉卡顿
     if (me.value) {
       me.value.point = (me.value.point || 0) - EXCHANGE_COST
     }
@@ -344,7 +342,7 @@ async function handleExchange() {
               </div>
             </div>
             <div class="stepper">
-              <button type="button" class="stepper-btn" :disabled="!(quantities[gift.code] || 0 > 0) || submitting" @click="dec(gift.code)">−</button>
+              <button type="button" class="stepper-btn" :disabled="(quantities[gift.code] || 0) <= 0 || submitting" @click="dec(gift.code)">−</button>
               <span class="stepper-value">{{ quantities[gift.code] || 0 }}</span>
               <button type="button" class="stepper-btn" :disabled="submitting" @click="inc(gift.code)">+</button>
             </div>
@@ -590,7 +588,7 @@ async function handleExchange() {
   }
 }
 
-/* 步进器（从 GiftModal 复用） */
+/* 步进器 */
 .stepper-btn {
   display: inline-flex;
   align-items: center;
