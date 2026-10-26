@@ -166,7 +166,7 @@ const totalGiftCount = computed(
 const giftItems = computed<GiftRecordPublic[]>(() => giftRecords.value ?? []);
 
 // ============================================================
-// 心情状态文本 (新逻辑)
+// 心情状态文本
 // ============================================================
 const moodStatusText = computed(() => {
   if (!pet.value) return "";
@@ -212,42 +212,84 @@ const isVipPet = computed(() => {
 const myPoint = computed<number | undefined>(() => me.value?.point);
 
 // ============================================================
-// 背景音乐逻辑 (新增)
+// 背景音乐逻辑 (全交互触发)
 // ============================================================
 const audio = ref<HTMLAudioElement | null>(null);
 const isMusicPlaying = ref(false);
 const isMusicEnded = ref(false);
+let hasBoundEvents = false;
+
+function handleUserInteraction() {
+  if (!audio.value || isMusicPlaying.value) return;
+
+  audio.value.play().then(() => {
+    isMusicPlaying.value = true;
+    removeGlobalEvents(); // 播放成功，清理监听
+  }).catch((e) => {
+    // 如果依然失败，保持监听
+    console.warn('交互触发播放失败，等待下次操作', e);
+  });
+}
+
+function bindGlobalEvents() {
+  if (hasBoundEvents || import.meta.server) return;
+  hasBoundEvents = true;
+  
+  window.addEventListener('pointerdown', handleUserInteraction, { passive: true });
+  window.addEventListener('mousedown', handleUserInteraction, { passive: true });
+  window.addEventListener('scroll', handleUserInteraction, { passive: true });
+  window.addEventListener('wheel', handleUserInteraction, { passive: true });
+  window.addEventListener('keydown', handleUserInteraction, { passive: true });
+  window.addEventListener('click', handleUserInteraction, { passive: true });
+}
+
+function removeGlobalEvents() {
+  if (!hasBoundEvents || import.meta.server) return;
+  hasBoundEvents = false;
+
+  window.removeEventListener('pointerdown', handleUserInteraction);
+  window.removeEventListener('mousedown', handleUserInteraction);
+  window.removeEventListener('scroll', handleUserInteraction);
+  window.removeEventListener('wheel', handleUserInteraction);
+  window.removeEventListener('keydown', handleUserInteraction);
+  window.removeEventListener('click', handleUserInteraction);
+}
 
 function initBackgroundMusic() {
-  // 👈 新增：确保只在客户端（浏览器）执行，避免服务端渲染报错
   if (import.meta.server) return;
-
   if (!isVipPet.value || audio.value) return;
 
   let musicUrl = '';
   const festivalName = getCurrentFestivalName();
 
   if (festivalName) {
-    // 节日音乐
     musicUrl = `https://music.petmemory.me/${festivalName}.mp3`;
   } else {
-    // 随机天堂音乐 1-10
     const randomIndex = Math.floor(Math.random() * 10) + 1;
     musicUrl = `https://music.petmemory.me/heaven${randomIndex}.mp3`;
   }
 
   audio.value = new Audio(musicUrl);
-  audio.value.volume = 0.5; // 音量 50%
-  audio.value.loop = false; // 只播放一遍
+  audio.value.volume = 0.5; 
+  audio.value.loop = false; 
 
   audio.value.addEventListener('ended', () => {
     isMusicPlaying.value = false;
     isMusicEnded.value = true;
   });
+
+  audio.value.play().then(() => {
+    isMusicPlaying.value = true;
+  }).catch((err) => {
+    console.log('等待用户交互以播放背景音乐', err);
+    bindGlobalEvents(); 
+  });
 }
 
 function toggleMusic() {
   if (!audio.value) return;
+
+  removeGlobalEvents();
 
   if (isMusicPlaying.value) {
     audio.value.pause();
@@ -262,7 +304,7 @@ function toggleMusic() {
       isMusicPlaying.value = true;
     }).catch((err) => {
       console.error('播放失败', err);
-      showToast('浏览器限制了播放，请稍后再试');
+      showToast('播放失败，请检查网络或音频源');
     });
   }
 }
@@ -270,7 +312,7 @@ function toggleMusic() {
 watch(
   () => isVipPet.value,
   (vip) => {
-    if (vip && import.meta.client ) initBackgroundMusic();
+    if (vip && import.meta.client) initBackgroundMusic();
   },
   { immediate: true }
 );
@@ -302,6 +344,7 @@ watch(
 
 onBeforeUnmount(() => {
   if (pollTimer) clearInterval(pollTimer);
+  removeGlobalEvents();
   if (audio.value) {
     audio.value.pause();
     audio.value.src = '';
@@ -767,12 +810,12 @@ useHead(() => ({
 
 <template>
   <div class="page">
-    <!-- 👈 新增：悬浮音乐开关 (仅 VIP 宠物且音乐初始化成功时显示) -->
+    <!-- 悬浮音乐开关 -->
     <button 
       v-if="isVipPet && audio" 
       class="music-toggle" 
       :class="{ 'is-playing': isMusicPlaying }"
-      @click="toggleMusic"
+      @click.stop="toggleMusic"
       :title="isMusicPlaying ? '暂停音乐' : (isMusicEnded ? '重新播放' : '播放音乐')"
     >
       <van-icon :name="isMusicPlaying ? 'music-o' : 'volume-o'" />
@@ -862,9 +905,7 @@ useHead(() => ({
           </div>
         </div>
 
-        <!-- ============================================ -->
-        <!-- 相册区                                       -->
-        <!-- ============================================ -->
+        <!-- 相册区 -->
         <section class="pet-album">
           <div class="section-title">
             <div class="section-title__left">
@@ -932,9 +973,7 @@ useHead(() => ({
           </div>
         </section>
 
-        <!-- ============================================ -->
-        <!-- 礼物陈列区                                    -->
-        <!-- ============================================ -->
+        <!-- 礼物陈列区 -->
         <section v-if="giftItems.length" class="pet-gifts">
           <div class="section-title">
             <div class="section-title__left">
@@ -960,9 +999,7 @@ useHead(() => ({
           </div>
         </section>
 
-        <!-- ============================================ -->
-        <!-- 对话展示区 (Conversation)                     -->
-        <!-- ============================================ -->
+        <!-- 对话展示区 -->
         <section class="pet-public-chat">
           <div class="section-title">
             <div class="section-title__left">
@@ -978,7 +1015,6 @@ useHead(() => ({
             </button>
           </div>
 
-          <!-- 宠物表情图展示区 -->
           <div class="pet-expression" v-if="pet.currentExpressionUrl || pet.isGenerating">
             <div class="pet-expression__top">
               <div class="pet-expression__circle">
@@ -1043,9 +1079,7 @@ useHead(() => ({
           </div>
         </section>
 
-        <!-- ============================================ -->
-        <!-- 留言区                                       -->
-        <!-- ============================================ -->
+        <!-- 留言区 -->
         <section class="pet-messages">
           <div class="section-title">
             <div class="section-title__left">
@@ -1130,9 +1164,7 @@ useHead(() => ({
           </div>
         </section>
 
-        <!-- ============================================ -->
-        <!-- 操作区                                       -->
-        <!-- ============================================ -->
+        <!-- 操作区 -->
         <div class="pet-actions">
           <div v-if="isLoggedIn && myPoint !== undefined" class="pet-actions__points">
             <van-icon name="gold-coin-o" />
@@ -1174,9 +1206,7 @@ useHead(() => ({
       </template>
     </div>
 
-    <!-- ============================================ -->
-    <!-- 表情生成弹窗                             -->
-    <!-- ============================================ -->
+    <!-- 表情生成弹窗 -->
     <van-popup
       v-model:show="expressionModalVisible"
       round
@@ -1357,7 +1387,7 @@ useHead(() => ({
 .music-toggle {
   position: fixed;
   right: 20px;
-  bottom: 80px; /* 放在底部操作区上方 */
+  bottom: 80px;
   z-index: 100;
   display: flex;
   align-items: center;
