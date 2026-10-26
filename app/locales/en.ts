@@ -333,7 +333,7 @@ export default {
   privacy_sec7_desc: 'This platform is not intended for children under the age of 14. We do not knowingly collect personal information from children. If you are a parent or guardian and discover that your child has provided us with personal information, please contact us, and we will delete it.',
   privacy_sec8_title: '8. Policy Updates and Notifications',
   privacy_sec8_desc: 'We may update this Privacy Policy from time to time based on business developments or changes in laws and regulations. We will notify you of any material changes through website announcements, pop-up prompts, or emails. Updated terms take effect on the date they are posted on this page. We recommend reviewing this page periodically.',
-  
+
   privacy_sec9_title: '9. Google API Services User Data Policy Compliance',
   privacy_sec9_desc: 'Pet Memories\'s use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements.\n\nWe specify that:\n- We only use Google User Data (such as basic profile information and email) for user authentication and account creation.\n- We do not use Google User Data for serving advertisements.\n- We do not transfer or sell Google User Data to third parties, unless necessary to provide or improve the core functionality of our application, comply with applicable laws, or as part of a merger or acquisition.\n- Human beings will not read your Google User Data unless we have obtained your explicit opt-in agreement, or for security purposes (such as investigating abuse), or as required by law.',
 
@@ -358,13 +358,32 @@ export default {
   terms_sec6_desc: 'The service may contain links to third-party websites or services (e.g., logging in via Google OAuth). We do not control and are not responsible for the privacy policies, terms, or practices of third parties. When using third-party services, you must comply with their policies.',
   terms_sec7_title: '7. Modifications and Termination',
   terms_sec7_desc: 'We reserve the right to modify or replace these Terms at any time. Modified terms will be posted on this page. Your continued use of the service after changes constitutes acceptance of the modified Terms. \nIf you materially violate these Terms, we have the right to suspend or permanently terminate your account and access without prior notice.',
-  
+
   terms_sec8_title: '8. Account Cancellation and Data Deletion',
   terms_sec8_desc: 'You have the right to terminate the use of our service and cancel your account at any time. Users can request account and data deletion by sending an email to fczx1999@gmail.com. To ensure account security, we may verify your identity before deletion. Once canceled, your personal profile, pet profiles, uploaded photos, and chat history will be permanently deleted and cannot be recovered.',
-  
+
   terms_sec9_title: '9. Governing Law and Dispute Resolution',
   terms_sec9_desc: 'The formation, validity, performance, interpretation, and resolution of disputes under these Terms shall be governed by the laws of the People\'s Republic of China. Any dispute arising between you and us shall first be resolved through friendly negotiation; if negotiation fails, you agree to submit the dispute to the competent people\'s court in the place where the operator of Pet Memory is located.',
 
   terms_contact_title: '10. Contact Us',
   terms_contact_desc: 'If you have any questions or suggestions regarding these Terms of Service, please contact us at:',
+
+  gift_buy_title: 'Buy / Exchange Gifts',
+  gift_purchase_tab: 'Pay with Money',
+  gift_exchange_tab: 'Points Exchange',
+  gift_total: 'Total: ',
+  gift_min_purchase_tip: 'Min amount',
+  gift_btn_pay: 'Pay Now',
+  gift_btn_exchange: 'Exchange',
+  gift_exchange_total: 'Points Cost:',
+
+  gift_no_stock: 'Out of stock, please buy first',
+  gift_stock_count: 'Stock: {n}',
+
+  // Points Bonus Prompts
+  gift_bonus_points: 'Gift sent successfully! You earned 200 points.',
+  msg_bonus_earned: 'Message sent! You earned 50 bonus points.',
+  chat_bonus_earned: 'Chat completed! You earned 75 bonus points.',
+
+  user_buy_gift: 'Buy Gifts',
 }

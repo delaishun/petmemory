@@ -333,7 +333,7 @@ export default {
   privacy_sec7_desc: '本平台不面向 14 周岁以下的儿童提供服务。我们不会有意收集儿童的个人信息。如果您是监护人并发现您的孩子向我们提供了个人信息，请联系我们，我们将予以删除。',
   privacy_sec8_title: '8. 政策更新与通知',
   privacy_sec8_desc: '我们可能会根据业务发展或法律法规的变化不时更新本隐私政策。任何重大变更，我们会通过网站公告、弹窗提示或邮件等方式通知您。更新后的条款自发布于本页面之日起生效。建议您定期查阅此页面。',
-  
+
   privacy_sec9_title: '9. Google API 服务用户数据政策合规性',
   privacy_sec9_desc: '“宠忆”（Pet Memories）对从 Google API 接收的信息的使用和向任何其他应用的传输，都将严格遵守 Google API 服务用户数据政策（Google API Services User Data Policy），包括其中的“有限使用”（Limited Use）要求。\n\n我们明确声明：\n- 我们仅将 Google 用户数据（如基本个人资料信息和电子邮件）用于用户身份验证和账号创建。\n- 我们不会将 Google 用户数据用于投放广告。\n- 我们不会将 Google 用户数据转让或出售给第三方，除非是为了提供或改进我们应用的核心功能、遵守适用法律，或作为合并或收购的一部分所必需。\n- 除非获得您的明确选择同意，或出于安全目的（例如调查滥用行为），或法律要求，否则人类不会读取您的 Google 用户数据。',
 
@@ -358,13 +358,32 @@ export default {
   terms_sec6_desc: '本服务可能包含指向第三方网站或服务的链接（例如通过 Google OAuth 登录）。我们不控制且不对第三方的隐私政策、条款或行为负责。当您使用第三方服务时，您需遵守该第三方的政策。',
   terms_sec7_title: '7. 条款修改与终止',
   terms_sec7_desc: '我们保留随时修改或替换本服务条款的权利。修改后的条款将在本页面公布。如果您在条款变更后继续使用本服务，将被视为接受修改后的条款。\n如果您严重违反本条款，我们有权在不事先通知的情况下暂停或永久终止您的账号及访问权限。',
-  
+
   terms_sec8_title: '8. 账号注销与数据删除',
   terms_sec8_desc: '您有权随时终止使用本服务并注销您的账号。如果您希望彻底删除您的账号及所有相关数据，Users can request account and data deletion by sending an email to fczx1999@gmail.com（用户可通过发送邮件至 fczx1999@gmail.com 提出账号注销及数据删除请求）。为了保障账号安全，我们可能会在删除前核实您的身份。一旦注销，您的个人资料、宠物档案、上传的图片及对话记录将被永久删除且无法恢复。',
-  
+
   terms_sec9_title: '9. 适用法律与争议解决',
   terms_sec9_desc: '本条款的成立、生效、履行、解释及争议的解决，均适用中华人民共和国法律。若您与我们发生任何争议，应首先友好协商解决；协商不成的，您同意将争议提交至“宠忆”运营者所在地有管辖权的人民法院诉讼解决。',
 
   terms_contact_title: '10. 联系我们',
   terms_contact_desc: '如果您对本服务条款有任何疑问或建议，请通过以下方式联系我们：',
+
+  gift_buy_title: '购买 / 兑换礼物',
+  gift_purchase_tab: '真实支付',
+  gift_exchange_tab: '积分兑换',
+  gift_total: '合计：',
+  gift_min_purchase_tip: '最低支付金额',
+  gift_btn_pay: '去支付',
+  gift_btn_exchange: '确认兑换',
+  gift_exchange_total: '需消耗积分：',
+
+  gift_no_stock: '仓库中暂无该礼物，请先购买',
+  gift_stock_count: '库存: {n}',
+
+  // 积分奖励提示
+  gift_bonus_points: '赠送成功，获得 200 积分！',
+  msg_bonus_earned: '留言成功，获得 50 积分奖励！',
+  chat_bonus_earned: '对话结束，获得 75 积分奖励！',
+
+  user_buy_gift: '购买礼物',
 }

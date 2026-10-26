@@ -70,6 +70,7 @@ interface MessagePublic {
   id: number;
   content: string;
   createdAt: string;
+  earnedBonus?: boolean; // 👈 新增
   author: {
     id: number | null;
     nickname: string;
@@ -90,6 +91,7 @@ interface GiftRecordPublic {
   giftCode: string;
   giftName: string;
   giftImageUrl: string;
+  expireSeconds: number; // 👈 新增
   sender: {
     id: number | null;
     nickname: string;
@@ -175,10 +177,24 @@ const giftItems = computed<GiftRecordPublic[]>(() => giftRecords.value ?? []);
 const moodStatusText = computed(() => {
   if (!pet.value) return "";
   const score = pet.value.moodScore;
-  if (score > 150) return t("mood_happy");
-  if (score > 50) return t("mood_smile");
+  if (score >= 100) return t("mood_happy");
+  if (score > 0) return t("mood_smile");
   return t("mood_calm");
 });
+
+// ============================================================
+// 礼物透明度计算
+// ============================================================
+function getGiftOpacity(item: GiftRecordPublic) {
+  if (!item.expireSeconds || !item.createdAt) return 1;
+  const sentTime = new Date(item.createdAt).getTime();
+  const elapsedSeconds = (Date.now() - sentTime) / 1000;
+  const ratio = elapsedSeconds / item.expireSeconds;
+  
+  if (ratio < 1 / 3) return 1;
+  if (ratio < 2 / 3) return 0.6;
+  return 0.3;
+}
 
 // ============================================================
 // 登录 & 主人判断
@@ -411,12 +427,18 @@ function handleMessage() {
   messageModalVisible.value = true;
 }
 
-function onMessageCreated(message: MessagePublic) {
+async function onMessageCreated(message: MessagePublic) {
   if (!messages.value) return;
   messages.value = {
     items: [message, ...messages.value.items],
     total: messages.value.total + 1,
   };
+
+  // 👈 留言积分提示
+  if (message.earnedBonus) {
+    showToast({ type: "success", message: t('msg_bonus_earned') || '留言成功，获得 50 积分！' });
+    await refreshMe();
+  }
 }
 
 // ============================================================
@@ -493,6 +515,7 @@ async function loadMoreMessages() {
 // ============================================================
 
 const giftModalVisible = ref(false);
+const buyGiftModalVisible = ref(false);
 
 function handleGift() {
   if (!me.value) {
@@ -502,11 +525,19 @@ function handleGift() {
   giftModalVisible.value = true;
 }
 
+// 监听送礼弹窗触发的去购买事件
+function handleGoBuy() {
+  giftModalVisible.value = false;
+  buyGiftModalVisible.value = true;
+}
+
+// 购买弹窗成功回调
+async function onBuyGiftSuccess() {
+  await refreshMe();
+}
+
 /**
- * 送礼成功后会扣减 users.point，但 GiftModal 的 success 只回传 giftSummary，
- * 不会带回剩余积分。这里重新拉一次 /api/auth/me 更新全局 me，
- * 让页面上任何依赖 me.point 的地方（导航栏、操作区积分条）立刻同步。
- * 取数方式与 auth-init.client.ts 保持一致（MeResponse.user）。
+ * 送礼成功后会扣除仓库库存并加 200 积分
  */
 async function refreshMe() {
   if (!me.value) return;
@@ -520,8 +551,9 @@ async function refreshMe() {
 
 async function onGiftsSent(summary: PetGiftSummary[]) {
   giftSummary.value = summary;
-  // 礼物明细、宠物（含新心情值）、当前用户积分三者互不依赖，并行刷新
+  // 刷新礼物、宠物（新心情）、用户（新积分）
   await Promise.all([refreshGiftRecords(), refreshPet(), refreshMe()]);
+  showToast({ type: "success", message: t('gift_bonus_points') || '赠送成功，获得 200 积分！' });
 }
 
 // ============================================================
@@ -565,9 +597,13 @@ function handleChat() {
   chatModalVisible.value = true;
 }
 
-watch(chatModalVisible, (visible) => {
+// 对话弹窗关闭时，刷新 chat 并处理积分提示
+watch(chatModalVisible, async (visible) => {
   if (!visible) {
-    refreshPublicChat();
+    await refreshPublicChat();
+    // 提示可能获得了 75 积分
+    showToast({ type: "success", message: t('chat_bonus_earned') || '和ta聊天结束，您可能获得了积分' });
+    await refreshMe();
   }
 });
 
@@ -865,6 +901,7 @@ useHead(() => ({
               type="button"
               class="gift-cell"
               :title="item.giftName"
+              :style="{ opacity: getGiftOpacity(item) }"
               @click="handleGiftClick(item)"
             >
               <img :src="item.giftImageUrl" :alt="item.giftName" loading="lazy" />
@@ -1161,6 +1198,13 @@ useHead(() => ({
       :slug="pet.slug"
       :pet-name="pet.name"
       @success="onGiftsSent"
+      @go-buy="handleGoBuy"
+    />
+
+    <!-- 购买/兑换弹窗 -->
+    <BuyGiftModal
+      v-model="buyGiftModalVisible"
+      @success="onBuyGiftSuccess"
     />
 
     <!-- 宠物对话弹窗 -->

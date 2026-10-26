@@ -1,7 +1,7 @@
 <!-- app/pages/users/[id].vue -->
 <script setup lang="ts">
 import { showConfirmDialog } from 'vant'
-import type { AuthUser } from '~/types/auth'
+import type { AuthUser, MeResponse } from '~/types/auth'
 import { useI18n } from '~/composables/useI18n'
 
 // ============================================================
@@ -32,7 +32,6 @@ interface PublicUser {
   isVip: boolean
   createdAt: string
   bio: string | null
-  // === 积分（后端仅本人返回） ===
   point?: number
 }
 
@@ -68,7 +67,6 @@ const defaultAvatar =
   )
 
 // ---------- 头像编辑 ----------
-// 只有本人 + (从未上传过 或 距上次超过 7 天) 才能换
 const AVATAR_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
 
 const canEditAvatar = computed(() => {
@@ -89,16 +87,12 @@ function handleAvatarClick() {
 
 function onAvatarUpdated(updated: PublicUser) {
   if (!user.value) return
-  // 更新页面数据
   user.value = { ...user.value, ...updated }
-  // 同步顶部导航栏的头像 + 全局 point
   if (me.value && me.value.id === updated.id) {
     me.value = {
       ...me.value,
       avatarUrl: updated.avatarUrl,
       avatarUpdatedAt: updated.avatarUpdatedAt,
-      // PATCH /api/users/me/avatar 也会返回最新 point，顺手同步，
-      // 否则 displayPoint 优先读 me.point 时会读到旧值
       ...(updated.point !== undefined ? { point: updated.point } : {}),
     }
   }
@@ -113,9 +107,7 @@ function handleEditNickname() {
 
 function onNicknameUpdated(updated: PublicUser) {
   if (!user.value) return
-  // 更新页面数据
   user.value = { ...user.value, nickname: updated.nickname }
-  // 同步顶部导航栏的昵称
   if (me.value && me.value.id === updated.id) {
     me.value = { ...me.value, nickname: updated.nickname }
   }
@@ -123,18 +115,12 @@ function onNicknameUpdated(updated: PublicUser) {
 
 // ============================================================
 // 积分展示
-// - 本人：优先读全局 me.point（宠物页送礼后 refreshMe 会更新它），
-//         兜底读本页 user.point（用于 me 尚未恢复时的首屏）
-// - 他人：后端 /api/users/:id 不返回 point，一律不展示
 // ============================================================
 const displayPoint = computed<number | undefined>(() => {
   if (me.value) {
-    // 登录态已就绪：非本人不展示；本人 me.point 优先，user.point 兜底
     if (me.value.id !== userId.value) return undefined
     return me.value.point ?? user.value?.point
   }
-  // 登录态尚未恢复（auth-init 还没回来）：
-  // 后端只在本人访问时返回 point，有值即可信任
   return user.value?.point
 })
 
@@ -149,8 +135,28 @@ function handleAddPet() {
 }
 
 function onPetCreated() {
-  // 创建成功后刷新宠物列表
   refreshPets()
+}
+
+// ============================================================
+// 购买礼物 (新增)
+// ============================================================
+const buyGiftModalVisible = ref(false)
+
+function handleBuyGift() {
+  buyGiftModalVisible.value = true
+}
+
+async function refreshMe() {
+  try {
+    const res = await $api<MeResponse>('/api/auth/me')
+    if (res?.user) me.value = res.user
+  } catch {}
+}
+
+async function onBuyGiftSuccess() {
+  // 购买成功，刷新当前用户的积分信息
+  await refreshMe()
 }
 
 // ---------- 退出登录 ----------
@@ -236,7 +242,7 @@ useHead(() => ({
             </button>
           </div>
 
-          <!-- 本人可见的积分展示（data source 见 displayPoint） -->
+          <!-- 本人可见的积分展示 -->
           <div v-if="displayPoint !== undefined" class="user-hero__points">
             <van-icon name="gold-coin-o" />
             <span>{{ t('user_points') }}: {{ displayPoint }}</span>
@@ -279,6 +285,13 @@ useHead(() => ({
           </button>
           <button
             type="button"
+            class="btn btn--gold btn--lg"
+            @click="handleBuyGift"
+          >
+            {{ t('user_buy_gift') }}
+          </button>
+          <button
+            type="button"
             class="btn btn--lg"
             @click="handleLogout"
           >
@@ -306,6 +319,12 @@ useHead(() => ({
       v-model="editNicknameModalVisible"
       :current-nickname="user.nickname"
       @success="onNicknameUpdated"
+    />
+
+    <!-- 购买礼物弹窗 -->
+    <BuyGiftModal
+      v-model="buyGiftModalVisible"
+      @success="onBuyGiftSuccess"
     />
 
     <!-- VIP 权益说明弹窗 -->
@@ -376,7 +395,6 @@ useHead(() => ({
     padding: @sp-5 @sp-4;
   }
 
-  // 头像 + 编辑图标的包裹层
   &__avatar-wrap {
     position: relative;
     display: inline-block;
@@ -395,7 +413,6 @@ useHead(() => ({
       0 8px 24px rgba(93, 71, 55, .12);
   }
 
-  // 右下角小圆编辑按钮
   &__avatar-edit {
     position: absolute;
     right: 0;
@@ -427,7 +444,6 @@ useHead(() => ({
     }
   }
 
-  // 名字 + 图标的包裹层
   &__title-wrap {
     display: flex;
     align-items: center;
@@ -461,7 +477,6 @@ useHead(() => ({
     }
   }
 
-  // 修改昵称图标
   &__edit-nickname {
     display: inline-flex;
     align-items: center;
@@ -487,7 +502,6 @@ useHead(() => ({
     }
   }
 
-  // 积分展示
   &__points {
     display: inline-flex;
     align-items: center;
@@ -607,6 +621,7 @@ useHead(() => ({
 .user-actions {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap; /* 👈 新增：防止多个按钮超出容器 */
   gap: @sp-3;
   margin-top: auto;
   padding-top: @sp-6;

@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { showToast } from 'vant'
 import { useI18n } from '~/composables/useI18n'
+import type { AuthUser } from '~/types/auth'
 
 // ============================================================
 // 国际化
@@ -9,15 +10,15 @@ import { useI18n } from '~/composables/useI18n'
 const { t } = useI18n()
 
 // ============================================================
-// 类型（导出给父组件用）
+// 类型
 // ============================================================
-
 export interface GiftPublic {
   id: number
   code: string
   name: string
   imageUrl: string
   price: number
+  moodValue?: number
 }
 
 export interface PetGiftSummary {
@@ -32,12 +33,9 @@ export interface PetGiftSummary {
 // ============================================================
 // Props / Emits
 // ============================================================
-
 interface Props {
   modelValue: boolean
-  /** 宠物 slug，用于 POST /api/pets/:slug/gifts */
   slug: string
-  /** 宠物名字，用于副标题 */
   petName?: string
 }
 
@@ -48,52 +46,34 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'success', summary: PetGiftSummary[]): void
+  // 新增：点击去购买
+  (e: 'go-buy'): void 
 }>()
 
 // ============================================================
 // v-model 代理
 // ============================================================
-
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
 })
 
 // ============================================================
-// 常量
-// ============================================================
-
-/** 单件礼物一次最多送多少 */
-const MAX_PER_GIFT = 20
-
-// ============================================================
 // 状态
 // ============================================================
-
 const { $api } = useNuxtApp()
+const me = useState<AuthUser | null>('auth:user', () => null)
 
 const gifts = ref<GiftPublic[]>([])
-const quantities = ref<Record<string, number>>({})
-const loadingGifts = ref(false)
+const inventory = ref<Record<string, number>>({}) // 用户礼物库存 { [code]: quantity }
+const selectedCode = ref<string>('') // 当前选中的礼物
+const loading = ref(false)
 const submitting = ref(false)
 const error = ref('')
 
 // ============================================================
-// 计算属性
+// 弹窗样式
 // ============================================================
-
-const totalCount = computed(() =>
-  Object.values(quantities.value).reduce((s, n) => s + n, 0),
-)
-
-const canSubmit = computed(
-  () => totalCount.value > 0 && !submitting.value && !loadingGifts.value,
-)
-
-// ============================================================
-// 弹窗样式：最大 500px，居中
-// ============================================================
-
 const popupStyle = {
   maxHeight: '92vh',
   width: 'min(500px, 100%)',
@@ -103,74 +83,76 @@ const popupStyle = {
 } as const
 
 // ============================================================
-// 加载礼物字典
+// 数据加载
 // ============================================================
-
-async function loadGifts() {
-  loadingGifts.value = true
+async function loadData() {
+  loading.value = true
   error.value = ''
+  
   try {
-    gifts.value = await $api<GiftPublic[]>('/api/gifts')
+    // 1. 加载礼物字典
+    const [giftList, userInv] = await Promise.all([
+      $api<GiftPublic[]>('/api/gifts'),
+      // 假设后端提供了一个拉取仓库的接口 (需要去 routes/api/users 补充)
+      $api<{ giftId: number; code: string; quantity: number }[]>('/api/users/me/inventory').catch(() => [])
+    ])
+    
+    gifts.value = giftList
+    
+    // 构建映射：code -> quantity
+    // 注意：后端可能返回 giftId，我们需要把它映射成 code，或者后端直接返回 code
+    inventory.value = {}
+    userInv.forEach(item => {
+      // 兼容后端可能返回 code 或 giftId
+      const code = (item as any).code || giftList.find(g => g.id === item.giftId)?.code
+      if (code) inventory.value[code] = item.quantity
+    })
+
   } catch (err: any) {
-    error.value =
-      err?.data?.error ||
-      err?.data?.message ||
-      err?.message ||
-      t('gift_load_failed')
+    error.value = err?.data?.error || err?.message || t('gift_load_failed')
   } finally {
-    loadingGifts.value = false
+    loading.value = false
   }
 }
 
 // ============================================================
-// 数量加减
+// 交互逻辑
 // ============================================================
+function handleSelect(gift: GiftPublic) {
+  const stock = inventory.value[gift.code] || 0
+  
+  if (stock <= 0) {
+    // 没库存，提示并触发购买事件
+    showToast({ message: t('gift_no_stock') || '您的仓库中暂无该礼物，请先购买' })
+    visible.value = false
+    emit('go-buy')
+    return
+  }
 
-function inc(code: string) {
-  const cur = quantities.value[code] ?? 0
-  if (cur >= MAX_PER_GIFT) return
-  quantities.value = { ...quantities.value, [code]: cur + 1 }
-}
-
-function dec(code: string) {
-  const cur = quantities.value[code] ?? 0
-  if (cur <= 0) return
-  quantities.value = { ...quantities.value, [code]: cur - 1 }
-}
-
-// ============================================================
-// 重置
-// ============================================================
-
-function reset() {
-  quantities.value = {}
-  error.value = ''
+  // 有库存，选中（取消再点击则取消选中）
+  if (selectedCode.value === gift.code) {
+    selectedCode.value = ''
+  } else {
+    selectedCode.value = gift.code
+  }
 }
 
 // ============================================================
 // 提交
 // ============================================================
-
 async function handleSubmit() {
-  if (!canSubmit.value) return
-  if (!props.slug) {
-    error.value = t('gift_missing_slug')
-    return
-  }
-
+  if (!selectedCode.value || submitting.value) return
+  
   submitting.value = true
   error.value = ''
 
   try {
-    const items = Object.entries(quantities.value)
-      .filter(([, q]) => q > 0)
-      .map(([code, q]) => ({ giftCode: code, quantity: q }))
-
+    // 因为每次只送 1 个，所以传 giftCode 即可，不需要传数量
     const summary = await $api<PetGiftSummary[]>(
       `/api/pets/${props.slug}/gifts`,
       {
         method: 'POST',
-        body: { items },
+        body: { items: [{ giftCode: selectedCode.value }] },
       },
     )
 
@@ -178,31 +160,21 @@ async function handleSubmit() {
     emit('success', summary)
     visible.value = false
   } catch (err: any) {
-    error.value =
-      err?.data?.error ||
-      err?.data?.message ||
-      err?.message ||
-      t('gift_send_failed')
+    error.value = err?.data?.error || err?.message || t('gift_send_failed')
   } finally {
     submitting.value = false
   }
 }
 
-function handleCancel() {
-  if (submitting.value) return
-  visible.value = false
-}
-
 // ============================================================
-// 打开时加载 / 重置
+// 副作用
 // ============================================================
-
 watch(visible, async (open) => {
-  if (!open) return
-  reset()
-  if (gifts.value.length === 0) {
-    await loadGifts()
+  if (!open) {
+    selectedCode.value = ''
+    return
   }
+  await loadData()
 })
 </script>
 
@@ -224,13 +196,10 @@ watch(visible, async (open) => {
       </header>
 
       <!-- 加载中 -->
-      <div v-if="loadingGifts" class="gift-modal__status">{{ t('gift_loading') }}</div>
+      <div v-if="loading" class="gift-modal__status">{{ t('gift_loading') }}</div>
 
       <!-- 加载失败 / 无礼物 -->
-      <div
-        v-else-if="gifts.length === 0"
-        class="gift-modal__status"
-      >
+      <div v-else-if="gifts.length === 0" class="gift-modal__status">
         {{ error || t('gift_none_available') }}
       </div>
 
@@ -240,70 +209,57 @@ watch(visible, async (open) => {
           v-for="gift in gifts"
           :key="gift.code"
           class="gift-row"
-          :class="{ 'is-selected': (quantities[gift.code] ?? 0) > 0 }"
+          :class="{ 
+            'has-stock': (inventory[gift.code] || 0) > 0,
+            'is-selected': selectedCode === gift.code,
+            'no-stock': (inventory[gift.code] || 0) === 0
+          }"
+          @click="handleSelect(gift)"
         >
+          <!-- 礼物图片 -->
           <img
             class="gift-row__img"
             :src="gift.imageUrl"
             :alt="gift.name"
             loading="lazy"
           />
+          
+          <!-- 礼物信息 -->
           <div class="gift-row__info">
             <span class="gift-row__name">{{ gift.name }}</span>
-          </div>
-          <div class="gift-row__stepper">
-            <button
-              type="button"
-              class="stepper-btn"
-              :disabled="!quantities[gift.code] || submitting"
-              :aria-label="t('aria_decrease')"
-              @click="dec(gift.code)"
-            >
-              −
-            </button>
-            <span class="stepper-value">
-              {{ quantities[gift.code] ?? 0 }}
+            <!-- 显示库存数量与心情值 -->
+            <span class="gift-row__meta">
+              {{ t('gift_stock_count', { n: inventory[gift.code] || 0 }) }}
+              <template v-if="gift.moodValue"> · +{{ gift.moodValue }} 心情</template>
             </span>
-            <button
-              type="button"
-              class="stepper-btn"
-              :disabled="(quantities[gift.code] ?? 0) >= MAX_PER_GIFT || submitting"
-              :aria-label="t('aria_increase')"
-              @click="inc(gift.code)"
-            >
-              +
-            </button>
+          </div>
+
+          <!-- 选中图标 -->
+          <div class="gift-row__check" v-if="selectedCode === gift.code">
+            <van-icon name="checked" color="#5D8A66" size="20" />
           </div>
         </li>
       </ul>
 
-      <!-- 全局错误（礼物字典加载失败之外的提交错误） -->
-      <p
-        v-if="error && gifts.length > 0"
-        class="gift-modal__error"
-      >
+      <!-- 错误提示 -->
+      <p v-if="error && gifts.length > 0" class="gift-modal__error">
         {{ error }}
       </p>
 
-      <!-- 汇总 -->
-      <div v-if="totalCount > 0" class="gift-modal__summary">
-        {{ t('gift_selected_count', { n: totalCount }) }}
-      </div>
-
-      <!-- 操作 -->
+      <!-- 操作按钮 -->
       <div class="gift-modal__actions">
         <button
           type="button"
           class="btn btn--lg"
           :disabled="submitting"
-          @click="handleCancel"
+          @click="visible = false"
         >
           {{ t('btn_cancel') }}
         </button>
         <button
           type="button"
           class="btn btn--primary btn--lg"
-          :disabled="!canSubmit"
+          :disabled="!selectedCode || submitting"
           @click="handleSubmit"
         >
           {{ submitting ? t('gift_btn_sending') : t('gift_btn_send') }}
@@ -316,9 +272,6 @@ watch(visible, async (open) => {
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-// ============================================================
-// 弹窗主体
-// ============================================================
 .gift-modal {
   display: flex;
   flex-direction: column;
@@ -365,22 +318,6 @@ watch(visible, async (open) => {
     border-radius: @radius-sm;
   }
 
-  &__summary {
-    margin-top: @sp-3;
-    padding: @sp-2 @sp-3;
-    text-align: center;
-    font-size: @fs-sm;
-    color: @ink-2;
-    background: @accent-soft;
-    border-radius: @radius-sm;
-
-    strong {
-      color: @accent;
-      font-weight: 700;
-      margin: 0 2px;
-    }
-  }
-
   &__actions {
     display: flex;
     gap: @sp-3;
@@ -395,9 +332,6 @@ watch(visible, async (open) => {
   }
 }
 
-// ============================================================
-// 礼物列表
-// ============================================================
 .gift-list {
   list-style: none;
   margin: 0;
@@ -406,7 +340,6 @@ watch(visible, async (open) => {
   flex-direction: column;
   gap: @sp-2;
   overflow-y: auto;
-  // 给下方汇总 / 按钮留出空间
   max-height: 52vh;
 }
 
@@ -415,14 +348,28 @@ watch(visible, async (open) => {
   align-items: center;
   gap: @sp-3;
   padding: @sp-2 @sp-3;
-  background: @surface-2;
+  background: @surface;
   border: 1px solid @border;
   border-radius: @radius;
-  transition: border-color @dur-fast ease, background @dur-fast ease;
+  transition: all @dur-fast ease;
+  cursor: pointer;
 
+  // 有库存：浅绿色背景
+  &.has-stock {
+    background: #f0f9f4; // 极浅的绿色
+    border-color: #c8e6c9;
+  }
+
+  // 选中的状态
   &.is-selected {
-    border-color: @accent;
-    background: @accent-soft;
+    border-color: #5D8A66;
+    box-shadow: 0 0 0 2px rgba(93, 138, 102, 0.2);
+    background: #e8f5e9; // 稍深一点的浅绿
+  }
+
+  // 无库存：稍微置灰
+  &.no-stock {
+    opacity: 0.7;
   }
 
   &__img {
@@ -435,6 +382,9 @@ watch(visible, async (open) => {
   &__info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
   &__name {
@@ -443,60 +393,17 @@ watch(visible, async (open) => {
     color: @ink-1;
   }
 
-  &__stepper {
-    display: inline-flex;
-    align-items: center;
-    gap: @sp-2;
-    flex-shrink: 0;
-  }
-}
-
-// ============================================================
-// 数量步进器
-// ============================================================
-.stepper-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  font-family: @font-sans;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1;
-  color: @ink-1;
-  background: @surface;
-  border: 1px solid @border-strong;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all @dur-fast ease;
-  user-select: none;
-
-  &:hover:not(:disabled) {
-    border-color: @accent;
-    color: @accent;
-    background: @accent-soft;
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(.92);
-  }
-
-  &:disabled {
+  &__meta {
+    font-size: @fs-xs;
     color: @ink-3;
-    background: @surface-2;
-    border-color: @border;
-    cursor: not-allowed;
   }
-}
 
-.stepper-value {
-  min-width: 24px;
-  font-size: @fs-base;
-  font-weight: 600;
-  font-family: @font-mono;
-  color: @ink-1;
-  text-align: center;
+  &__check {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: @sp-2;
+  }
 }
 </style>

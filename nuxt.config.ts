@@ -16,11 +16,13 @@ export default defineNuxtConfig({
   app: {
     head: {
       script: [
-        { 
-          src: 'https://accounts.google.com/gsi/client', 
-          async: true, 
-          defer: true 
-        }
+        {
+          src: 'https://accounts.google.com/gsi/client',
+          async: true,
+          defer: true
+        },
+        // 新增 Paddle.js 脚本
+        { src: 'https://cdn.paddle.com/paddle/v2/paddle.js', async: true, defer: true }
       ]
     }
   },
@@ -30,10 +32,11 @@ export default defineNuxtConfig({
       // 指向你的后端 HTTPS API 地址
       apiBase: 'https://api.petmemory.me',
       ossBaseUrl: 'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com',
-      
+
       // 新增：Google Client ID
       // 优先读取环境变量 NUXT_PUBLIC_GOOGLE_CLIENT_ID，如果没有则使用后面的默认测试值
       googleClientId: '120679372597-3gu57t735ah595vap1489hm975vq4uqe.apps.googleusercontent.com',
+      paddleClientToken: 'test_d2ede7ad3346bc1c22aa2268739',
     },
   },
 })
