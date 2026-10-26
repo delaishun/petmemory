@@ -56,7 +56,7 @@ interface InventoryItem {
 // ---------- 数据 ----------
 const { $api } = useNuxtApp()
 
-const { data: user, pending, error } = await useAsyncData<PublicUser>(
+const { data: user, pending, error, refresh: refreshUser } = await useAsyncData<PublicUser>(
   () => `user:${userId.value}`,
   () => $api<PublicUser>(`/api/users/${userId.value}`),
 )
@@ -142,14 +142,21 @@ const vipModalVisible = ref(false)
 const upgradeVipModalVisible = ref(false)
 
 async function onUpgradeVipSuccess() {
-  // 支付成功后，刷新当前用户的 VIP 状态和积分
-  await refreshMe()
-  
+  // 1. 提示用户支付成功
   showToast({
     type: 'success',
-    message: t('vip_subscribe_success') || '订阅成功，VIP 特权已生效！',
+    message: t('vip_subscribe_success') || '支付成功！正在同步 VIP 状态...',
     duration: 3000
   })
+
+  // 2. 等待 2.5 秒，给 Paddle Webhook 留出处理时间
+  setTimeout(async () => {
+    // 并行刷新全局 me 状态 和 当前页面 user 状态
+    await Promise.all([
+      refreshMe(),
+      refreshUser() 
+    ])
+  }, 2500)
 }
 
 // ---------- 添加宠物 ----------
@@ -217,15 +224,17 @@ async function refreshMe() {
 }
 
 async function onBuyGiftSuccess() {
-  // 支付成功后，只刷新用户的积分（积分可能也会稍有延迟）
-  await refreshMe()
-  
-  // 弹出提示，引导用户手动刷新
   showToast({ 
     type: 'success', 
     message: t('msg_buy_success_refresh'),
     duration: 3000
   })
+  
+  // 同样给 Webhook 留出时间
+  setTimeout(async () => {
+    await refreshMe()
+    await loadInventoryAndGifts()
+  }, 2500)
 }
 
 // ---------- 退出登录 ----------
@@ -387,6 +396,7 @@ useHead(() => ({
             class="btn btn--gold btn--lg"
             @click="upgradeVipModalVisible = true"
           >
+            <!-- 确保 i18n 没写错，可以硬编码兜底 -->
             {{ user.isVip ? t('user_renew_vip') : t('user_upgrade_vip') }}
           </button>
 
