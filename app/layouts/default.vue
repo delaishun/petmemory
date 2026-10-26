@@ -83,7 +83,6 @@ const year = new Date().getFullYear()
 
           <!-- 登录 / 头像 -->
           <template v-if="!isLoggedIn">
-            <!-- 只保留登录按钮，并使用深色样式 -->
             <button
               type="button"
               class="btn btn--dark btn--sm"
@@ -127,25 +126,12 @@ const year = new Date().getFullYear()
           <p class="site-footer__desc">{{ t('footer_slogan') }}</p>
         </div>
 
-        <div class="site-footer__cols">
-          <div class="site-footer__col">
-            <h4 class="site-footer__col-title">{{ t('footer_explore') }}</h4>
-            <NuxtLink to="/pets" class="site-footer__link">{{ t('footer_all_pets') }}</NuxtLink>
-            <NuxtLink to="/about" class="site-footer__link">{{ t('footer_about_us') }}</NuxtLink>
-          </div>
-          <div class="site-footer__col">
-            <h4 class="site-footer__col-title">{{ t('footer_help') }}</h4>
-            <NuxtLink to="/help" class="site-footer__link">{{ t('footer_usage') }}</NuxtLink>
-            <NuxtLink to="/contact" class="site-footer__link">{{ t('footer_contact') }}</NuxtLink>
-            <!-- 隐私政策与服务条款链接 -->
-            <NuxtLink to="/terms" class="site-footer__link">{{ t('terms_title') }}</NuxtLink>
-            <NuxtLink to="/privacy" class="site-footer__link">{{ t('privacy_title') }}</NuxtLink>
-          </div>
-          <div class="site-footer__col">
-            <h4 class="site-footer__col-title">{{ t('footer_follow') }}</h4>
-            <a href="#" class="site-footer__link">{{ t('footer_weibo') }}</a>
-            <a href="#" class="site-footer__link">{{ t('footer_wechat') }}</a>
-          </div>
+        <!-- 精简后的链接区 -->
+        <div class="site-footer__links">
+          <NuxtLink to="/about" class="site-footer__link">{{ t('footer_about_us') }}</NuxtLink>
+          <NuxtLink to="/contact" class="site-footer__link">{{ t('footer_contact') }}</NuxtLink>
+          <NuxtLink to="/terms" class="site-footer__link">{{ t('terms_title') }}</NuxtLink>
+          <NuxtLink to="/privacy" class="site-footer__link">{{ t('privacy_title') }}</NuxtLink>
         </div>
       </div>
 
@@ -370,14 +356,16 @@ const year = new Date().getFullYear()
   border-top: 1px solid @border;
 
   &__inner {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: @sp-6;
     padding-top: @sp-6;
     padding-bottom: @sp-6;
 
     @media (max-width: @bp-md) {
-      grid-template-columns: 1fr;
+      flex-direction: column;
+      align-items: flex-start;
       gap: @sp-5;
     }
   }
@@ -400,32 +388,22 @@ const year = new Date().getFullYear()
     line-height: @lh-base;
   }
 
-  &__cols {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: @sp-4;
+  // 👈 新增的平铺链接区
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: @sp-5;
 
     @media (max-width: @bp-sm) {
-      grid-template-columns: repeat(2, 1fr);
+      gap: @sp-4;
     }
-  }
-
-  &__col {
-    display: flex;
-    flex-direction: column;
-    gap: @sp-2;
-  }
-
-  &__col-title {
-    margin: 0 0 @sp-1;
-    font-size: @fs-sm;
-    font-weight: 600;
-    color: @ink-1;
   }
 
   &__link {
     font-size: @fs-sm;
     color: @ink-3;
+    text-decoration: none;
+    transition: color @dur-fast ease;
 
     &:hover { color: @accent; }
   }
