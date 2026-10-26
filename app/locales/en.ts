@@ -386,4 +386,6 @@ export default {
   chat_bonus_earned: 'Chat completed! You earned 75 bonus points.',
 
   user_buy_gift: 'Buy Gifts',
+  user_my_inventory: 'My Gift Inventory',
+  msg_buy_success_refresh: 'Payment successful! Please manually refresh the page shortly to view your gift inventory.',
 }

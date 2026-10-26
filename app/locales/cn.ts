@@ -386,4 +386,6 @@ export default {
   chat_bonus_earned: '对话结束，获得 75 积分奖励！',
 
   user_buy_gift: '购买礼物',
+  user_my_inventory: '我的礼物仓库',
+  msg_buy_success_refresh: '支付成功！请稍候手动刷新页面查看礼物仓库。',
 }

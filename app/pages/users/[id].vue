@@ -203,11 +203,15 @@ async function refreshMe() {
 }
 
 async function onBuyGiftSuccess() {
-  // 购买成功，刷新当前用户的积分信息和仓库数据
-  await Promise.all([
-    refreshMe(),
-    loadInventoryAndGifts()
-  ])
+  // 支付成功后，只刷新用户的积分（积分可能也会稍有延迟）
+  await refreshMe()
+  
+  // 弹出提示，引导用户手动刷新
+  showToast({ 
+    type: 'success', 
+    message: t('msg_buy_success_refresh'), // 👈 改为调用 t()
+    duration: 3000
+  })
 }
 
 // ---------- 退出登录 ----------
