@@ -219,6 +219,9 @@ const isMusicPlaying = ref(false);
 const isMusicEnded = ref(false);
 
 function initBackgroundMusic() {
+  // 👈 新增：确保只在客户端（浏览器）执行，避免服务端渲染报错
+  if (import.meta.server) return;
+
   if (!isVipPet.value || audio.value) return;
 
   let musicUrl = '';
@@ -267,7 +270,7 @@ function toggleMusic() {
 watch(
   () => isVipPet.value,
   (vip) => {
-    if (vip) initBackgroundMusic();
+    if (vip && import.meta.client ) initBackgroundMusic();
   },
   { immediate: true }
 );
