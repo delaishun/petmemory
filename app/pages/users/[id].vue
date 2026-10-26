@@ -1,6 +1,6 @@
 <!-- app/pages/users/[id].vue -->
 <script setup lang="ts">
-import { showConfirmDialog } from 'vant'
+import { showConfirmDialog, showToast } from 'vant'
 import type { AuthUser, MeResponse } from '~/types/auth'
 import { useI18n } from '~/composables/useI18n'
 
@@ -135,8 +135,22 @@ const displayPoint = computed<number | undefined>(() => {
   return user.value?.point
 })
 
-// ---------- VIP 权益弹窗 ----------
+// ---------- VIP 权益说明弹窗 ----------
 const vipModalVisible = ref(false)
+
+// ---------- VIP 升级 / 续费 ----------
+const upgradeVipModalVisible = ref(false)
+
+async function onUpgradeVipSuccess() {
+  // 支付成功后，刷新当前用户的 VIP 状态和积分
+  await refreshMe()
+  
+  showToast({
+    type: 'success',
+    message: t('vip_subscribe_success') || '订阅成功，VIP 特权已生效！',
+    duration: 3000
+  })
+}
 
 // ---------- 添加宠物 ----------
 const addPetModalVisible = ref(false)
@@ -209,7 +223,7 @@ async function onBuyGiftSuccess() {
   // 弹出提示，引导用户手动刷新
   showToast({ 
     type: 'success', 
-    message: t('msg_buy_success_refresh'), // 👈 改为调用 t()
+    message: t('msg_buy_success_refresh'),
     duration: 3000
   })
 }
@@ -359,6 +373,7 @@ useHead(() => ({
           >
             {{ t('user_add_pet') }}
           </button>
+          
           <button
             type="button"
             class="btn btn--gold btn--lg"
@@ -366,6 +381,15 @@ useHead(() => ({
           >
             {{ t('user_buy_gift') }}
           </button>
+
+          <button
+            type="button"
+            class="btn btn--gold btn--lg"
+            @click="upgradeVipModalVisible = true"
+          >
+            {{ user.isVip ? t('user_renew_vip') : t('user_upgrade_vip') }}
+          </button>
+
           <button
             type="button"
             class="btn btn--lg"
@@ -401,6 +425,12 @@ useHead(() => ({
     <BuyGiftModal
       v-model="buyGiftModalVisible"
       @success="onBuyGiftSuccess"
+    />
+
+    <!-- 升级 VIP 弹窗 -->
+    <UpgradeVipModal
+      v-model="upgradeVipModalVisible"
+      @success="onUpgradeVipSuccess"
     />
 
     <!-- VIP 权益说明弹窗 -->

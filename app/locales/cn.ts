@@ -388,4 +388,8 @@ export default {
   user_buy_gift: '购买礼物',
   user_my_inventory: '我的礼物仓库',
   msg_buy_success_refresh: '支付成功！请稍候手动刷新页面查看礼物仓库。',
+
+  year: '年',
+  vip_album_privilege: '解锁宠物相册上传功能',
+  vip_terms_tip: '订阅即代表同意服务条款，可随时在 Paddle 取消续费。',
 }

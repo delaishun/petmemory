@@ -388,4 +388,15 @@ export default {
   user_buy_gift: 'Buy Gifts',
   user_my_inventory: 'My Gift Inventory',
   msg_buy_success_refresh: 'Payment successful! Please manually refresh the page shortly to view your gift inventory.',
+
+  year: 'yr',
+  vip_album_privilege: 'Unlock pet album uploads',
+  vip_terms_tip: 'By subscribing, you agree to our Terms of Service. Cancel anytime via Paddle.',
+  user_upgrade_vip: 'Upgrade to VIP ($9.9/yr)',
+  user_renew_vip: 'Renew VIP',
+  vip_price_yearly: '$9.90 / Year',
+  vip_auto_renew_tip: 'Auto-renews, cancel anytime',
+  vip_subscribe_btn: 'Subscribe Now',
+  vip_bonus_points_tip: 'Get 10,000 points with VIP',
+  vip_subscribe_success: 'Subscription successful! VIP is active.',
 }
