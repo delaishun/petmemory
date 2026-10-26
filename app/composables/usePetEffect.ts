@@ -9,11 +9,11 @@ export const useEffectBackgrounds = () => {
     'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/Valentine.jpg',    // 3: 情人节
     'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/Spring.jpg',       // 4: 春节
     'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/Easter.jpg',       // 5: 复活节
-    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/Thanksgiving.jpg', // 6: 感恩节 (新增)
-    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/DoubleNinth.jpg',  // 7: 重阳节 (新增)
-    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/TombSweeping.jpg', // 8: 清明节 (新增)
-    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/LoongBoat.jpg',    // 9: 端午节 (新增)
-    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/MidAutumn.jpg'     // 10: 中秋节 (新增)
+    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/Thanksgiving.jpg', // 6: 感恩节
+    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/DoubleNinth.jpg',  // 7: 重阳节
+    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/TombSweeping.jpg', // 8: 清明节
+    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/LoongBoat.jpg',    // 9: 端午节
+    'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/MidAutumn.jpg'     // 10: 中秋节
   ]
 
   // 对应的 CSS 类名
@@ -24,11 +24,26 @@ export const useEffectBackgrounds = () => {
     'effect-valentine',
     'effect-spring',
     'effect-easter',
-    'effect-thanksgiving', // 新增
-    'effect-double-ninth', // 新增
-    'effect-tomb-sweeping',// 新增
-    'effect-loong-boat',   // 新增
-    'effect-mid-autumn'    // 新增
+    'effect-thanksgiving',
+    'effect-double-ninth',
+    'effect-tomb-sweeping',
+    'effect-loong-boat',
+    'effect-mid-autumn'
+  ]
+
+  // 对应的节日英文名称 (用于拼接音乐链接)
+  const EFFECT_FESTIVAL_NAMES = [
+    null,           // 0: 默认天堂
+    'Christmas',    // 1: 圣诞
+    'Halloween',    // 2: 万圣节
+    'Valentine',    // 3: 情人节
+    'Spring',       // 4: 春节
+    'Easter',       // 5: 复活节
+    'Thanksgiving', // 6: 感恩节
+    'DoubleNinth',  // 7: 重阳节
+    'TombSweeping', // 8: 清明节
+    'LoongBoat',    // 9: 端午节
+    'MidAutumn'     // 10: 中秋节
   ]
 
   // 获取当前日期对应的节日索引
@@ -89,8 +104,14 @@ export const useEffectBackgrounds = () => {
     }
   }
 
+  // 获取当前节日名称，用于拼接音乐链接
+  function getCurrentFestivalName(): string | null {
+    return EFFECT_FESTIVAL_NAMES[getCurrentEffectIndex()] || null
+  }
+
   return {
     getCurrentEffectIndex,
+    getCurrentFestivalName,
     getEffectClass,
     getEffectStyle
   }

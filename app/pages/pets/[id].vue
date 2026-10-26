@@ -11,7 +11,7 @@ import { useEffectBackgrounds } from "~/composables/usePetEffect";
 // 国际化 & 特效逻辑
 // ============================================================
 const { t, locale } = useI18n();
-const { getEffectClass, getEffectStyle } = useEffectBackgrounds();
+const { getEffectClass, getEffectStyle, getCurrentFestivalName } = useEffectBackgrounds();
 
 // ============================================================
 // 类型
@@ -38,7 +38,6 @@ interface PetDetail {
   createdAt: string;
   status: number;
   owner: OwnerBrief;
-  // === 新增字段 ===
   moodScore: number;
   currentExpressionUrl: string | null;
   isGenerating?: boolean;
@@ -70,7 +69,7 @@ interface MessagePublic {
   id: number;
   content: string;
   createdAt: string;
-  earnedBonus?: boolean; // 👈 新增
+  earnedBonus?: boolean;
   author: {
     id: number | null;
     nickname: string;
@@ -84,14 +83,13 @@ interface MessagePage {
   total: number;
 }
 
-/** 礼物明细项 */
 interface GiftRecordPublic {
   id: number;
   giftId: number;
   giftCode: string;
   giftName: string;
   giftImageUrl: string;
-  expireSeconds: number; // 👈 新增
+  expireSeconds: number;
   sender: {
     id: number | null;
     nickname: string;
@@ -100,7 +98,6 @@ interface GiftRecordPublic {
   createdAt: string;
 }
 
-/** 对话消息结构 */
 interface ChatMessagePublic {
   id: number;
   role: "user" | "assistant";
@@ -108,7 +105,6 @@ interface ChatMessagePublic {
   createdAt: string;
 }
 
-/** 主页公开对话返回结构 */
 interface PublicChatResponse {
   hasConversation: boolean;
   isPublic: boolean;
@@ -155,7 +151,6 @@ const { data: giftRecords, refresh: refreshGiftRecords } = await useAsyncData<
   () => $api<GiftRecordPublic[]>(`/api/pets/${slug.value}/gift-records`)
 );
 
-// 获取主页公开对话
 const {
   data: publicChat,
   refresh: refreshPublicChat,
@@ -164,7 +159,6 @@ const {
   () => $api<PublicChatResponse>(`/api/pets/${slug.value}/public-chat`)
 );
 
-// 礼物总件数
 const totalGiftCount = computed(
   () => giftSummary.value?.reduce((s, g) => s + g.count, 0) ?? 0
 );
@@ -172,7 +166,7 @@ const totalGiftCount = computed(
 const giftItems = computed<GiftRecordPublic[]>(() => giftRecords.value ?? []);
 
 // ============================================================
-// 心情状态文本
+// 心情状态文本 (新逻辑)
 // ============================================================
 const moodStatusText = computed(() => {
   if (!pet.value) return "";
@@ -208,7 +202,6 @@ const isOwner = computed(
   () => !!me.value && !!pet.value && me.value.id === pet.value.owner.id
 );
 
-// 是否是 VIP 宠物面板
 const isVipPet = computed(() => {
   if (pet.value?.owner?.isVip !== undefined) {
     return pet.value.owner.isVip;
@@ -216,8 +209,68 @@ const isVipPet = computed(() => {
   return isOwner.value && !!me.value?.isVip;
 });
 
-/** 当前登录用户积分（字段名对齐 DB users.point） */
 const myPoint = computed<number | undefined>(() => me.value?.point);
+
+// ============================================================
+// 背景音乐逻辑 (新增)
+// ============================================================
+const audio = ref<HTMLAudioElement | null>(null);
+const isMusicPlaying = ref(false);
+const isMusicEnded = ref(false);
+
+function initBackgroundMusic() {
+  if (!isVipPet.value || audio.value) return;
+
+  let musicUrl = '';
+  const festivalName = getCurrentFestivalName();
+
+  if (festivalName) {
+    // 节日音乐
+    musicUrl = `https://music.petmemory.me/${festivalName}.mp3`;
+  } else {
+    // 随机天堂音乐 1-10
+    const randomIndex = Math.floor(Math.random() * 10) + 1;
+    musicUrl = `https://music.petmemory.me/heaven${randomIndex}.mp3`;
+  }
+
+  audio.value = new Audio(musicUrl);
+  audio.value.volume = 0.5; // 音量 50%
+  audio.value.loop = false; // 只播放一遍
+
+  audio.value.addEventListener('ended', () => {
+    isMusicPlaying.value = false;
+    isMusicEnded.value = true;
+  });
+}
+
+function toggleMusic() {
+  if (!audio.value) return;
+
+  if (isMusicPlaying.value) {
+    audio.value.pause();
+    isMusicPlaying.value = false;
+  } else {
+    if (isMusicEnded.value) {
+      audio.value.currentTime = 0;
+      isMusicEnded.value = false;
+    }
+    
+    audio.value.play().then(() => {
+      isMusicPlaying.value = true;
+    }).catch((err) => {
+      console.error('播放失败', err);
+      showToast('浏览器限制了播放，请稍后再试');
+    });
+  }
+}
+
+watch(
+  () => isVipPet.value,
+  (vip) => {
+    if (vip) initBackgroundMusic();
+  },
+  { immediate: true }
+);
 
 // ============================================================
 // 轮询 & 生成弹窗控制
@@ -225,7 +278,6 @@ const myPoint = computed<number | undefined>(() => me.value?.point);
 const expressionModalVisible = ref(false);
 let pollTimer: any = null;
 
-// 如果一进入就在生成中，立刻弹出提示
 watch(
   () => pet.value?.isGenerating,
   (val) => {
@@ -247,6 +299,11 @@ watch(
 
 onBeforeUnmount(() => {
   if (pollTimer) clearInterval(pollTimer);
+  if (audio.value) {
+    audio.value.pause();
+    audio.value.src = '';
+    audio.value = null;
+  }
 });
 
 // ============================================================
@@ -258,9 +315,7 @@ const isChatPublic = ref(true);
 watch(
   publicChat,
   (v) => {
-    if (v) {
-      isChatPublic.value = v.isPublic;
-    }
+    if (v) isChatPublic.value = v.isPublic;
   },
   { immediate: true }
 );
@@ -434,15 +489,14 @@ async function onMessageCreated(message: MessagePublic) {
     total: messages.value.total + 1,
   };
 
-  // 👈 留言积分提示
   if (message.earnedBonus) {
-    showToast({ type: "success", message: t('msg_bonus_earned') || '留言成功，获得 50 积分！' });
+    showToast({ type: "success", message: t('msg_bonus_earned') });
     await refreshMe();
   }
 }
 
 // ============================================================
-// 删除留言（仅主人可操作）
+// 删除留言
 // ============================================================
 
 async function handleDeleteMessage(message: MessagePublic) {
@@ -511,7 +565,7 @@ async function loadMoreMessages() {
 }
 
 // ============================================================
-// 赠礼弹窗
+// 赠礼 & 购买
 // ============================================================
 
 const giftModalVisible = ref(false);
@@ -525,35 +579,27 @@ function handleGift() {
   giftModalVisible.value = true;
 }
 
-// 监听送礼弹窗触发的去购买事件
 function handleGoBuy() {
   giftModalVisible.value = false;
   buyGiftModalVisible.value = true;
 }
 
-// 购买弹窗成功回调
-async function onBuyGiftSuccess() {
-  await refreshMe();
-}
-
-/**
- * 送礼成功后会扣除仓库库存并加 200 积分
- */
 async function refreshMe() {
   if (!me.value) return;
   try {
     const res = await $api<MeResponse>("/api/auth/me");
     if (res?.user) me.value = res.user;
-  } catch {
-    // 静默失败，不影响送礼主流程
-  }
+  } catch {}
+}
+
+async function onBuyGiftSuccess() {
+  await refreshMe();
 }
 
 async function onGiftsSent(summary: PetGiftSummary[]) {
   giftSummary.value = summary;
-  // 刷新礼物、宠物（新心情）、用户（新积分）
   await Promise.all([refreshGiftRecords(), refreshPet(), refreshMe()]);
-  showToast({ type: "success", message: t('gift_bonus_points') || '赠送成功，获得 200 积分！' });
+  showToast({ type: "success", message: t('gift_bonus_points') });
 }
 
 // ============================================================
@@ -579,12 +625,10 @@ function handleChat() {
     showDialog({ message: t("msg_please_login") });
     return;
   }
-
   if (!isOwner.value) {
     showDialog({ message: t("vip_feature_chat_owner_only") });
     return;
   }
-
   if (!me.value.isVip) {
     showDialog({
       title: t("vip_feature_title"),
@@ -593,16 +637,13 @@ function handleChat() {
     });
     return;
   }
-
   chatModalVisible.value = true;
 }
 
-// 对话弹窗关闭时，刷新 chat 并处理积分提示
 watch(chatModalVisible, async (visible) => {
   if (!visible) {
     await refreshPublicChat();
-    // 提示可能获得了 75 积分
-    showToast({ type: "success", message: t('chat_bonus_earned') || '和ta聊天结束，您可能获得了积分' });
+    showToast({ type: "success", message: t('chat_bonus_earned') });
     await refreshMe();
   }
 });
@@ -614,7 +655,6 @@ watch(chatModalVisible, async (visible) => {
 function formatTime(iso: string): string {
   const d = new Date(iso);
   const diff = Date.now() - d.getTime();
-
   const minute = 60 * 1000;
   const hour = 60 * minute;
   const day = 24 * hour;
@@ -665,7 +705,7 @@ const defaultOwnerAvatar =
   );
 
 // ============================================================
-// 简介拼接 (支持双语)
+// 简介拼接
 // ============================================================
 
 const genderText = computed(() => {
@@ -683,7 +723,6 @@ const introParts = computed(() => {
   const parts: string[] = [];
 
   if (locale.value === "en") {
-    // 英文拼接逻辑
     if (p.species && p.breed) {
       parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")} ${p.breed}`);
     } else if (p.species) {
@@ -696,7 +735,6 @@ const introParts = computed(() => {
     if (p.hometown) parts.push(`${t("from")} ${p.hometown}`);
     if (p.birthday) parts.push(`${t("intro_born_on")} ${p.birthday}`);
   } else {
-    // 中文拼接逻辑
     if (p.species && p.breed) {
       parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")}${p.breed}`);
     } else if (p.species) {
@@ -726,6 +764,17 @@ useHead(() => ({
 
 <template>
   <div class="page">
+    <!-- 👈 新增：悬浮音乐开关 (仅 VIP 宠物且音乐初始化成功时显示) -->
+    <button 
+      v-if="isVipPet && audio" 
+      class="music-toggle" 
+      :class="{ 'is-playing': isMusicPlaying }"
+      @click="toggleMusic"
+      :title="isMusicPlaying ? '暂停音乐' : (isMusicEnded ? '重新播放' : '播放音乐')"
+    >
+      <van-icon :name="isMusicPlaying ? 'music-o' : 'volume-o'" />
+    </button>
+
     <div class="container section pet-page">
       <!-- 加载中 -->
       <div v-if="pending" class="pet-hero pet-hero--skeleton">
@@ -868,7 +917,6 @@ useHead(() => ({
               {{ isOwner ? t("pet_album_empty_owner") : t("pet_album_empty_guest") }}
             </p>
             
-            <!-- 新增：空相册时直接展示上传按钮给主人 -->
             <button
               v-if="isOwner"
               type="button"
@@ -917,7 +965,6 @@ useHead(() => ({
             <div class="section-title__left">
               <h2 class="section-title__main">{{ t("pet_chat_title") }}</h2>
             </div>
-            <!-- 本人可见的切换按钮 -->
             <button
               v-if="isOwner && publicChat?.hasConversation"
               type="button"
@@ -944,7 +991,6 @@ useHead(() => ({
               </div>
             </div>
 
-            <!-- 下方的心情显示条 -->
             <div class="pet-mood pet-expression__mood">
               <div class="pet-mood__label">
                 {{ moodStatusText }}
@@ -959,7 +1005,6 @@ useHead(() => ({
             </div>
           </div>
 
-          <!-- 1. 有真实对话（且对你可见） -->
           <div
             v-if="publicChat?.hasConversation && publicChat?.messages.length"
             class="pet-public-chat__list"
@@ -983,7 +1028,6 @@ useHead(() => ({
             </div>
           </div>
 
-          <!-- 2. 无对话（或对话被隐藏） -->
           <div v-else class="pet-public-chat__empty">
             <p class="pet-public-chat__empty-text">
               {{
@@ -1009,7 +1053,6 @@ useHead(() => ({
             </span>
           </div>
 
-          <!-- 有留言 -->
           <div v-if="messages && messages.items.length" class="msg-list">
             <div v-for="msg in messages.items" :key="msg.id" class="msg-item">
               <NuxtLink
@@ -1054,7 +1097,6 @@ useHead(() => ({
                 <p class="msg-item__text">{{ msg.content }}</p>
               </div>
 
-              <!-- 仅主人可见：删除 -->
               <button
                 v-if="isOwner"
                 type="button"
@@ -1066,7 +1108,6 @@ useHead(() => ({
               </button>
             </div>
 
-            <!-- 加载更多 -->
             <div v-if="hasMoreMessages" class="pet-messages__more">
               <button
                 type="button"
@@ -1079,7 +1120,6 @@ useHead(() => ({
             </div>
           </div>
 
-          <!-- 空状态 -->
           <div v-else class="pet-messages__empty">
             <p class="pet-messages__empty-text">
               {{ isLoggedIn ? t("pet_msg_empty_owner") : t("pet_msg_empty_guest") }}
@@ -1088,16 +1128,14 @@ useHead(() => ({
         </section>
 
         <!-- ============================================ -->
-        <!-- 操作区（分两行）                              -->
+        <!-- 操作区                                       -->
         <!-- ============================================ -->
         <div class="pet-actions">
-          <!-- 当前积分（登录后展示，送礼后会随 refreshMe 更新） -->
           <div v-if="isLoggedIn && myPoint !== undefined" class="pet-actions__points">
             <van-icon name="gold-coin-o" />
             <span>{{ t("user_points", { n: myPoint }) }}</span>
           </div>
 
-          <!-- 第一行：主人操作 -->
           <div class="pet-actions__row">
             <button v-if="isOwner" type="button" class="btn btn--lg" @click="handleEdit">
               {{ t("pet_edit_info") }}
@@ -1121,7 +1159,6 @@ useHead(() => ({
             </button>
           </div>
 
-          <!-- 第二行：留言/赠礼 -->
           <div class="pet-actions__row">
             <button type="button" class="btn btn--lg" @click="handleMessage">
               {{ t("pet_leave_msg") }}
@@ -1135,7 +1172,7 @@ useHead(() => ({
     </div>
 
     <!-- ============================================ -->
-    <!-- 表情生成弹窗 (图2)                             -->
+    <!-- 表情生成弹窗                             -->
     <!-- ============================================ -->
     <van-popup
       v-model:show="expressionModalVisible"
@@ -1312,6 +1349,55 @@ useHead(() => ({
 @import "~/assets/css/common.less";
 
 // ============================================================
+// 悬浮音乐开关
+// ============================================================
+.music-toggle {
+  position: fixed;
+  right: 20px;
+  bottom: 80px; /* 放在底部操作区上方 */
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: fade(@surface, 90%);
+  border: 1px solid @border;
+  border-radius: 50%;
+  box-shadow: @shadow-2;
+  color: @ink-2;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all @dur-base ease;
+
+  &:hover {
+    background: @surface;
+    color: @accent;
+    border-color: @accent;
+    transform: translateY(-2px);
+  }
+
+  :deep(.van-icon) {
+    font-size: 22px;
+  }
+
+  &.is-playing {
+    color: @accent;
+    border-color: @accent-soft;
+    background: @surface;
+    
+    :deep(.van-icon) {
+      animation: spin 4s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// ============================================================
 // 页面骨架
 // ============================================================
 .page {
@@ -1337,7 +1423,7 @@ useHead(() => ({
 }
 
 // ============================================================
-// 宠物主页头部 (保留原头像)
+// 宠物主页头部
 // ============================================================
 .pet-hero {
   display: flex;
@@ -1353,7 +1439,6 @@ useHead(() => ({
     padding: @sp-5 @sp-4;
   }
 
-  // ---------- VIP 特殊面板背景 ----------
   &.is-vip-panel {
     background-size: cover;
     background-position: center;
@@ -1393,11 +1478,9 @@ useHead(() => ({
     border-radius: 50%;
     transition: all 0.3s ease;
 
-    // 传入全局 avatar-effect 所需的变量 (详情页为 140px)
     --ring-inset: -10px;
     --ring-mask: 64%;
 
-    // 局部覆盖：详情页头像较大，调整节日的“装饰品”尺寸
     &.effect-valentine::after {
       text-shadow: 0 -75px 0 #e74c3c, 0 75px 0 #e74c3c, -75px 0 0 #e74c3c,
         75px 0 0 #e74c3c;
@@ -1653,7 +1736,6 @@ useHead(() => ({
     color: @ink-3;
   }
 
-  // 空状态下的上传按钮样式
   &__upload-btn {
     margin-top: @sp-3;
     gap: @sp-1;
@@ -1772,7 +1854,6 @@ useHead(() => ({
   }
 }
 
-// 礼物阵列：一行放不下就换行，每个礼物一个圆形图标
 .gift-grid {
   display: flex;
   flex-wrap: wrap;
@@ -1974,7 +2055,6 @@ useHead(() => ({
   }
 }
 
-// 复用 common.less 里的 .msg-list / .msg-item，补几条
 .msg-item {
   position: relative;
   padding-right: @sp-7;
@@ -2098,13 +2178,13 @@ useHead(() => ({
 }
 
 // ============================================================
-// 独立表情图展示区 (移动到 Conversation 内部)
+// 独立表情图展示区
 // ============================================================
 .pet-expression {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* 改为左对齐，让下方的横条与头像对齐 */
-  gap: @sp-4; /* 头像区域和下方进度条的间距 */
+  align-items: flex-start;
+  gap: @sp-4;
   margin-top: @sp-4;
   margin-bottom: @sp-2;
   padding-left: @sp-1;
@@ -2118,8 +2198,8 @@ useHead(() => ({
   }
 
   &__circle {
-    width: 120px; /* 增大头像尺寸 */
-    height: 120px; /* 增大头像尺寸 */
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     background: @surface-2;
     border: 2px dashed @border-strong;
@@ -2153,10 +2233,9 @@ useHead(() => ({
     max-width: 200px;
   }
 
-  // 针对表情区的心情条做宽度限制
   &__mood {
-    width: 160px; /* 固定宽度，比 120px 的头像长一点 */
-    max-width: 100%; /* 防止在极窄屏幕上溢出 */
+    width: 160px;
+    max-width: 100%;
     margin-top: 0;
     padding: @sp-2 @sp-3;
     background: @surface;
@@ -2229,7 +2308,7 @@ useHead(() => ({
 }
 
 // ============================================================
-// 操作区：分两行，贴底
+// 操作区
 // ============================================================
 .pet-actions {
   display: flex;
@@ -2241,7 +2320,6 @@ useHead(() => ({
   padding-bottom: @sp-2;
   border-top: 1px solid @border;
 
-  // 当前积分显示（登录后可见）
   &__points {
     display: inline-flex;
     align-items: center;
@@ -2292,7 +2370,7 @@ useHead(() => ({
 }
 
 // ============================================================
-// 表情生成弹窗 (图2)
+// 表情生成弹窗
 // ============================================================
 .expression-modal {
   display: flex;
