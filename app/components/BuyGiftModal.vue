@@ -191,6 +191,11 @@ async function initPaddle() {
       eventCallback: (event: any) => {
         if (event.name === 'checkout.completed') {
           showToast({ type: 'success', message: '支付成功！礼物已发放到仓库' })
+          
+          if (window.Paddle) {
+            window.Paddle.Checkout.close()
+          }
+
           visible.value = false
           emit('success')
         }

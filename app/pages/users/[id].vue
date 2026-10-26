@@ -42,6 +42,17 @@ interface PetSummary {
   avatarUrl: string
 }
 
+interface GiftPublic {
+  id: number
+  name: string
+  imageUrl: string
+}
+
+interface InventoryItem {
+  giftId: number
+  quantity: number
+}
+
 // ---------- 数据 ----------
 const { $api } = useNuxtApp()
 
@@ -139,13 +150,50 @@ function onPetCreated() {
 }
 
 // ============================================================
-// 购买礼物 (新增)
+// 购买礼物 & 礼物仓库
 // ============================================================
 const buyGiftModalVisible = ref(false)
 
 function handleBuyGift() {
   buyGiftModalVisible.value = true
 }
+
+// 仓库数据
+const allGifts = ref<GiftPublic[]>([])
+const inventory = ref<InventoryItem[]>([])
+
+async function loadInventoryAndGifts() {
+  if (!isSelf.value) return
+  try {
+    const [inv, gifts] = await Promise.all([
+      $api<InventoryItem[]>('/api/users/me/inventory'),
+      $api<GiftPublic[]>('/api/gifts')
+    ])
+    inventory.value = inv
+    allGifts.value = gifts
+  } catch (e) {
+    // 静默失败
+  }
+}
+
+// 合并礼物图片数据与库存数量
+const mergedInventory = computed(() => {
+  return inventory.value
+    .map(inv => {
+      const gift = allGifts.value.find(g => g.id === inv.giftId)
+      return { ...inv, gift }
+    })
+    .filter(item => item.gift && item.quantity > 0)
+})
+
+// 监听页面加载和 isSelf 状态
+onMounted(() => {
+  if (isSelf.value) loadInventoryAndGifts()
+})
+watch(isSelf, (val) => {
+  if (val) loadInventoryAndGifts()
+  else inventory.value = []
+})
 
 async function refreshMe() {
   try {
@@ -155,8 +203,11 @@ async function refreshMe() {
 }
 
 async function onBuyGiftSuccess() {
-  // 购买成功，刷新当前用户的积分信息
-  await refreshMe()
+  // 购买成功，刷新当前用户的积分信息和仓库数据
+  await Promise.all([
+    refreshMe(),
+    loadInventoryAndGifts()
+  ])
 }
 
 // ---------- 退出登录 ----------
@@ -250,6 +301,27 @@ useHead(() => ({
 
           <p v-if="user.bio" class="user-hero__bio">{{ user.bio }}</p>
         </header>
+
+        <!-- 我的礼物仓库 (仅本人可见) -->
+        <section v-if="isSelf && mergedInventory.length > 0" class="inventory-section">
+          <h2 class="inventory-section__title">
+            {{ t('user_my_inventory') }}
+          </h2>
+          <div class="inventory-grid">
+            <div 
+              v-for="item in mergedInventory" 
+              :key="item.giftId" 
+              class="inventory-item"
+              :title="`${item.gift!.name} x ${item.quantity}`"
+            >
+              <div class="inventory-item__img-wrap">
+                <img :src="item.gift!.imageUrl" :alt="item.gift!.name" />
+                <span class="inventory-item__count">x{{ item.quantity }}</span>
+              </div>
+              <span class="inventory-item__name">{{ item.gift!.name.split('/')[0] }}</span>
+            </div>
+          </div>
+        </section>
 
         <!-- 宠物列表 -->
         <section v-if="pets && pets.length > 0" class="pets-section">
@@ -543,6 +615,90 @@ useHead(() => ({
 }
 
 // ============================================================
+// 礼物仓库区
+// ============================================================
+.inventory-section {
+  margin-top: @sp-5;
+  padding-top: @sp-5;
+  border-top: 1px solid @border;
+
+  &__title {
+    margin: 0 0 @sp-4;
+    font-family: @font-serif;
+    font-size: @fs-lg;
+    font-weight: 700;
+    color: @ink-1;
+    text-align: center;
+  }
+}
+
+.inventory-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: @sp-4;
+}
+
+.inventory-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: @sp-2;
+  width: 72px;
+
+  &__img-wrap {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    padding: 8px;
+    background: @surface-2;
+    border: 1px solid @border;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: @shadow-1;
+    transition: transform @dur-fast ease, border-color @dur-fast ease;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      border-color: @accent;
+    }
+  }
+
+  &__count {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: @danger;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: @font-mono;
+    padding: 2px 6px;
+    border-radius: @radius-pill;
+    border: 2px solid @surface;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &__name {
+    font-size: @fs-xs;
+    color: @ink-2;
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ============================================================
 // 宠物列表区
 // ============================================================
 .pets-section {
@@ -621,7 +777,7 @@ useHead(() => ({
 .user-actions {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap; /* 👈 新增：防止多个按钮超出容器 */
+  flex-wrap: wrap;
   gap: @sp-3;
   margin-top: auto;
   padding-top: @sp-6;
