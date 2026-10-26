@@ -120,19 +120,41 @@ async function loadGifts() {
 }
 
 // 默认选中凑够 $5
+// 默认选中凑够 $5
 function initDefaultSelection() {
   quantities.value = {}
   exchangeSelections.value = {}
   
+  // 👈 1. 根据你的要求，设定鲜花 3 个，星星 2 个
+  const presetQuantities: Record<string, number> = {
+    flower: 3,
+    star: 2
+  }
+
   let currentTotal = 0
-  // 按价格从高到低排序，更容易凑够 $5
-  const sortedGifts = [...gifts.value].sort((a, b) => b.price - a.price)
-  
-  for (const gift of sortedGifts) {
-    if (currentTotal < MIN_PURCHASE_PRICE) {
-      const needed = Math.ceil((MIN_PURCHASE_PRICE - currentTotal) / gift.price)
-      quantities.value[gift.code] = needed
-      currentTotal += gift.price * needed
+
+  // 2. 应用预设数量
+  gifts.value.forEach(gift => {
+    const presetQty = presetQuantities[gift.code]
+    if (presetQty) {
+      quantities.value[gift.code] = presetQty
+      currentTotal += gift.price * presetQty
+    }
+  })
+
+  // 3. 兜底逻辑：如果因为礼物下架等原因导致预设加起来不到 $5
+  // 则自动用剩下的最贵礼物凑够 $5
+  if (currentTotal < MIN_PURCHASE_PRICE) {
+    const sortedGifts = [...gifts.value].sort((a, b) => b.price - a.price)
+    for (const gift of sortedGifts) {
+      if (currentTotal >= MIN_PURCHASE_PRICE) break
+      
+      // 如果这个礼物还没被选中过
+      if (!quantities.value[gift.code]) {
+        const needed = Math.ceil((MIN_PURCHASE_PRICE - currentTotal) / gift.price)
+        quantities.value[gift.code] = needed
+        currentTotal += gift.price * needed
+      }
     }
   }
 }
