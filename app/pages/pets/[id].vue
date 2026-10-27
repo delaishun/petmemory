@@ -1043,8 +1043,24 @@ useHead(() => ({
                 />
                 <van-loading v-else type="spinner" color="#E8A87C" size="24" />
               </div>
-              <div class="pet-expression__hint">
-                {{ t("pet_expression_mood_hint", { name: pet.name }) }}
+
+              <!-- 修改：将右侧内容包起来 -->
+              <div class="pet-expression__right">
+                <div class="pet-expression__hint">
+                  {{ t("pet_expression_mood_hint", { name: pet.name }) }}
+                </div>
+
+                <!-- 新增：主人视角且性格为空时的提示 -->
+                <div v-if="isOwner && !pet.personality" class="pet-personality-hint">
+                  <span>{{
+                    locale === "en"
+                      ? "Add personality traits to make chats warmer"
+                      : "写下 ta 的小性格，对话会更温暖"
+                  }}</span>
+                  <button class="pet-personality-hint__btn" @click="handleEdit">
+                    {{ locale === "en" ? "Edit" : "去填写" }}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1612,7 +1628,7 @@ useHead(() => ({
     }
   }
 
-    &__personality {
+  &__personality {
     display: inline-flex;
     align-items: flex-start;
     gap: @sp-2;
@@ -2322,6 +2338,39 @@ useHead(() => ({
     border: 1px solid @border;
     border-radius: @radius;
     box-shadow: @shadow-1;
+  }
+
+  // 新增：性格提示样式
+  &__personality-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: @sp-2;
+    padding: 6px 10px;
+    background: @surface;
+    border: 1px dashed @accent;
+    border-radius: @radius;
+    font-size: @fs-xs;
+    color: @ink-2;
+    text-align: left;
+    line-height: 1.4;
+    box-shadow: @shadow-1;
+
+    &__btn {
+      flex-shrink: 0;
+      padding: 0;
+      background: none;
+      border: none;
+      color: @accent;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color @dur-fast ease;
+
+      &:hover {
+        color: @accent-hover;
+      }
+    }
   }
 }
 
