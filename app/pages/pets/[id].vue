@@ -1051,13 +1051,19 @@ useHead(() => ({
                 </div>
 
                 <!-- 新增：主人视角且性格为空时的提示 -->
-                <div v-if="isOwner && !pet.personality" class="pet-personality-hint">
+                <div
+                  v-if="isOwner && !pet.personality"
+                  class="pet-expression__personality-hint"
+                >
                   <span>{{
                     locale === "en"
                       ? "Add personality traits to make chats warmer"
                       : "写下 ta 的小性格，对话会更温暖"
                   }}</span>
-                  <button class="pet-personality-hint__btn" @click="handleEdit">
+                  <button
+                    class="pet-expression__personality-hint__btn"
+                    @click="handleEdit"
+                  >
                     {{ locale === "en" ? "Edit" : "去填写" }}
                   </button>
                 </div>
@@ -2287,7 +2293,7 @@ useHead(() => ({
 
   &__top {
     display: flex;
-    align-items: center;
+    align-items: flex-start; // 改成了 flex-start，让顶部对齐
     justify-content: space-between;
     gap: @sp-3;
     width: 100%;
@@ -2321,26 +2327,23 @@ useHead(() => ({
     }
   }
 
+  // 👇 新增：右侧容器
+  &__right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: @sp-2;
+    max-width: 280px;
+  }
+
   &__hint {
     font-size: @fs-xs;
     color: @ink-3;
     line-height: 1.5;
     text-align: right;
-    max-width: 200px;
   }
 
-  &__mood {
-    width: 160px;
-    max-width: 100%;
-    margin-top: 0;
-    padding: @sp-2 @sp-3;
-    background: @surface;
-    border: 1px solid @border;
-    border-radius: @radius;
-    box-shadow: @shadow-1;
-  }
-
-  // 新增：性格提示样式
+  // 👇 新增：性格提示样式
   &__personality-hint {
     display: inline-flex;
     align-items: center;
@@ -2371,6 +2374,17 @@ useHead(() => ({
         color: @accent-hover;
       }
     }
+  }
+
+  &__mood {
+    width: 160px;
+    max-width: 100%;
+    margin-top: 0;
+    padding: @sp-2 @sp-3;
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+    box-shadow: @shadow-1;
   }
 }
 
