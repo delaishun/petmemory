@@ -25,6 +25,7 @@ interface PetPublic {
   hometown: string
   avatarUrl: string
   bio: string
+  personality: string          // ← 新增
   createdAt: string
 }
 
@@ -53,9 +54,10 @@ const visible = computed({
 
 const form = reactive({
   name: '',
-  species: '', // 默认留空，通过 placeholder 提示
+  species: '',
   breed: '',
   hometown: '',
+  personality: '',             // ← 新增（非必填）
   birthday: '',
 })
 
@@ -202,6 +204,7 @@ async function handleSubmit() {
         species: form.species.trim(),
         breed: form.breed.trim() || undefined,
         hometown: form.hometown.trim() || undefined,
+        personality: form.personality.trim() || undefined,  // ← 新增
         birthday: form.birthday || undefined,
         avatarUrl: url,
       },
@@ -234,6 +237,7 @@ function resetForm() {
   form.species = ''
   form.breed = ''
   form.hometown = ''
+  form.personality = ''        // ← 新增
   form.birthday = ''
   avatarFile.value = null
   avatarPreview.value = ''
@@ -354,6 +358,23 @@ watch(
             maxlength="100"
             :disabled="loading"
           />
+        </div>
+
+        <!-- 性格爱好（非必填） -->
+        <div class="field">
+          <label class="field__label" for="pet-personality">
+            {{ t('field_personality') }}
+          </label>
+          <textarea
+            id="pet-personality"
+            v-model="form.personality"
+            class="input textarea"
+            :placeholder="t('placeholder_personality')"
+            maxlength="200"
+            rows="3"
+            :disabled="loading"
+          ></textarea>
+          <span class="field__hint">{{ form.personality.length }} / 200</span>
         </div>
 
         <!-- 生日 -->
@@ -485,6 +506,15 @@ watch(
   margin-left: 2px;
 }
 
+// 非必填字段底部的字数提示
+.field__hint {
+  display: block;
+  margin-top: 4px;
+  font-size: @fs-xs;
+  color: @ink-3;
+  text-align: right;
+}
+
 // ============================================================
 // 头像上传
 // ============================================================
@@ -571,6 +601,22 @@ watch(
     transition: color @dur-fast ease;
 
     &:hover { color: @danger; }
+  }
+}
+
+// ============================================================
+// 多行文本（性格爱好）
+// ============================================================
+.textarea {
+  min-height: 76px;
+  resize: vertical;
+  line-height: 1.5;
+  font-family: inherit;       // textarea 默认 monospace，覆盖掉以保持和 input 视觉一致
+
+  &:disabled {
+    cursor: not-allowed;
+    background: @surface-2;
+    color: @ink-3;
   }
 }
 </style>

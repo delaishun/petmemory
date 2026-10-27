@@ -406,19 +406,19 @@ export default {
   custom_order_requirements: '绘画要求（如：风格、背景颜色、是否加入文字等）',
   custom_order_address: '收件地址',
   custom_order_address_placeholder: '请输入详细收件信息（仅实物版需要）',
-  
+
   custom_order_plan_digital_title: '纯手工电子版',
   custom_order_plan_digital_desc: '为您绘制高清 PDF/PNG 画作。20天内发送至您的注册邮箱，留住美好瞬间。',
   custom_order_plan_digital_btn: '订购 $45',
-  
+
   custom_order_plan_physical_title: '实体装裱版',
   custom_order_plan_physical_desc: '包含电子画作与实体装裱。20天内发邮箱，画作完成后为您包邮寄出。',
   custom_order_plan_physical_btn: '订购 $60',
-  
+
   custom_order_success: '支付成功！我们会尽快联系您确认细节。',
   custom_order_err_address: '订购实物版请填写收件地址',
 
-    // 订单相关
+  // 订单相关
   user_my_orders: '我的订单',
   order_status_pending: '待发货',
   order_status_shipped: '已发货',
@@ -428,5 +428,8 @@ export default {
   order_requirements_label: '要求：',
   order_address_label: '邮寄地址：',
   order_empty: '暂无订单',
+
+  field_personality: '性格爱好',
+  placeholder_personality: '比如：胆小但贪吃，喜欢晒太阳，最怕洗澡（选填）',
 
 }

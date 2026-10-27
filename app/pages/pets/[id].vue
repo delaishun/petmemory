@@ -35,6 +35,7 @@ interface PetDetail {
   hometown: string;
   avatarUrl: string;
   bio: string;
+  personality: string;
   createdAt: string;
   status: number;
   owner: OwnerBrief;
@@ -54,6 +55,7 @@ interface PetPublic {
   hometown: string;
   avatarUrl: string;
   bio: string;
+  personality: string;
   createdAt: string;
 }
 
@@ -184,7 +186,7 @@ function getGiftOpacity(item: GiftRecordPublic) {
   const sentTime = new Date(item.createdAt).getTime();
   const elapsedSeconds = (Date.now() - sentTime) / 1000;
   const ratio = elapsedSeconds / item.expireSeconds;
-  
+
   if (ratio < 1 / 3) return 1;
   if (ratio < 2 / 3) return 0.6;
   return 0.3;
@@ -222,44 +224,47 @@ let hasBoundEvents = false;
 function handleUserInteraction() {
   if (!audio.value || isMusicPlaying.value) return;
 
-  audio.value.play().then(() => {
-    isMusicPlaying.value = true;
-    removeGlobalEvents(); // 播放成功，清理监听
-  }).catch((e) => {
-    // 如果依然失败，保持监听
-    console.warn('交互触发播放失败，等待下次操作', e);
-  });
+  audio.value
+    .play()
+    .then(() => {
+      isMusicPlaying.value = true;
+      removeGlobalEvents(); // 播放成功，清理监听
+    })
+    .catch((e) => {
+      // 如果依然失败，保持监听
+      console.warn("交互触发播放失败，等待下次操作", e);
+    });
 }
 
 function bindGlobalEvents() {
   if (hasBoundEvents || import.meta.server) return;
   hasBoundEvents = true;
-  
-  window.addEventListener('pointerdown', handleUserInteraction, { passive: true });
-  window.addEventListener('mousedown', handleUserInteraction, { passive: true });
-  window.addEventListener('scroll', handleUserInteraction, { passive: true });
-  window.addEventListener('wheel', handleUserInteraction, { passive: true });
-  window.addEventListener('keydown', handleUserInteraction, { passive: true });
-  window.addEventListener('click', handleUserInteraction, { passive: true });
+
+  window.addEventListener("pointerdown", handleUserInteraction, { passive: true });
+  window.addEventListener("mousedown", handleUserInteraction, { passive: true });
+  window.addEventListener("scroll", handleUserInteraction, { passive: true });
+  window.addEventListener("wheel", handleUserInteraction, { passive: true });
+  window.addEventListener("keydown", handleUserInteraction, { passive: true });
+  window.addEventListener("click", handleUserInteraction, { passive: true });
 }
 
 function removeGlobalEvents() {
   if (!hasBoundEvents || import.meta.server) return;
   hasBoundEvents = false;
 
-  window.removeEventListener('pointerdown', handleUserInteraction);
-  window.removeEventListener('mousedown', handleUserInteraction);
-  window.removeEventListener('scroll', handleUserInteraction);
-  window.removeEventListener('wheel', handleUserInteraction);
-  window.removeEventListener('keydown', handleUserInteraction);
-  window.removeEventListener('click', handleUserInteraction);
+  window.removeEventListener("pointerdown", handleUserInteraction);
+  window.removeEventListener("mousedown", handleUserInteraction);
+  window.removeEventListener("scroll", handleUserInteraction);
+  window.removeEventListener("wheel", handleUserInteraction);
+  window.removeEventListener("keydown", handleUserInteraction);
+  window.removeEventListener("click", handleUserInteraction);
 }
 
 function initBackgroundMusic() {
   if (import.meta.server) return;
   if (!isVipPet.value || audio.value) return;
 
-  let musicUrl = '';
+  let musicUrl = "";
   const festivalName = getCurrentFestivalName();
 
   if (festivalName) {
@@ -270,20 +275,23 @@ function initBackgroundMusic() {
   }
 
   audio.value = new Audio(musicUrl);
-  audio.value.volume = 0.5; 
-  audio.value.loop = false; 
+  audio.value.volume = 0.5;
+  audio.value.loop = false;
 
-  audio.value.addEventListener('ended', () => {
+  audio.value.addEventListener("ended", () => {
     isMusicPlaying.value = false;
     isMusicEnded.value = true;
   });
 
-  audio.value.play().then(() => {
-    isMusicPlaying.value = true;
-  }).catch((err) => {
-    console.log('等待用户交互以播放背景音乐', err);
-    bindGlobalEvents(); 
-  });
+  audio.value
+    .play()
+    .then(() => {
+      isMusicPlaying.value = true;
+    })
+    .catch((err) => {
+      console.log("等待用户交互以播放背景音乐", err);
+      bindGlobalEvents();
+    });
 }
 
 function toggleMusic() {
@@ -299,13 +307,16 @@ function toggleMusic() {
       audio.value.currentTime = 0;
       isMusicEnded.value = false;
     }
-    
-    audio.value.play().then(() => {
-      isMusicPlaying.value = true;
-    }).catch((err) => {
-      console.error('播放失败', err);
-      showToast('播放失败，请检查网络或音频源');
-    });
+
+    audio.value
+      .play()
+      .then(() => {
+        isMusicPlaying.value = true;
+      })
+      .catch((err) => {
+        console.error("播放失败", err);
+        showToast("播放失败，请检查网络或音频源");
+      });
   }
 }
 
@@ -347,7 +358,7 @@ onBeforeUnmount(() => {
   removeGlobalEvents();
   if (audio.value) {
     audio.value.pause();
-    audio.value.src = '';
+    audio.value.src = "";
     audio.value = null;
   }
 });
@@ -406,6 +417,7 @@ const editablePet = computed<EditablePet | null>(() => {
     species: pet.value.species,
     breed: pet.value.breed,
     hometown: pet.value.hometown,
+    personality: pet.value.personality,
     birthday: pet.value.birthday,
     status: pet.value.status ?? 1,
   };
@@ -536,7 +548,7 @@ async function onMessageCreated(message: MessagePublic) {
   };
 
   if (message.earnedBonus) {
-    showToast({ type: "success", message: t('msg_bonus_earned') });
+    showToast({ type: "success", message: t("msg_bonus_earned") });
     await refreshMe();
   }
 }
@@ -645,7 +657,7 @@ async function onBuyGiftSuccess() {
 async function onGiftsSent(summary: PetGiftSummary[]) {
   giftSummary.value = summary;
   await Promise.all([refreshGiftRecords(), refreshPet(), refreshMe()]);
-  showToast({ type: "success", message: t('gift_bonus_points') });
+  showToast({ type: "success", message: t("gift_bonus_points") });
 }
 
 // ============================================================
@@ -689,7 +701,7 @@ function handleChat() {
 watch(chatModalVisible, async (visible) => {
   if (!visible) {
     await refreshPublicChat();
-    showToast({ type: "success", message: t('chat_bonus_earned') });
+    showToast({ type: "success", message: t("chat_bonus_earned") });
     await refreshMe();
   }
 });
@@ -811,12 +823,12 @@ useHead(() => ({
 <template>
   <div class="page">
     <!-- 悬浮音乐开关 -->
-    <button 
-      v-if="isVipPet && audio" 
-      class="music-toggle" 
+    <button
+      v-if="isVipPet && audio"
+      class="music-toggle"
       :class="{ 'is-playing': isMusicPlaying }"
       @click.stop="toggleMusic"
-      :title="isMusicPlaying ? '暂停音乐' : (isMusicEnded ? '重新播放' : '播放音乐')"
+      :title="isMusicPlaying ? '暂停音乐' : isMusicEnded ? '重新播放' : '播放音乐'"
     >
       <van-icon :name="isMusicPlaying ? 'music-o' : 'volume-o'" />
     </button>
@@ -889,6 +901,12 @@ useHead(() => ({
               {{ t("pet_no_bio") }}
             </p>
 
+            <!-- 性格爱好（非必填，有就显示） -->
+            <div v-if="pet.personality" class="pet-hero__personality">
+              <van-icon name="smile-o" class="pet-hero__personality-icon" />
+              <p class="pet-hero__personality-text">{{ pet.personality }}</p>
+            </div>
+
             <!-- 主人信息区，包含 VIP 图标 -->
             <div class="pet-hero__owner">
               {{ t("pet_owner") }}{{ locale === "en" ? ": " : "：" }}
@@ -960,7 +978,7 @@ useHead(() => ({
             <p class="pet-album__empty-text">
               {{ isOwner ? t("pet_album_empty_owner") : t("pet_album_empty_guest") }}
             </p>
-            
+
             <button
               v-if="isOwner"
               type="button"
@@ -1272,10 +1290,7 @@ useHead(() => ({
     />
 
     <!-- 购买/兑换弹窗 -->
-    <BuyGiftModal
-      v-model="buyGiftModalVisible"
-      @success="onBuyGiftSuccess"
-    />
+    <BuyGiftModal v-model="buyGiftModalVisible" @success="onBuyGiftSuccess" />
 
     <!-- 宠物对话弹窗 -->
     <PetChatModal
@@ -1418,7 +1433,7 @@ useHead(() => ({
     color: @accent;
     border-color: @accent-soft;
     background: @surface;
-    
+
     :deep(.van-icon) {
       animation: spin 4s linear infinite;
     }
@@ -1426,8 +1441,12 @@ useHead(() => ({
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // ============================================================
@@ -1591,6 +1610,34 @@ useHead(() => ({
       color: @ink-3;
       font-style: italic;
     }
+  }
+
+    &__personality {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: @sp-2;
+    margin-top: @sp-3;
+    padding: @sp-2 @sp-3;
+    max-width: 480px;
+    border: 1px dashed @border-strong;
+    border-radius: @radius;
+    font-size: @fs-sm;
+    color: @ink-2;
+    text-align: left;
+    line-height: @lh-base;
+  }
+
+  &__personality-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: @accent;
+    font-size: 16px;
+  }
+
+  &__personality-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   &__owner {

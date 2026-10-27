@@ -22,6 +22,7 @@ export interface EditablePet {
   hometown: string
   birthday: string | null   // 'YYYY-MM-DD' 或 null
   status: number            // 1=正常 0=隐藏
+  personality?: string      // ← 新增（可选，兜底做兼容）
 }
 
 /** 后端 PATCH /api/pets/:slug 返回 */
@@ -36,6 +37,7 @@ interface PetPublic {
   hometown: string
   avatarUrl: string
   bio: string
+  personality: string       // ← 新增
   createdAt: string
 }
 
@@ -68,6 +70,7 @@ const form = reactive({
   species: '',
   breed: '',
   hometown: '',
+  personality: '',     // ← 新增（非必填）
   birthday: '',        // 'YYYY-MM-DD' 或空
   hidden: false,       // true = status 0
 })
@@ -92,6 +95,7 @@ function fillFromPet() {
   form.species = p.species
   form.breed = p.breed
   form.hometown = p.hometown
+  form.personality = p.personality ?? ''   // ← 新增（兜底 undefined）
   form.birthday = p.birthday ?? ''
   form.hidden = p.status === 0
   errors.name = ''
@@ -193,7 +197,8 @@ async function handleSubmit() {
           species: form.species.trim(),
           breed: form.breed.trim(),
           hometown: form.hometown.trim(),
-          birthday: form.birthday || null,   // 空 → null
+          personality: form.personality.trim(),  // ← 新增（空串 = 清空）
+          birthday: form.birthday || null,       // 空 → null
           status: form.hidden ? 0 : 1,
         },
       },
@@ -290,6 +295,23 @@ async function handleSubmit() {
             maxlength="100"
             :disabled="loading"
           />
+        </div>
+
+        <!-- 性格爱好（非必填） -->
+        <div class="field">
+          <label class="field__label" for="edit-pet-personality">
+            {{ t('field_personality') }}
+          </label>
+          <textarea
+            id="edit-pet-personality"
+            v-model="form.personality"
+            class="input textarea"
+            :placeholder="t('placeholder_personality')"
+            maxlength="200"
+            rows="3"
+            :disabled="loading"
+          ></textarea>
+          <span class="field__hint">{{ form.personality.length }} / 200</span>
         </div>
 
         <!-- 生日 -->
@@ -433,6 +455,15 @@ async function handleSubmit() {
   margin-left: 2px;
 }
 
+// 非必填字段底部的字数提示
+.field__hint {
+  display: block;
+  margin-top: 4px;
+  font-size: @fs-xs;
+  color: @ink-3;
+  text-align: right;
+}
+
 // ============================================================
 // 生日字段
 // ============================================================
@@ -498,6 +529,22 @@ async function handleSubmit() {
     font-size: @fs-xs;
     color: @ink-3;
     line-height: 1.4;
+  }
+}
+
+// ============================================================
+// 多行文本（性格爱好）
+// ============================================================
+.textarea {
+  min-height: 76px;
+  resize: vertical;
+  line-height: 1.5;
+  font-family: inherit;       // textarea 默认 monospace，覆盖掉以保持视觉一致
+
+  &:disabled {
+    cursor: not-allowed;
+    background: @surface-2;
+    color: @ink-3;
   }
 }
 </style>
