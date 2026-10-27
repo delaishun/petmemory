@@ -400,4 +400,22 @@ export default {
   vip_bonus_points_tip: '订阅或续费即赠 10000 积分',
   vip_subscribe_success: '订阅成功，VIP 特权已生效！',
 
+  // 定制手绘
+  custom_order_title: '定制宠物手工绘画',
+  custom_order_upload: '上传参考照片（可多张）',
+  custom_order_requirements: '绘画要求（如：风格、背景颜色、是否加入文字等）',
+  custom_order_address: '收件地址',
+  custom_order_address_placeholder: '请输入详细收件信息（仅实物版需要）',
+  
+  custom_order_plan_digital_title: '纯手工电子版',
+  custom_order_plan_digital_desc: '为您绘制高清 PDF/PNG 画作。20天内发送至您的注册邮箱，留住美好瞬间。',
+  custom_order_plan_digital_btn: '订购 $45',
+  
+  custom_order_plan_physical_title: '实体装裱版',
+  custom_order_plan_physical_desc: '包含电子画作与实体装裱。20天内发邮箱，画作完成后为您包邮寄出。',
+  custom_order_plan_physical_btn: '订购 $60',
+  
+  custom_order_success: '支付成功！我们会尽快联系您确认细节。',
+  custom_order_err_address: '订购实物版请填写收件地址',
+
 }

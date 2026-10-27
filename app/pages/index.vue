@@ -1,6 +1,8 @@
 <!-- app/pages/index.vue -->
 <script setup lang="ts">
+import { showToast } from 'vant'
 import { useI18n } from '~/composables/useI18n'
+import type { AuthUser } from '~/types/auth'
 
 // ============================================================
 // 类型
@@ -122,6 +124,22 @@ const currentGift = ref<HomeGift | null>(null);
 function handleGiftClick(gift: HomeGift) {
   currentGift.value = gift;
   giftModalVisible.value = true;
+}
+
+// ============================================================
+// 定制手绘 & 登录控制
+// ============================================================
+const me = useState<AuthUser | null>('auth:user', () => null)
+const loginModalVisible = ref(false)
+const customOrderModalVisible = ref(false)
+
+function handleCustomOrder() {
+  if (!me.value) {
+    showToast(t('msg_please_login') || '请先登录')
+    loginModalVisible.value = true
+    return
+  }
+  customOrderModalVisible.value = true
 }
 
 // ============================================================
@@ -355,10 +373,15 @@ useHead(() => ({
         <div class="home-drawing">
           <div class="home-drawing__info">
             <p class="home-drawing__desc">{{ t('home_drawing_desc') }}</p>
-            <!-- 新增：定制链接 -->
-            <NuxtLink to="/contact" class="home-drawing__link">
-              {{ t('home_drawing_cta') }} &rarr;
-            </NuxtLink>
+            
+            <!-- 👈 修改：将文本链接改为按钮 -->
+            <button
+              type="button"
+              class="btn btn--primary home-drawing__cta"
+              @click="handleCustomOrder"
+            >
+              {{ t('home_drawing_cta') }}
+            </button>
           </div>
           <div class="home-drawing__gallery">
             <!-- 示例图 -->
@@ -457,6 +480,12 @@ useHead(() => ({
         </button>
       </div>
     </van-popup>
+
+    <!-- 定制手绘弹窗 -->
+    <CustomOrderModal v-model="customOrderModalVisible" @success="() => {}" />
+    
+    <!-- 登录弹窗 -->
+    <LoginModal v-model="loginModalVisible" />
   </div>
 </template>
 
@@ -539,8 +568,6 @@ useHead(() => ({
       border-bottom: none; 
     }
   }
-
-  // 移除了之前的 first-of-type 负边距，让它自然排在 banner 下方并保留分割线
 
   .section-title__left {
     display: flex;
@@ -887,6 +914,9 @@ useHead(() => ({
   &__info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   &__desc {
@@ -897,19 +927,10 @@ useHead(() => ({
     white-space: pre-line;
   }
 
-  &__link {
-    display: inline-block;
+  // 👈 新增的按钮样式，取代了原来的文字链接
+  &__cta {
     margin-top: @sp-4;
-    font-size: @fs-base;
-    font-weight: 600;
-    color: @accent;
-    text-decoration: none;
-    transition: color @dur-fast ease, transform @dur-fast ease;
-
-    &:hover {
-      color: @accent-hover;
-      transform: translateX(4px);
-    }
+    letter-spacing: 0.05em;
   }
 
   &__gallery {

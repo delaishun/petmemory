@@ -399,4 +399,22 @@ export default {
   vip_subscribe_btn: 'Subscribe Now',
   vip_bonus_points_tip: 'Get 10,000 points with VIP',
   vip_subscribe_success: 'Subscription successful! VIP is active.',
+
+  // Custom Order
+  custom_order_title: 'Custom Hand-Drawn Portrait',
+  custom_order_upload: 'Upload Reference Photos (Multiple allowed)',
+  custom_order_requirements: 'Requirements (e.g., style, background, text)',
+  custom_order_address: 'Shipping Address',
+  custom_order_address_placeholder: 'Enter your address (Required for physical)',
+  
+  custom_order_plan_digital_title: 'Digital Version',
+  custom_order_plan_digital_desc: 'High-quality hand-drawn PDF/PNG delivered to your email within 20 days.',
+  custom_order_plan_digital_btn: 'Order $45',
+  
+  custom_order_plan_physical_title: 'Physical Version',
+  custom_order_plan_physical_desc: 'Includes digital drawing and framed physical artwork. Emailed within 20 days; physical item shipped after completion.',
+  custom_order_plan_physical_btn: 'Order $60',
+  
+  custom_order_success: 'Payment successful! We will contact you soon.',
+  custom_order_err_address: 'Please enter shipping address for physical order',
 }
