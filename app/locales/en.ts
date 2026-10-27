@@ -417,4 +417,15 @@ export default {
   
   custom_order_success: 'Payment successful! We will contact you soon.',
   custom_order_err_address: 'Please enter shipping address for physical order',
+
+    // Orders
+  user_my_orders: 'My Orders',
+  order_status_pending: 'Processing',
+  order_status_shipped: 'Shipped',
+  order_status_canceled: 'Canceled',
+  order_plan_digital: 'Digital Art',
+  order_plan_physical: 'Physical Art',
+  order_requirements_label: 'Requirements: ',
+  order_address_label: 'Address: ',
+  order_empty: 'No orders yet',
 }

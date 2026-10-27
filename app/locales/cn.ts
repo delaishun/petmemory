@@ -418,4 +418,15 @@ export default {
   custom_order_success: '支付成功！我们会尽快联系您确认细节。',
   custom_order_err_address: '订购实物版请填写收件地址',
 
+    // 订单相关
+  user_my_orders: '我的订单',
+  order_status_pending: '待发货',
+  order_status_shipped: '已发货',
+  order_status_canceled: '已取消',
+  order_plan_digital: '电子版绘画',
+  order_plan_physical: '实物版绘画',
+  order_requirements_label: '要求：',
+  order_address_label: '邮寄地址：',
+  order_empty: '暂无订单',
+
 }

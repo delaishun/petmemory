@@ -1,6 +1,6 @@
 <!-- app/pages/users/[id].vue -->
 <script setup lang="ts">
-import { showConfirmDialog, showToast } from 'vant'
+import { showConfirmDialog, showToast, showImagePreview } from 'vant'
 import type { AuthUser, MeResponse } from '~/types/auth'
 import { useI18n } from '~/composables/useI18n'
 
@@ -51,6 +51,18 @@ interface GiftPublic {
 interface InventoryItem {
   giftId: number
   quantity: number
+}
+
+interface UserOrder {
+  id: number
+  orderNo: string
+  planType: 'digital' | 'physical'
+  amount: number
+  status: number // 0=待发货 1=已发货 2=已取消
+  images: string[]
+  requirements: string
+  shippingAddress: string
+  createdAt: string
 }
 
 // ---------- 数据 ----------
@@ -142,20 +154,13 @@ const vipModalVisible = ref(false)
 const upgradeVipModalVisible = ref(false)
 
 async function onUpgradeVipSuccess() {
-  // 1. 提示用户支付成功
   showToast({
     type: 'success',
     message: t('vip_subscribe_success') || '支付成功！正在同步 VIP 状态...',
     duration: 3000
   })
-
-  // 2. 等待 2.5 秒，给 Paddle Webhook 留出处理时间
   setTimeout(async () => {
-    // 并行刷新全局 me 状态 和 当前页面 user 状态
-    await Promise.all([
-      refreshMe(),
-      refreshUser() 
-    ])
+    await Promise.all([refreshMe(), refreshUser()])
   }, 2500)
 }
 
@@ -197,7 +202,6 @@ async function loadInventoryAndGifts() {
   }
 }
 
-// 合并礼物图片数据与库存数量
 const mergedInventory = computed(() => {
   return inventory.value
     .map(inv => {
@@ -207,13 +211,68 @@ const mergedInventory = computed(() => {
     .filter(item => item.gift && item.quantity > 0)
 })
 
-// 监听页面加载和 isSelf 状态
+async function onBuyGiftSuccess() {
+  showToast({ 
+    type: 'success', 
+    message: t('msg_buy_success_refresh'),
+    duration: 3000
+  })
+  setTimeout(async () => {
+    await refreshMe()
+    await loadInventoryAndGifts()
+  }, 2500)
+}
+
+// ============================================================
+// 我的订单
+// ============================================================
+const orders = ref<UserOrder[]>([])
+const ordersLoading = ref(false)
+
+async function loadOrders() {
+  if (!isSelf.value) return
+  ordersLoading.value = true
+  try {
+    orders.value = await $api<UserOrder[]>('/api/users/me/orders')
+  } catch (e) {
+    // 静默失败
+  } finally {
+    ordersLoading.value = false
+  }
+}
+
+function getOrderStatusText(status: number) {
+  if (status === 0) return t('order_status_pending') || '待发货'
+  if (status === 1) return t('order_status_shipped') || '已发货'
+  return t('order_status_canceled') || '已取消'
+}
+
+function getOrderStatusClass(status: number) {
+  if (status === 0) return 'is-pending'
+  if (status === 1) return 'is-shipped'
+  return 'is-canceled'
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+// 监听加载
 onMounted(() => {
-  if (isSelf.value) loadInventoryAndGifts()
+  if (isSelf.value) {
+    loadInventoryAndGifts()
+    loadOrders()
+  }
 })
 watch(isSelf, (val) => {
-  if (val) loadInventoryAndGifts()
-  else inventory.value = []
+  if (val) {
+    loadInventoryAndGifts()
+    loadOrders()
+  } else {
+    inventory.value = []
+    orders.value = []
+  }
 })
 
 async function refreshMe() {
@@ -221,20 +280,6 @@ async function refreshMe() {
     const res = await $api<MeResponse>('/api/auth/me')
     if (res?.user) me.value = res.user
   } catch {}
-}
-
-async function onBuyGiftSuccess() {
-  showToast({ 
-    type: 'success', 
-    message: t('msg_buy_success_refresh'),
-    duration: 3000
-  })
-  
-  // 同样给 Webhook 留出时间
-  setTimeout(async () => {
-    await refreshMe()
-    await loadInventoryAndGifts()
-  }, 2500)
 }
 
 // ---------- 退出登录 ----------
@@ -278,10 +323,8 @@ useHead(() => ({
         <NuxtLink to="/" class="btn btn--primary mt-4">{{ t('btn_back_home') }}</NuxtLink>
       </div>
 
-      <!-- 用户信息 + 宠物列表 + 操作 -->
       <template v-else>
         <header class="user-hero">
-          <!-- 头像 + 编辑图标 -->
           <div class="user-hero__avatar-wrap">
             <img
               class="user-hero__avatar"
@@ -299,7 +342,6 @@ useHead(() => ({
             </button>
           </div>
 
-          <!-- 名字 + VIP 图标 + 修改昵称 -->
           <div class="user-hero__title-wrap">
             <h1 class="user-hero__name">{{ user.nickname }}</h1>
             <van-icon
@@ -308,7 +350,6 @@ useHead(() => ({
               class="user-hero__vip-icon"
               @click="vipModalVisible = true"
             />
-            <!-- 本人可见：修改昵称 -->
             <button
               v-if="isSelf"
               type="button"
@@ -320,7 +361,6 @@ useHead(() => ({
             </button>
           </div>
 
-          <!-- 本人可见的积分展示 -->
           <div v-if="displayPoint !== undefined" class="user-hero__points">
             <van-icon name="gold-coin-o" />
             <span>{{ t('user_points') }}: {{ displayPoint }}</span>
@@ -373,6 +413,48 @@ useHead(() => ({
           </div>
         </section>
 
+        <!-- 我的订单 (仅本人可见) -->
+        <section v-if="isSelf && orders.length > 0" class="orders-section">
+          <h2 class="orders-section__title">{{ t('user_my_orders') || '我的订单' }}</h2>
+          <div class="order-list">
+            <div v-for="order in orders" :key="order.id" class="order-card">
+              <div class="order-card__header">
+                <span class="order-card__time">{{ formatDate(order.createdAt) }}</span>
+                <span class="order-card__status" :class="getOrderStatusClass(order.status)">
+                  {{ getOrderStatusText(order.status) }}
+                </span>
+              </div>
+              
+              <div class="order-card__body">
+                <div class="order-card__info">
+                  <div class="order-card__row">
+                    <span class="order-card__plan">
+                      {{ order.planType === 'digital' ? (t('order_plan_digital') || '电子版绘画') : (t('order_plan_physical') || '实物版绘画') }}
+                    </span>
+                    <span class="order-card__amount">${{ order.amount }}</span>
+                  </div>
+                  <p v-if="order.requirements" class="order-card__req">
+                    <strong>{{ t('order_requirements_label') || '要求：' }}</strong>{{ order.requirements }}
+                  </p>
+                  <p v-if="order.planType === 'physical' && order.shippingAddress" class="order-card__address">
+                    <strong>{{ t('order_address_label') || '邮寄地址：' }}</strong>{{ order.shippingAddress }}
+                  </p>
+                </div>
+                
+                <div v-if="order.images && order.images.length" class="order-card__images">
+                  <img 
+                    v-for="(img, i) in order.images" 
+                    :key="i" 
+                    :src="img" 
+                    class="order-card__img" 
+                    @click="showImagePreview({ images: order.images, startPosition: i })"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- 本人操作区 -->
         <div v-if="isSelf" class="user-actions">
           <button
@@ -396,7 +478,6 @@ useHead(() => ({
             class="btn btn--gold btn--lg"
             @click="upgradeVipModalVisible = true"
           >
-            <!-- 确保 i18n 没写错，可以硬编码兜底 -->
             {{ user.isVip ? t('user_renew_vip') : t('user_upgrade_vip') }}
           </button>
 
@@ -812,6 +893,133 @@ useHead(() => ({
     color: @ink-1;
     text-align: center;
     .line-1();
+  }
+}
+
+// ============================================================
+// 我的订单区
+// ============================================================
+.orders-section {
+  margin-top: @sp-5;
+  padding-top: @sp-5;
+  border-top: 1px solid @border;
+
+  &__title {
+    margin: 0 0 @sp-4;
+    font-family: @font-serif;
+    font-size: @fs-lg;
+    font-weight: 700;
+    color: @ink-1;
+    text-align: center;
+  }
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: @sp-4;
+}
+
+.order-card {
+  background: @surface;
+  border: 1px solid @border;
+  border-radius: @radius-lg;
+  padding: @sp-4;
+  box-shadow: @shadow-1;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: @sp-3;
+    padding-bottom: @sp-2;
+    border-bottom: 1px dashed @border;
+  }
+
+  &__time {
+    font-size: @fs-xs;
+    color: @ink-3;
+    font-family: @font-mono;
+  }
+
+  &__status {
+    font-size: @fs-xs;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: @radius-pill;
+
+    &.is-pending {
+      color: @warning;
+      background: fade(@warning, 10%);
+    }
+    &.is-shipped {
+      color: @success;
+      background: fade(@success, 10%);
+    }
+    &.is-canceled {
+      color: @ink-3;
+      background: @surface-2;
+    }
+  }
+
+  &__body {
+    display: flex;
+    justify-content: space-between;
+    gap: @sp-4;
+    flex-wrap: wrap;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  &__row {
+    display: flex;
+    align-items: baseline;
+    gap: @sp-3;
+    margin-bottom: @sp-2;
+  }
+
+  &__plan {
+    font-size: @fs-base;
+    font-weight: 600;
+    color: @ink-1;
+  }
+
+  &__amount {
+    font-size: @fs-base;
+    font-weight: 700;
+    color: @accent;
+    font-family: @font-mono;
+  }
+
+  &__req,
+  &__address {
+    margin: 0 0 @sp-1;
+    font-size: @fs-sm;
+    color: @ink-2;
+    line-height: 1.5;
+
+    strong {
+      color: @ink-3;
+      font-weight: normal;
+    }
+  }
+
+  &__images {
+    display: flex;
+    gap: @sp-2;
+    flex-wrap: wrap;
+  }
+
+  &__img {
+    width: 60px;
+    height: 60px;
+    border-radius: @radius-sm;
+    object-fit: cover;
+    border: 1px solid @border;
+    cursor: zoom-in;
   }
 }
 
