@@ -666,6 +666,10 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
   if (pet.value?.soundEffect) {
     const soundUrl = `https://music.petmemory.me/${pet.value.soundEffect}.mp3`;
     const soundAudio = new Audio(soundUrl);
+    
+    // 👇 将音量显式设置为 80% (1.0 是最大值)
+    soundAudio.volume = 0.8;
+
     // 尝试自动播放。如果被浏览器策略拦截，静默失败，不影响送礼体验
     soundAudio.play().catch((err) => {
       console.warn("播放宠物叫声失败 (可能是浏览器自动播放策略限制):", err);
