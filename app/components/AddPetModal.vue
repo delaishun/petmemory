@@ -25,7 +25,8 @@ interface PetPublic {
   hometown: string
   avatarUrl: string
   bio: string
-  personality: string          // ← 新增
+  personality: string
+  soundEffect: string          // ← 新增
   createdAt: string
 }
 
@@ -57,7 +58,7 @@ const form = reactive({
   species: '',
   breed: '',
   hometown: '',
-  personality: '',             // ← 新增（非必填）
+  personality: '',
   birthday: '',
 })
 
@@ -87,6 +88,26 @@ const popupStyle = {
   right: 'auto',
   translate: '-50% 0',
 } as const
+
+// ============================================================
+// 根据物种识别叫声参数
+// ============================================================
+
+function detectSoundEffect(speciesStr: string): string {
+  const s = speciesStr.toLowerCase()
+  if (s.includes('狗') || s.includes('dog')) return 'wang'
+  if (s.includes('猫') || s.includes('cat')) return 'miao'
+  if (s.includes('鸭') || s.includes('duck')) return 'duck'
+  if (s.includes('鸟') || s.includes('bird')) return 'birds'
+  if (
+    s.includes('鼠') || 
+    s.includes('mouse') || 
+    s.includes('rat') || 
+    s.includes('hamster') || 
+    s.includes('squirrel')
+  ) return 'mouse'
+  return 'ring'
+}
 
 // ============================================================
 // 生日选择器
@@ -204,9 +225,11 @@ async function handleSubmit() {
         species: form.species.trim(),
         breed: form.breed.trim() || undefined,
         hometown: form.hometown.trim() || undefined,
-        personality: form.personality.trim() || undefined,  // ← 新增
+        personality: form.personality.trim() || undefined,
         birthday: form.birthday || undefined,
         avatarUrl: url,
+        // 👇 新增：根据物种自动识别传入的叫声参数
+        soundEffect: detectSoundEffect(form.species),
       },
     })
 
@@ -237,7 +260,7 @@ function resetForm() {
   form.species = ''
   form.breed = ''
   form.hometown = ''
-  form.personality = ''        // ← 新增
+  form.personality = ''
   form.birthday = ''
   avatarFile.value = null
   avatarPreview.value = ''
@@ -611,7 +634,7 @@ watch(
   min-height: 76px;
   resize: vertical;
   line-height: 1.5;
-  font-family: inherit;       // textarea 默认 monospace，覆盖掉以保持和 input 视觉一致
+  font-family: inherit;
 
   &:disabled {
     cursor: not-allowed;

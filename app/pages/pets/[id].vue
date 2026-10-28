@@ -36,6 +36,7 @@ interface PetDetail {
   avatarUrl: string;
   bio: string;
   personality: string;
+  soundEffect: string;       // ← 新增
   createdAt: string;
   status: number;
   owner: OwnerBrief;
@@ -56,6 +57,7 @@ interface PetPublic {
   avatarUrl: string;
   bio: string;
   personality: string;
+  soundEffect: string;       // ← 新增
   createdAt: string;
 }
 
@@ -418,6 +420,7 @@ const editablePet = computed<EditablePet | null>(() => {
     breed: pet.value.breed,
     hometown: pet.value.hometown,
     personality: pet.value.personality,
+    soundEffect: pet.value.soundEffect,      // ← 新增：透传给编辑弹窗
     birthday: pet.value.birthday,
     status: pet.value.status ?? 1,
   };
@@ -658,6 +661,16 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
   giftSummary.value = summary;
   await Promise.all([refreshGiftRecords(), refreshPet(), refreshMe()]);
   showToast({ type: "success", message: t("gift_bonus_points") });
+
+  // 👇 新增：播放宠物叫声
+  if (pet.value?.soundEffect) {
+    const soundUrl = `https://music.petmemory.me/${pet.value.soundEffect}.mp3`;
+    const soundAudio = new Audio(soundUrl);
+    // 尝试自动播放。如果被浏览器策略拦截，静默失败，不影响送礼体验
+    soundAudio.play().catch((err) => {
+      console.warn("播放宠物叫声失败 (可能是浏览器自动播放策略限制):", err);
+    });
+  }
 }
 
 // ============================================================
@@ -2293,7 +2306,7 @@ useHead(() => ({
 
   &__top {
     display: flex;
-    align-items: flex-start; // 改成了 flex-start，让顶部对齐
+    align-items: flex-start;
     justify-content: space-between;
     gap: @sp-3;
     width: 100%;
@@ -2327,7 +2340,6 @@ useHead(() => ({
     }
   }
 
-  // 👇 新增：右侧容器
   &__right {
     display: flex;
     flex-direction: column;
@@ -2343,7 +2355,6 @@ useHead(() => ({
     text-align: right;
   }
 
-  // 👇 新增：性格提示样式
   &__personality-hint {
     display: inline-flex;
     align-items: center;

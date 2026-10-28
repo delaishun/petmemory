@@ -22,7 +22,8 @@ export interface EditablePet {
   hometown: string
   birthday: string | null   // 'YYYY-MM-DD' 或 null
   status: number            // 1=正常 0=隐藏
-  personality?: string      // ← 新增（可选，兜底做兼容）
+  personality?: string      // 可选，兜底做兼容
+  soundEffect?: string      // ← 新增（可选，兜底做兼容）
 }
 
 /** 后端 PATCH /api/pets/:slug 返回 */
@@ -37,7 +38,8 @@ interface PetPublic {
   hometown: string
   avatarUrl: string
   bio: string
-  personality: string       // ← 新增
+  personality: string
+  soundEffect: string       // ← 新增
   createdAt: string
 }
 
@@ -70,7 +72,7 @@ const form = reactive({
   species: '',
   breed: '',
   hometown: '',
-  personality: '',     // ← 新增（非必填）
+  personality: '',
   birthday: '',        // 'YYYY-MM-DD' 或空
   hidden: false,       // true = status 0
 })
@@ -85,6 +87,26 @@ const loading = ref(false)
 const { $api } = useNuxtApp()
 
 // ============================================================
+// 根据物种识别叫声参数
+// ============================================================
+
+function detectSoundEffect(speciesStr: string): string {
+  const s = speciesStr.toLowerCase()
+  if (s.includes('狗') || s.includes('dog')) return 'wang'
+  if (s.includes('猫') || s.includes('cat')) return 'miao'
+  if (s.includes('鸭') || s.includes('duck')) return 'duck'
+  if (s.includes('鸟') || s.includes('bird')) return 'birds'
+  if (
+    s.includes('鼠') || 
+    s.includes('mouse') || 
+    s.includes('rat') || 
+    s.includes('hamster') || 
+    s.includes('squirrel')
+  ) return 'mouse'
+  return 'ring'
+}
+
+// ============================================================
 // 从 props.pet 初始化表单
 // ============================================================
 
@@ -95,7 +117,7 @@ function fillFromPet() {
   form.species = p.species
   form.breed = p.breed
   form.hometown = p.hometown
-  form.personality = p.personality ?? ''   // ← 新增（兜底 undefined）
+  form.personality = p.personality ?? ''
   form.birthday = p.birthday ?? ''
   form.hidden = p.status === 0
   errors.name = ''
@@ -197,9 +219,11 @@ async function handleSubmit() {
           species: form.species.trim(),
           breed: form.breed.trim(),
           hometown: form.hometown.trim(),
-          personality: form.personality.trim(),  // ← 新增（空串 = 清空）
-          birthday: form.birthday || null,       // 空 → null
+          personality: form.personality.trim(),
+          birthday: form.birthday || null,
           status: form.hidden ? 0 : 1,
+          // 👇 新增：根据修改后的物种重新识别叫声参数
+          soundEffect: detectSoundEffect(form.species),
         },
       },
     )
