@@ -369,27 +369,6 @@ useHead(() => ({
           <p v-if="user.bio" class="user-hero__bio">{{ user.bio }}</p>
         </header>
 
-        <!-- 我的礼物仓库 (仅本人可见) -->
-        <section v-if="isSelf && mergedInventory.length > 0" class="inventory-section">
-          <h2 class="inventory-section__title">
-            {{ t('user_my_inventory') }}
-          </h2>
-          <div class="inventory-grid">
-            <div 
-              v-for="item in mergedInventory" 
-              :key="item.giftId" 
-              class="inventory-item"
-              :title="`${item.gift!.name} x ${item.quantity}`"
-            >
-              <div class="inventory-item__img-wrap">
-                <img :src="item.gift!.imageUrl" :alt="item.gift!.name" />
-                <span class="inventory-item__count">x{{ item.quantity }}</span>
-              </div>
-              <span class="inventory-item__name">{{ item.gift!.name.split('/')[0] }}</span>
-            </div>
-          </div>
-        </section>
-
         <!-- 宠物列表 -->
         <section v-if="pets && pets.length > 0" class="pets-section">
           <h2 class="pets-section__title">
@@ -410,6 +389,27 @@ useHead(() => ({
               />
               <span class="pet-item__name">{{ pet.name }}</span>
             </NuxtLink>
+          </div>
+        </section>
+
+        <!-- 我的礼物仓库 (仅本人可见) -->
+        <section v-if="isSelf && mergedInventory.length > 0" class="inventory-section">
+          <h2 class="inventory-section__title">
+            {{ t('user_my_inventory') }}
+          </h2>
+          <div class="inventory-grid">
+            <div 
+              v-for="item in mergedInventory" 
+              :key="item.giftId" 
+              class="inventory-item"
+              :title="`${item.gift!.name} x ${item.quantity}`"
+            >
+              <div class="inventory-item__img-wrap">
+                <img :src="item.gift!.imageUrl" :alt="item.gift!.name" />
+                <span class="inventory-item__count">x{{ item.quantity }}</span>
+              </div>
+              <span class="inventory-item__name">{{ item.gift!.name.split('/')[0] }}</span>
+            </div>
           </div>
         </section>
 
@@ -740,6 +740,79 @@ useHead(() => ({
 }
 
 // ============================================================
+// 宠物列表区
+// ============================================================
+.pets-section {
+  margin-top: @sp-5; /* 原本是 4，为了统一间距改为 5 */
+  padding-top: @sp-5;
+  border-top: 1px solid @border;
+
+  &__title {
+    margin: 0 0 @sp-5;
+    font-family: @font-serif;
+    font-size: @fs-lg;
+    font-weight: 700;
+    color: @ink-1;
+    text-align: center;
+  }
+}
+
+.pet-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: @sp-6 @sp-5;
+
+  @media (max-width: @bp-sm) {
+    gap: @sp-5 @sp-4;
+  }
+}
+
+.pet-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: @sp-3;
+  width: 140px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform @dur-fast ease;
+
+  &:hover {
+    transform: translateY(-2px);
+
+    .pet-item__avatar {
+      box-shadow:
+        0 0 0 4px @surface,
+        0 0 0 5px @accent,
+        0 8px 20px rgba(93, 71, 55, .18);
+    }
+  }
+
+  &__avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: @surface-2;
+    box-shadow:
+      0 0 0 4px @surface,
+      0 0 0 5px @accent-soft,
+      0 8px 24px rgba(93, 71, 55, .10);
+    transition: box-shadow @dur-fast ease;
+  }
+
+  &__name {
+    width: 100%;
+    font-size: @fs-sm;
+    font-weight: 500;
+    color: @ink-1;
+    text-align: center;
+    .line-1();
+  }
+}
+
+// ============================================================
 // 礼物仓库区
 // ============================================================
 .inventory-section {
@@ -820,79 +893,6 @@ useHead(() => ({
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-}
-
-// ============================================================
-// 宠物列表区
-// ============================================================
-.pets-section {
-  margin-top: @sp-4;
-  padding-top: @sp-5;
-  border-top: 1px solid @border;
-
-  &__title {
-    margin: 0 0 @sp-5;
-    font-family: @font-serif;
-    font-size: @fs-lg;
-    font-weight: 700;
-    color: @ink-1;
-    text-align: center;
-  }
-}
-
-.pet-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: @sp-6 @sp-5;
-
-  @media (max-width: @bp-sm) {
-    gap: @sp-5 @sp-4;
-  }
-}
-
-.pet-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: @sp-3;
-  width: 140px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform @dur-fast ease;
-
-  &:hover {
-    transform: translateY(-2px);
-
-    .pet-item__avatar {
-      box-shadow:
-        0 0 0 4px @surface,
-        0 0 0 5px @accent,
-        0 8px 20px rgba(93, 71, 55, .18);
-    }
-  }
-
-  &__avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: @surface-2;
-    box-shadow:
-      0 0 0 4px @surface,
-      0 0 0 5px @accent-soft,
-      0 8px 24px rgba(93, 71, 55, .10);
-    transition: box-shadow @dur-fast ease;
-  }
-
-  &__name {
-    width: 100%;
-    font-size: @fs-sm;
-    font-weight: 500;
-    color: @ink-1;
-    text-align: center;
-    .line-1();
   }
 }
 
