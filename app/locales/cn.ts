@@ -432,4 +432,16 @@ export default {
   field_personality: '性格爱好',
   placeholder_personality: '比如：胆小但贪吃，喜欢晒太阳，最怕洗澡（选填）',
 
+  // --- 管理订阅相关 ---
+  manage_sub_btn: '管理订阅',
+  manage_sub_title: '管理 VIP 订阅',
+  manage_sub_subtitle: '您的 VIP 会员正在自动续费中',
+  manage_sub_desc: '如果您想取消自动续费，请按照以下步骤操作：',
+  manage_sub_step_1: '前往您注册时使用的邮箱。',
+  manage_sub_step_2: '搜索来自 Paddle 的账单邮件（标题通常包含 "Your Paddle receipt"）。',
+  manage_sub_step_3: '打开邮件，点击里面的 "Manage Subscription" 或 "View Receipt" 链接。',
+  manage_sub_step_4: '在打开的网页中，点击 "Cancel Subscription" 即可取消。',
+  manage_sub_tips: '取消后，您的 VIP 权益将持续到当前计费周期结束，不会影响当下的使用。',
+  btn_got_it: '我知道了',
+
 }

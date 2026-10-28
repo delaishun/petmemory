@@ -431,4 +431,16 @@ export default {
 
   field_personality: 'Personality & Hobbies',
   placeholder_personality:'e.g. shy but loves treats, sunbathing fan, hates baths (optional)',
+
+    // --- Manage Subscription ---
+  manage_sub_btn: 'Manage Subscription',
+  manage_sub_title: 'Manage VIP Subscription',
+  manage_sub_subtitle: 'Your VIP membership is auto-renewing',
+  manage_sub_desc: 'If you want to cancel the auto-renewal, please follow these steps:',
+  manage_sub_step_1: 'Go to the email address you used to register.',
+  manage_sub_step_2: 'Search for the billing email from Paddle (the subject usually contains "Your Paddle receipt").',
+  manage_sub_step_3: 'Open the email and click the "Manage Subscription" or "View Receipt" link.',
+  manage_sub_step_4: 'On the opened web page, click "Cancel Subscription" to cancel.',
+  manage_sub_tips: 'After cancellation, your VIP benefits will continue until the end of the current billing cycle and will not affect your current use.',
+  btn_got_it: 'Got it',
 }

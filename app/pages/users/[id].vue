@@ -3,6 +3,7 @@
 import { showConfirmDialog, showToast, showImagePreview } from 'vant'
 import type { AuthUser, MeResponse } from '~/types/auth'
 import { useI18n } from '~/composables/useI18n'
+import ManageSubscriptionModal from '~/components/ManageSubscriptionModal.vue' // 👈 新增引入
 
 // ============================================================
 // 国际化
@@ -152,6 +153,7 @@ const vipModalVisible = ref(false)
 
 // ---------- VIP 升级 / 续费 ----------
 const upgradeVipModalVisible = ref(false)
+const manageSubModalVisible = ref(false) // 👈 新增：管理订阅弹窗状态
 
 async function onUpgradeVipSuccess() {
   showToast({
@@ -473,13 +475,24 @@ useHead(() => ({
             {{ t('user_buy_gift') }}
           </button>
 
+          <!-- 👇 VIP 按钮逻辑修改：区分升级与管理 -->
           <button
+            v-if="!user.isVip"
             type="button"
             class="btn btn--gold btn--lg"
             @click="upgradeVipModalVisible = true"
           >
-            {{ user.isVip ? t('user_renew_vip') : t('user_upgrade_vip') }}
+            {{ t('user_upgrade_vip') }}
           </button>
+          <button
+            v-else
+            type="button"
+            class="btn btn--gold btn--lg"
+            @click="manageSubModalVisible = true"
+          >
+            {{ t('manage_sub_btn') }}
+          </button>
+          <!-- 👆 VIP 按钮逻辑修改结束 -->
 
           <button
             type="button"
@@ -522,6 +535,11 @@ useHead(() => ({
     <UpgradeVipModal
       v-model="upgradeVipModalVisible"
       @success="onUpgradeVipSuccess"
+    />
+
+    <!-- 管理订阅弹窗 👇 新增 -->
+    <ManageSubscriptionModal
+      v-model="manageSubModalVisible"
     />
 
     <!-- VIP 权益说明弹窗 -->
@@ -743,7 +761,7 @@ useHead(() => ({
 // 宠物列表区
 // ============================================================
 .pets-section {
-  margin-top: @sp-5; /* 原本是 4，为了统一间距改为 5 */
+  margin-top: @sp-5;
   padding-top: @sp-5;
   border-top: 1px solid @border;
 

@@ -6,6 +6,7 @@ import type { AuthUser } from '~/types/auth'
 
 const { t } = useI18n()
 const { $api } = useNuxtApp()
+// me 在这里不再需要判断 isVip，因为只有非 VIP 才能唤起此弹窗
 const me = useState<AuthUser | null>('auth:user', () => null)
 
 const config = useRuntimeConfig()
@@ -34,7 +35,6 @@ const visible = computed({
 // 状态
 // ============================================================
 const submitting = ref(false)
-const isVip = computed(() => me.value?.isVip)
 
 // Paddle 安全加载
 declare global {
@@ -170,7 +170,7 @@ async function handleSubscribe() {
         </li>
         <li class="vip-modal__feature-item highlight">
           <van-icon name="gold-coin-o" class="check-icon" />
-          <span>{{ t('vip_bonus_points_tip') || '订阅或续费即赠 10,000 积分' }}</span>
+          <span>{{ t('vip_bonus_points_tip') || '开通 VIP 即赠 10,000 积分' }}</span>
         </li>
       </ul>
 
@@ -190,13 +190,13 @@ async function handleSubscribe() {
           :disabled="submitting"
           @click="handleSubscribe"
         >
-          {{ submitting ? t('btn_processing') : (isVip ? (t('user_renew_vip') || '立即续费') : (t('vip_subscribe_btn') || '立即订阅')) }}
+          {{ submitting ? t('btn_processing') : (t('vip_subscribe_btn') || '立即升级并开启自动续费') }}
         </button>
       </div>
       
       <!-- 小字提示 -->
       <p class="vip-modal__terms">
-        {{ t('vip_terms_tip') || '订阅即代表同意服务条款，可随时在 Paddle 取消续费。' }}
+        {{ t('vip_terms_tip') || '订阅即代表同意服务条款，首年到期后将自动续费。可随时在 Paddle 取消。' }}
       </p>
     </div>
   </van-popup>
