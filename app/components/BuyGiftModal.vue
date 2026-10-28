@@ -97,6 +97,20 @@ const isPurchaseValid = computed(() => totalDbPrice.value >= MIN_PURCHASE_PRICE)
 const isExchangeValid = computed(() => currentPoint.value >= totalExchangePoints.value && totalExchangePoints.value > 0)
 
 // ============================================================
+// 工具方法：格式化过期时间
+// ============================================================
+function formatExpireTime(seconds: number) {
+  if (!seconds) return ''
+  const days = seconds / (24 * 60 * 60)
+  
+  if (days >= 36500) return '100年'
+  if (days >= 90) return '3个月'
+  if (days >= 30) return '1个月'
+  if (days >= 1) return `${Math.floor(days)}天`
+  return '较短时间'
+}
+
+// ============================================================
 // 数据加载与初始化
 // ============================================================
 watch(visible, async (open) => {
@@ -344,6 +358,10 @@ async function handleExchange() {
               <div class="gift-row__meta">
                 <span class="gift-row__price">${{ (gift.price / 100).toFixed(2) }}</span>
                 <span class="gift-row__mood">+{{ gift.moodValue }} 心情</span>
+                <!-- 👇 新增：显示有效期 -->
+                <span class="gift-row__expire" v-if="gift.expireSeconds">
+                  有效期: {{ formatExpireTime(gift.expireSeconds) }}
+                </span>
               </div>
             </div>
             <div class="stepper">
@@ -368,6 +386,10 @@ async function handleExchange() {
               <div class="gift-row__meta">
                 <span class="gift-row__price">{{ EXCHANGE_COST }} 积分</span>
                 <span class="gift-row__mood">+{{ gift.moodValue }} 心情</span>
+                <!-- 👇 新增：显示有效期 -->
+                <span class="gift-row__expire" v-if="gift.expireSeconds">
+                  有效期: {{ formatExpireTime(gift.expireSeconds) }}
+                </span>
               </div>
             </div>
             <van-icon 
@@ -570,7 +592,8 @@ async function handleExchange() {
   &__meta {
     display: flex;
     align-items: center;
-    gap: @sp-3;
+    flex-wrap: wrap; /* 👈 新增 wrap，防止多标签换行溢出 */
+    gap: @sp-2;
     font-size: @fs-xs;
   }
 
@@ -582,6 +605,15 @@ async function handleExchange() {
 
   &__mood {
     color: @ink-3;
+  }
+
+  /* 👇 新增：有效期标签样式 */
+  &__expire {
+    color: @ink-3;
+    background: @surface-2;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
   }
 
   &--exchange {

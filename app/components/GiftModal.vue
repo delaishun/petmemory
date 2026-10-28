@@ -19,6 +19,7 @@ export interface GiftPublic {
   imageUrl: string
   price: number
   moodValue?: number
+  expireSeconds?: number // 👈 新增：礼物有效期（秒）
 }
 
 export interface PetGiftSummary {
@@ -83,6 +84,20 @@ const popupStyle = {
 } as const
 
 // ============================================================
+// 工具方法：格式化过期时间
+// ============================================================
+function formatExpireTime(seconds: number) {
+  if (!seconds) return ''
+  const days = seconds / (24 * 60 * 60)
+  
+  if (days >= 36500) return '100年'
+  if (days >= 90) return '3个月'
+  if (days >= 30) return '1个月'
+  if (days >= 1) return `${Math.floor(days)}天`
+  return '较短时间'
+}
+
+// ============================================================
 // 数据加载
 // ============================================================
 async function loadData() {
@@ -100,7 +115,6 @@ async function loadData() {
     gifts.value = giftList
     
     // 构建映射：code -> quantity
-    // 注意：后端可能返回 giftId，我们需要把它映射成 code，或者后端直接返回 code
     inventory.value = {}
     userInv.forEach(item => {
       // 兼容后端可能返回 code 或 giftId
@@ -227,11 +241,12 @@ watch(visible, async (open) => {
           <!-- 礼物信息 -->
           <div class="gift-row__info">
             <span class="gift-row__name">{{ gift.name }}</span>
-            <!-- 显示库存数量与心情值 -->
-            <span class="gift-row__meta">
-              {{ t('gift_stock_count', { n: inventory[gift.code] || 0 }) }}
-              <template v-if="gift.moodValue"> · +{{ gift.moodValue }} 心情</template>
-            </span>
+            <!-- 显示库存数量、心情值与有效期 -->
+            <div class="gift-row__meta">
+              <span>{{ t('gift_stock_count', { n: inventory[gift.code] || 0 }) }}</span>
+              <span v-if="gift.moodValue"> · +{{ gift.moodValue }} 心情</span>
+              <span v-if="gift.expireSeconds" class="gift-row__expire"> · 有效期: {{ formatExpireTime(gift.expireSeconds) }}</span>
+            </div>
           </div>
 
           <!-- 选中图标 -->
@@ -394,8 +409,20 @@ watch(visible, async (open) => {
   }
 
   &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     font-size: @fs-xs;
     color: @ink-3;
+  }
+
+  /* 👇 新增：有效期标签样式 */
+  &__expire {
+    color: @ink-2;
+    background: @surface-2;
+    padding: 0px 4px;
+    border-radius: 4px;
+    margin-left: 2px;
   }
 
   &__check {
