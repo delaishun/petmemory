@@ -157,6 +157,7 @@ const year = new Date().getFullYear()
     <LoginModal
       v-model="loginModalVisible"
       :initial-mode="loginModalMode"
+      @success="loginModalVisible = false" 
     />
   </div>
 </template>

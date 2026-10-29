@@ -268,7 +268,11 @@ function applyAuthResult(res: AuthResponse) {
   token.value = res.token
   userState.value = res.user
   emit('success', res.user)
-  visible.value = false
+  
+  // 👇 延迟一个 tick 关闭，防止与全局状态更新冲突导致弹窗卡住
+  nextTick(() => {
+    visible.value = false
+  })
 }
 
 // ---------- 提交表单 ----------
@@ -362,9 +366,10 @@ async function handleGoogleCallback(response: any) {
       body: { credential: response.credential },
     })
     
-    showToast({ type: 'success', message: t('auth_title_login') }) // 或者 '登录成功'
+    showToast({ type: 'success', message: t('auth_title_login') })
     applyAuthResult(res)
   } catch (err: any) {
+    console.error('[Google Login Error]', err)
     errors.global = err?.data?.error || err?.data?.message || err?.message || 'Google 登录失败'
   } finally {
     loading.value = false
