@@ -240,7 +240,7 @@ useHead(() => ({
     }
   }
 
-  &__img-wrap {
+    &__img-wrap {
     aspect-ratio: 16 / 9;
     background: @surface-2;
     overflow: hidden;
@@ -249,7 +249,7 @@ useHead(() => ({
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform @dur-slow @ease-out;
+      transition: transform 0.4s @ease-out; /* 👈 直接写死 0.4s 即可，或者用 @dur-base */
       display: block;
     }
   }
