@@ -270,9 +270,9 @@ function applyAuthResult(res: AuthResponse) {
   emit('success', res.user)
   
   // 👇 延迟一个 tick 关闭，防止与全局状态更新冲突导致弹窗卡住
-  nextTick(() => {
+  setTimeout(() => {
     visible.value = false
-  })
+  }, 100)
 }
 
 // ---------- 提交表单 ----------

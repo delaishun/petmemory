@@ -1,42 +1,42 @@
 <!-- app/layouts/default.vue -->
 <script setup lang="ts">
-import type { AuthUser } from '~/types/auth'
-import { useI18n } from '~/composables/useI18n'
+import type { AuthUser } from "~/types/auth";
+import { useI18n } from "~/composables/useI18n";
 
-const { t, locale, setLocale, initLocale } = useI18n()
+const { t, locale, setLocale, initLocale } = useI18n();
 
 // 初始化语言设置
-initLocale()
+initLocale();
 
 // 全局登录用户。
-const user = useState<AuthUser | null>('auth:user', () => null)
-const isLoggedIn = computed(() => !!user.value)
+const user = useState<AuthUser | null>("auth:user", () => null);
+const isLoggedIn = computed(() => !!user.value);
 
 // ---------- 登录 / 注册弹窗 ----------
-const loginModalVisible = ref(false)
-const loginModalMode = ref<'login' | 'register'>('login')
+const loginModalVisible = ref(false);
+const loginModalMode = ref<"login" | "register">("login");
 
-function openLogin(mode: 'login' | 'register' = 'login') {
-  loginModalMode.value = mode
-  loginModalVisible.value = true
+function openLogin(mode: "login" | "register" = "login") {
+  loginModalMode.value = mode;
+  loginModalVisible.value = true;
 }
 
 // ---------- 顶栏滚动阴影 ----------
-const scrolled = ref(false)
+const scrolled = ref(false);
 const onScroll = () => {
-  scrolled.value = window.scrollY > 4
-}
+  scrolled.value = window.scrollY > 4;
+};
 
 onMounted(() => {
-  window.addEventListener('scroll', onScroll, { passive: true })
-  onScroll()
-})
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+});
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', onScroll)
-})
+  window.removeEventListener("scroll", onScroll);
+});
 
 // ---------- 页脚年份 ----------
-const year = new Date().getFullYear()
+const year = new Date().getFullYear();
 </script>
 
 <template>
@@ -53,33 +53,38 @@ const year = new Date().getFullYear()
               />
             </svg>
           </span>
-          <span class="site-header__logo-text serif">{{ t('app_name') }}</span>
+          <span class="site-header__logo-text serif">{{ t("app_name") }}</span>
         </NuxtLink>
 
         <!-- 中：主导航 -->
         <nav class="site-header__nav" aria-label="Main Navigation">
-          <NuxtLink to="/" class="site-header__link">{{ t('nav_home') }}</NuxtLink>
-          <NuxtLink to="/pets" class="site-header__link">{{ t('nav_pets') }}</NuxtLink>
-          <NuxtLink to="/articles" class="site-header__link">{{ t('articles_title') }}</NuxtLink>
-          <NuxtLink to="/about" class="site-header__link">{{ t('nav_about') }}</NuxtLink>
+          <NuxtLink to="/" class="site-header__link">{{ t("nav_home") }}</NuxtLink>
+          <NuxtLink to="/pets" class="site-header__link">{{ t("nav_pets") }}</NuxtLink>
+          <NuxtLink to="/articles" class="site-header__link">{{
+            t("articles_title")
+          }}</NuxtLink>
+          <NuxtLink to="/about" class="site-header__link">{{ t("nav_about") }}</NuxtLink>
         </nav>
 
         <!-- 右：语言切换 + 管理后台 + 登录按钮 / 圆形头像 -->
         <div class="site-header__right">
-          
           <!-- 语言切换器 -->
           <div class="lang-switch">
-            <button 
+            <button
               type="button"
-              :class="{ 'is-active': locale === 'en' }" 
+              :class="{ 'is-active': locale === 'en' }"
               @click="setLocale('en')"
-            >EN</button>
+            >
+              EN
+            </button>
             <span class="lang-switch__divider">/</span>
-            <button 
+            <button
               type="button"
-              :class="{ 'is-active': locale === 'cn' }" 
+              :class="{ 'is-active': locale === 'cn' }"
               @click="setLocale('cn')"
-            >中</button>
+            >
+              中
+            </button>
           </div>
 
           <!-- 👇 新增：管理后台入口 -->
@@ -88,7 +93,7 @@ const year = new Date().getFullYear()
             to="/petadm"
             class="site-header__admin"
           >
-            {{ t('admin_panel') }}
+            {{ t("admin_panel") }}
           </NuxtLink>
           <!-- 👆 新增结束 -->
 
@@ -99,7 +104,7 @@ const year = new Date().getFullYear()
               class="btn btn--dark btn--sm"
               @click="openLogin('login')"
             >
-              {{ t('nav_login') }}
+              {{ t("nav_login") }}
             </button>
           </template>
 
@@ -115,9 +120,9 @@ const year = new Date().getFullYear()
               class="avatar__img"
               :src="user.avatarUrl"
               :alt="user.nickname"
-            >
+            />
             <span v-else class="avatar__fallback">
-              {{ user?.nickname?.charAt(0)?.toUpperCase() || '?' }}
+              {{ user?.nickname?.charAt(0)?.toUpperCase() || "?" }}
             </span>
           </NuxtLink>
         </div>
@@ -133,31 +138,40 @@ const year = new Date().getFullYear()
     <footer class="site-footer">
       <div class="container site-footer__inner">
         <div class="site-footer__brand">
-          <div class="site-footer__name serif">{{ t('app_name') }}</div>
-          <p class="site-footer__desc">{{ t('footer_slogan') }}</p>
+          <div class="site-footer__name serif">{{ t("app_name") }}</div>
+          <p class="site-footer__desc">{{ t("footer_slogan") }}</p>
         </div>
 
         <!-- 精简后的链接区 -->
         <div class="site-footer__links">
-          <NuxtLink to="/about" class="site-footer__link">{{ t('footer_about_us') }}</NuxtLink>
-          <NuxtLink to="/contact" class="site-footer__link">{{ t('footer_contact') }}</NuxtLink>
-          <NuxtLink to="/terms" class="site-footer__link">{{ t('terms_title') }}</NuxtLink>
-          <NuxtLink to="/privacy" class="site-footer__link">{{ t('privacy_title') }}</NuxtLink>
+          <NuxtLink to="/about" class="site-footer__link">{{
+            t("footer_about_us")
+          }}</NuxtLink>
+          <NuxtLink to="/contact" class="site-footer__link">{{
+            t("footer_contact")
+          }}</NuxtLink>
+          <NuxtLink to="/terms" class="site-footer__link">{{
+            t("terms_title")
+          }}</NuxtLink>
+          <NuxtLink to="/privacy" class="site-footer__link">{{
+            t("privacy_title")
+          }}</NuxtLink>
         </div>
       </div>
 
       <div class="site-footer__bottom">
         <div class="container">
-          {{ t('footer_copyright', { year, app_name: t('app_name') }) }}
+          {{ t("footer_copyright", { year, app_name: t("app_name") }) }}
         </div>
       </div>
     </footer>
 
     <!-- ============ 登录 / 注册弹窗 ============ -->
     <LoginModal
+      v-if="loginModalVisible"
       v-model="loginModalVisible"
       :initial-mode="loginModalMode"
-      @success="loginModalVisible = false" 
+      @success="loginModalVisible = false"
     />
   </div>
 </template>
@@ -212,7 +226,9 @@ const year = new Date().getFullYear()
     text-decoration: none;
     flex-shrink: 0;
 
-    &:hover { color: @ink-1; }
+    &:hover {
+      color: @ink-1;
+    }
   }
 
   &__logo-icon {
@@ -230,7 +246,7 @@ const year = new Date().getFullYear()
   &__logo-text {
     font-size: @fs-lg;
     font-weight: 700;
-    letter-spacing: .02em;
+    letter-spacing: 0.02em;
   }
 
   // ---------- 主导航 ----------
@@ -251,7 +267,9 @@ const year = new Date().getFullYear()
     color: @ink-2;
     transition: color @dur-fast ease;
 
-    &:hover { color: @accent; }
+    &:hover {
+      color: @accent;
+    }
 
     &.router-link-active {
       color: @ink-1;
@@ -433,7 +451,9 @@ const year = new Date().getFullYear()
     text-decoration: none;
     transition: color @dur-fast ease;
 
-    &:hover { color: @accent; }
+    &:hover {
+      color: @accent;
+    }
   }
 
   &__bottom {
