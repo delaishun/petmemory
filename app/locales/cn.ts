@@ -465,4 +465,7 @@ export default {
   admin_status_published: '已发布',
   admin_status_draft: '草稿',
 
+  home_articles_title: '宠物文章',
+  home_articles_more: '查看更多',
+
 }

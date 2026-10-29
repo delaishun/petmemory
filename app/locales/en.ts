@@ -464,4 +464,7 @@ export default {
   admin_new_article: 'New Article',
   admin_status_published: 'Published',
   admin_status_draft: 'Draft',
+
+  home_articles_title: 'Pet Articles',
+  home_articles_more: 'View More',
 }

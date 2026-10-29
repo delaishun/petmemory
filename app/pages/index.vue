@@ -63,18 +63,28 @@ interface HomeMessage {
   };
 }
 
+// 👇 新增：文章类型
+interface HomeArticle {
+  id: number
+  slug: string
+  title: string
+  imageUrl: string
+  createdAt: string
+}
+
 // ============================================================
 // 国际化
 // ============================================================
 const { t, locale } = useI18n()
 
 // ============================================================
-// 数据（三个请求并行）
+// 数据（请求并行）
 // ============================================================
 
 const { $api } = useNuxtApp();
 
 const HOME_LIMIT = 10;
+const ARTICLE_LIMIT = 4; // 首页显示 4 篇文章
 
 const { data: recentPets, pending: petsPending } = await useAsyncData<HomePet[]>(
   "home:pets",
@@ -90,8 +100,14 @@ const { data: recentMessages, pending: messagesPending } = await useAsyncData<
   HomeMessage[]
 >("home:messages", () => $api<HomeMessage[]>(`/api/home/messages?limit=${HOME_LIMIT}`));
 
+// 👇 新增：获取最近的文章
+const { data: recentArticles, pending: articlesPending } = await useAsyncData<{ items: HomeArticle[], total: number }>(
+  "home:articles",
+  () => $api<{ items: HomeArticle[], total: number }>(`/api/articles?limit=${ARTICLE_LIMIT}`)
+);
+
 // ============================================================
-// 兜底头像（仅留言、礼物弹窗使用）
+// 兜底图（宠物/用户/文章）
 // ============================================================
 
 const defaultPetAvatar =
@@ -111,6 +127,17 @@ const defaultUserAvatar =
        <rect width="40" height="40" fill="#F5EEE4"/>
        <circle cx="20" cy="16" r="7" fill="#DCD0BF"/>
        <path d="M6 40c0-8 6-12 14-12s14 4 14 12z" fill="#DCD0BF"/>
+     </svg>`
+  );
+
+// 👇 新增：文章封面兜底图
+const defaultArticleCover = 
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+       <rect width="800" height="450" fill="#F9F7F3"/>
+       <path d="M400 225m-40 0a40 40 0 1 0 80 0a40 40 0 1 0 -80 0" fill="#E8E0D5"/>
+       <path d="M330 310 C330 270 370 250 400 250 C430 250 470 270 470 310 Z" fill="#E8E0D5"/>
      </svg>`
   );
 
@@ -175,6 +202,12 @@ function formatFullTime(iso: string): string {
   return `${y}-${m}-${dd} ${hh}:${mm}`;
 }
 
+// 文章日期格式化
+function formatDate(iso: string) {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 // ============================================================
 // 标题 & SEO
 // ============================================================
@@ -199,7 +232,7 @@ useHead(() => ({
       </header>
 
       <!-- ============================================ -->
-      <!-- 关于宠忆 (移动到 Banner 下方)                  -->
+      <!-- 关于宠忆                                      -->
       <!-- ============================================ -->
       <section class="home-section">
         <div class="section-title">
@@ -231,7 +264,7 @@ useHead(() => ({
           </div>
         </div>
 
-        <!-- 有数据（直接使用 PetCard 组件） -->
+        <!-- 有数据 -->
         <div v-else-if="recentPets && recentPets.length" class="pet-grid">
           <PetCard v-for="pet in recentPets" :key="pet.id" :pet="pet" />
         </div>
@@ -313,7 +346,6 @@ useHead(() => ({
         <!-- 有数据 -->
         <div v-else-if="recentMessages && recentMessages.length" class="msg-list">
           <div v-for="msg in recentMessages" :key="msg.id" class="msg-item">
-            <!-- 宠物头像 -->
             <NuxtLink
               :to="`/pets/${msg.pet.slug}`"
               class="msg-item__pet"
@@ -374,7 +406,6 @@ useHead(() => ({
           <div class="home-drawing__info">
             <p class="home-drawing__desc">{{ t('home_drawing_desc') }}</p>
             
-            <!-- 👈 修改：将文本链接改为按钮 -->
             <button
               type="button"
               class="btn btn--primary home-drawing__cta"
@@ -384,7 +415,6 @@ useHead(() => ({
             </button>
           </div>
           <div class="home-drawing__gallery">
-            <!-- 示例图 -->
             <figure class="home-drawing__item">
               <img 
                 src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/example1.jpg" 
@@ -393,9 +423,7 @@ useHead(() => ({
               />
               <figcaption>{{ t('home_drawing_example_label') }}</figcaption>
             </figure>
-            <!-- 作者图 -->
             <figure class="home-drawing__item">
-              <!-- 此处替换为真实的作者图片 URL -->
               <img 
                 src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/66.jpg" 
                 alt="Artist" 
@@ -406,6 +434,52 @@ useHead(() => ({
           </div>
         </div>
       </section>
+
+      <!-- ============================================ -->
+      <!-- 5. 宠物文章 (新增)                            -->
+      <!-- ============================================ -->
+      <section class="home-section" v-if="articlesPending || (recentArticles && recentArticles.items.length > 0)">
+        <div class="section-title">
+          <div class="section-title__left">
+            <h2 class="section-title__main">{{ t('home_articles_title') }}</h2>
+          </div>
+          <NuxtLink to="/articles" class="section-title__more">
+            {{ t('home_articles_more') }}
+            <van-icon name="arrow" />
+          </NuxtLink>
+        </div>
+
+        <!-- 加载中 -->
+        <div v-if="articlesPending" class="article-grid-home">
+          <div v-for="i in 4" :key="i" class="article-card-home article-card-home--skeleton">
+            <div class="skeleton article-card-home__img-skeleton" />
+            <div class="skeleton article-card-home__title-skeleton" />
+          </div>
+        </div>
+
+        <!-- 有数据 -->
+        <div v-else class="article-grid-home">
+          <NuxtLink
+            v-for="item in recentArticles?.items"
+            :key="item.id"
+            :to="`/articles/${item.slug}`"
+            class="article-card-home"
+          >
+            <div class="article-card-home__img-wrap">
+              <img 
+                :src="item.imageUrl || defaultArticleCover" 
+                :alt="item.title" 
+                loading="lazy" 
+              />
+            </div>
+            <div class="article-card-home__content">
+              <h3 class="article-card-home__title">{{ item.title }}</h3>
+              <time class="article-card-home__date">{{ formatDate(item.createdAt) }}</time>
+            </div>
+          </NuxtLink>
+        </div>
+      </section>
+
     </div>
 
     <!-- ============================================ -->
@@ -562,7 +636,6 @@ useHead(() => ({
   padding-top: @sp-5;
   border-top: 1px solid @border;
 
-  // 👇 新增：专门针对第一个版块（关于宠忆），去掉标题下方的横线
   &:first-of-type {
     .section-title {
       border-bottom: none; 
@@ -881,8 +954,8 @@ useHead(() => ({
     font-size: @fs-base;
     color: @ink-2;
     line-height: @lh-loose;
-    white-space: pre-line; /* 允许换行 */
-    text-align: justify; /* 两端对齐更好看 */
+    white-space: pre-line; 
+    text-align: justify; 
     text-justify: inter-ideograph;
     
     @media (max-width: @bp-sm) {
@@ -927,7 +1000,6 @@ useHead(() => ({
     white-space: pre-line;
   }
 
-  // 👈 新增的按钮样式，取代了原来的文字链接
   &__cta {
     margin-top: @sp-4;
     letter-spacing: 0.05em;
@@ -976,6 +1048,103 @@ useHead(() => ({
       font-size: @fs-xs;
       color: @ink-3;
       text-align: center;
+    }
+  }
+}
+
+// ============================================================
+// 6. 宠物文章 (新增样式)
+// ============================================================
+.article-grid-home {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: @sp-4;
+
+  @media (max-width: @bp-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.article-card-home {
+  display: flex;
+  flex-direction: column;
+  background: @surface;
+  border: 1px solid @border;
+  border-radius: @radius-lg;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: @shadow-1;
+  transition: transform @dur-fast ease, box-shadow @dur-fast ease, border-color @dur-fast ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: @shadow-2;
+    border-color: @accent-soft;
+
+    .article-card-home__img-wrap img {
+      transform: scale(1.05);
+    }
+
+    .article-card-home__title {
+      color: @accent;
+    }
+  }
+
+  &__img-wrap {
+    aspect-ratio: 16 / 9;
+    background: @surface-2;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+  }
+
+  &__content {
+    padding: @sp-3 @sp-4;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  &__title {
+    font-family: @font-serif;
+    font-size: @fs-base;
+    font-weight: 600;
+    color: @ink-1;
+    margin: 0 0 @sp-2;
+    line-height: 1.4;
+    transition: color @dur-fast ease;
+    .line-2();
+  }
+
+  &__date {
+    font-size: @fs-xs;
+    color: @ink-3;
+    font-family: @font-mono;
+    margin-top: auto;
+  }
+
+  // 骨架屏样式
+  &--skeleton {
+    pointer-events: none;
+
+    .article-card-home__img-skeleton {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 0;
+    }
+
+    .article-card-home__title-skeleton {
+      margin: @sp-4;
+      height: 20px;
+      border-radius: @radius-sm;
+      width: 70%;
     }
   }
 }
