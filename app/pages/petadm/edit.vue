@@ -94,6 +94,18 @@ async function handleUploadImg(
 // ============================================================
 // 提交保存
 // ============================================================
+// 👇 新增：复刻后端的根据标题生成 Slug 逻辑
+function generateSlugFromTitle(title: string): string {
+  const baseSlug = title
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_')          // 空格转下划线
+    .replace(/[^a-z0-9_\-]/g, '')  // 去除中文和特殊字符
+  
+  // 如果标题全是中文，过滤后可能为空，此时用时间戳兜底
+  return baseSlug || `article_${Date.now()}`
+}
+
 async function handleSubmit() {
   if (!form.title.trim()) {
     showToast('请填写文章标题')
@@ -108,14 +120,18 @@ async function handleSubmit() {
   try {
     let finalSlug = form.slug.trim()
     
-    // 双重保险：如果用户硬是复制粘贴了后缀，先剔除，再统一加上
+    // 双重保险：如果用户硬是复制粘贴了后缀，先剔除
     if (finalSlug.endsWith(SLUG_SUFFIX)) {
       finalSlug = finalSlug.replace(new RegExp(`${SLUG_SUFFIX}$`), '')
     }
     
-    // 如果填了主干，就拼接上后缀
-    // 如果留空，传 undefined 让后端根据 title 去生成默认规则
-    const slugToSubmit = finalSlug ? `${finalSlug}${SLUG_SUFFIX}` : undefined
+    // 👇 核心修改：如果用户没填，用前端生成的标题 Slug 兜底
+    if (!finalSlug) {
+      finalSlug = generateSlugFromTitle(form.title)
+    }
+    
+    // 👇 无论如何，最终提交的 slug 强制带上后缀
+    const slugToSubmit = `${finalSlug}${SLUG_SUFFIX}`
 
     const payload = {
       title: form.title.trim(),
@@ -220,7 +236,7 @@ useHead({
               />
               <span class="slug-suffix">{{ SLUG_SUFFIX }}</span>
             </div>
-            <p class="field__hint">留空将自动生成。请只填写英文主干，系统已自动为您添加 SEO 后缀。</p>
+            <p class="field__hint">留空将根据标题自动生成。系统已自动为您添加 SEO 后缀。</p>
           </div>
 
           <div class="field">
