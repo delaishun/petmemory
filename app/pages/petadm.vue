@@ -7,14 +7,21 @@ const { t } = useI18n()
 const user = useState<AuthUser | null>('auth:user', () => null)
 const isAdmin = computed(() => !!user.value && user.value.isAdmin)
 
-// 菜单配置
+// 👇 修改：菜单配置加入用户管理
 const menuItems = computed(() => [
   { key: 'articles', label: '文章管理', icon: 'notes-o', to: '/petadm' },
   { key: 'pets', label: '宠物管理', icon: 'friends-o', to: '/petadm/pets' },
+  { key: 'users', label: '用户管理', icon: 'manager-o', to: '/petadm/users' }, 
 ])
 
 const route = useRoute()
-const currentMenu = computed(() => route.path.includes('/pets') ? 'pets' : 'articles')
+
+// 👇 修改：优化当前激活菜单的判断逻辑
+const currentMenu = computed(() => {
+  if (route.path.includes('/petadm/users')) return 'users'
+  if (route.path.includes('/petadm/pets')) return 'pets'
+  return 'articles'
+})
 
 useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 </script>
@@ -86,7 +93,7 @@ useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 .admin-layout {
   display: flex;
   min-height: calc(100vh - 64px);
-  background: #f7f8fa; // 略微区分于前台的米白色
+  background: #f7f8fa; 
 }
 
 // ============================================================
@@ -101,7 +108,7 @@ useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
   flex-shrink: 0;
 
   @media (max-width: @bp-md) {
-    width: 64px; // 移动端收起为图标
+    width: 64px; 
   }
 
   &__header {
@@ -142,7 +149,7 @@ useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
     border-radius: @radius;
     cursor: pointer;
     text-align: left;
-    text-decoration: none; // 因为用了 NuxtLink
+    text-decoration: none; 
     transition: all @dur-fast ease;
 
     &:hover {
@@ -176,7 +183,7 @@ useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 // ============================================================
 .admin-main {
   flex: 1;
-  min-width: 0; // 防止内容溢出撑破 flex 容器
+  min-width: 0; 
   padding: @sp-6;
   overflow-x: auto;
 

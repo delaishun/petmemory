@@ -470,4 +470,7 @@ export default {
 
   pet_banned: '已封禁',
 
+    // --- 留言禁言状态 ---
+  message_muted_placeholder: '您目前无法留言',
+
 }

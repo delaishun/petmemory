@@ -469,4 +469,5 @@ export default {
   home_articles_more: 'View More',
 
   pet_banned: 'Banned',
+  message_muted_placeholder: 'You are currently unable to leave a message',
 }

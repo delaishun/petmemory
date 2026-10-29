@@ -6,7 +6,8 @@ import { useI18n } from '~/composables/useI18n'
 // ============================================================
 // 国际化
 // ============================================================
-const { t } = useI18n()
+// 👇 新增：引入 locale 用于处理多语言报错兜底
+const { t, locale } = useI18n()
 
 // ============================================================
 // 类型
@@ -60,9 +61,10 @@ const MAX_LEN = 300
 const content = ref('')
 const loading = ref(false)
 const error = ref('')
+const isMuted = ref(false) // 是否处于被禁言拦截状态
 
 const canSubmit = computed(
-  () => content.value.trim().length > 0 && !loading.value,
+  () => content.value.trim().length > 0 && !loading.value && !isMuted.value,
 )
 
 const { $api } = useNuxtApp()
@@ -87,6 +89,7 @@ function reset() {
   content.value = ''
   error.value = ''
   loading.value = false
+  isMuted.value = false
 }
 
 function handleCancel() {
@@ -124,6 +127,16 @@ async function handleSubmit() {
       err?.data?.message ||
       err?.message ||
       t('message_submit_failed')
+
+    // 👇 核心修改：如果错误信息包含"禁言"
+    if (error.value.includes('禁言')) {
+      isMuted.value = true
+      
+      // 如果是英文环境，替换为英文提示
+      if (locale.value === 'en') {
+        error.value = 'Your account has been muted due to community guidelines violations. You cannot leave messages at this time.'
+      }
+    }
   } finally {
     loading.value = false
   }
@@ -163,9 +176,9 @@ watch(
           show-word-limit
           rows="6"
           autosize
-          :placeholder="t('message_placeholder')"
+          :placeholder="isMuted ? t('message_muted_placeholder') : t('message_placeholder')"
           class="message-modal__field"
-          :disabled="loading"
+          :disabled="loading || isMuted"
         />
       </div>
 
@@ -181,13 +194,24 @@ watch(
         >
           {{ t('btn_cancel') }}
         </button>
+        
         <button
+          v-if="!isMuted"
           type="button"
           class="btn btn--primary btn--lg"
           :disabled="!canSubmit"
           @click="handleSubmit"
         >
           {{ loading ? t('message_btn_sending') : t('btn_confirm') }}
+        </button>
+        
+        <button
+          v-else
+          type="button"
+          class="btn btn--primary btn--lg"
+          @click="visible = false"
+        >
+          {{ t('btn_got_it') }}
         </button>
       </div>
     </div>
