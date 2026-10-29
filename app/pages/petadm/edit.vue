@@ -21,11 +21,14 @@ const isAdmin = computed(() => !!user.value && user.value.isAdmin)
 const articleId = computed(() => Number(route.query.id) || null)
 const isEditing = computed(() => !!articleId.value)
 
+// SEO 后缀常量
+const SLUG_SUFFIX = '_pet_memorial'
+
 const form = reactive({
   title: '',
   imageUrl: '',
   content: '',
-  slug: '',
+  slug: '', // 只存主干，比如 my_dog
   isPublished: 1, // 1=发布 0=草稿
 })
 
@@ -47,11 +50,18 @@ onMounted(async () => {
         slug: string
         isPublished: number
       }>(`/api/articles/admin/${articleId.value}`)
+      
       form.title = res.title
       form.imageUrl = res.imageUrl
       form.content = res.content
-      form.slug = res.slug
       form.isPublished = res.isPublished
+      
+      // 回显时，把历史带有的后缀去掉，只保留主干展示给用户
+      if (res.slug.endsWith(SLUG_SUFFIX)) {
+        form.slug = res.slug.slice(0, -SLUG_SUFFIX.length)
+      } else {
+        form.slug = res.slug
+      }
     } catch (err: any) {
       showToast(err?.data?.error || '加载文章失败')
       router.push('/petadm')
@@ -96,11 +106,22 @@ async function handleSubmit() {
 
   submitting.value = true
   try {
+    let finalSlug = form.slug.trim()
+    
+    // 双重保险：如果用户硬是复制粘贴了后缀，先剔除，再统一加上
+    if (finalSlug.endsWith(SLUG_SUFFIX)) {
+      finalSlug = finalSlug.replace(new RegExp(`${SLUG_SUFFIX}$`), '')
+    }
+    
+    // 如果填了主干，就拼接上后缀
+    // 如果留空，传 undefined 让后端根据 title 去生成默认规则
+    const slugToSubmit = finalSlug ? `${finalSlug}${SLUG_SUFFIX}` : undefined
+
     const payload = {
       title: form.title.trim(),
       imageUrl: form.imageUrl.trim(),
       content: form.content,
-      slug: form.slug.trim() || undefined,
+      slug: slugToSubmit,
       isPublished: form.isPublished,
     }
 
@@ -188,14 +209,18 @@ useHead({
 
           <div class="field">
             <label class="field__label">URL Slug (可选)</label>
-            <input
-              v-model="form.slug"
-              type="text"
-              class="input"
-              placeholder="例如: my_love_dog"
-              maxlength="100"
-            />
-            <p class="field__hint">留空将自动根据标题生成，修改后旧链接会失效。</p>
+            <!-- 👇 输入框与固定后缀的组合 -->
+            <div class="slug-input-wrapper">
+              <input
+                v-model="form.slug"
+                type="text"
+                class="input"
+                placeholder="例如: my_love_dog"
+                maxlength="80"
+              />
+              <span class="slug-suffix">{{ SLUG_SUFFIX }}</span>
+            </div>
+            <p class="field__hint">留空将自动生成。请只填写英文主干，系统已自动为您添加 SEO 后缀。</p>
           </div>
 
           <div class="field">
@@ -354,6 +379,47 @@ useHead({
   }
 
   .required { color: @danger; }
+}
+
+/* 👇 输入框与后缀的组合样式 */
+.slug-input-wrapper {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid @border-strong;
+  border-radius: @radius;
+  overflow: hidden;
+  background: @surface;
+  transition: border-color @dur-fast ease;
+
+  &:focus-within {
+    border-color: @accent;
+  }
+
+  .input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    border-radius: 0;
+    outline: none;
+    box-shadow: none;
+    
+    &:focus {
+      border-color: transparent;
+    }
+  }
+
+  .slug-suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background: @surface-2;
+    color: @ink-3;
+    font-size: @fs-xs;
+    font-family: @font-mono;
+    border-left: 1px solid @border;
+    white-space: nowrap;
+    user-select: none;
+  }
 }
 
 .cover-upload {
