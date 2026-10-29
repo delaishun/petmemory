@@ -7,17 +7,19 @@ const { t } = useI18n()
 const user = useState<AuthUser | null>('auth:user', () => null)
 const isAdmin = computed(() => !!user.value && user.value.isAdmin)
 
-// 👇 修改：菜单配置加入用户管理
+// 👇 菜单配置加入订单管理
 const menuItems = computed(() => [
   { key: 'articles', label: '文章管理', icon: 'notes-o', to: '/petadm' },
   { key: 'pets', label: '宠物管理', icon: 'friends-o', to: '/petadm/pets' },
-  { key: 'users', label: '用户管理', icon: 'manager-o', to: '/petadm/users' }, 
+  { key: 'users', label: '用户管理', icon: 'manager-o', to: '/petadm/users' },
+  { key: 'orders', label: '订单管理', icon: 'orders-o', to: '/petadm/orders' },
 ])
 
 const route = useRoute()
 
-// 👇 修改：优化当前激活菜单的判断逻辑
+// 👇 优化当前激活菜单的判断逻辑
 const currentMenu = computed(() => {
+  if (route.path.includes('/petadm/orders')) return 'orders'
   if (route.path.includes('/petadm/users')) return 'users'
   if (route.path.includes('/petadm/pets')) return 'pets'
   return 'articles'
