@@ -1,6 +1,9 @@
 <!-- app/pages/articles/[title].vue -->
 <script setup lang="ts">
 import { useI18n } from '~/composables/useI18n'
+// 👇 新增：引入 Markdown 预览组件和样式
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
 
 // ============================================================
 // 初始化与路由参数
@@ -106,8 +109,10 @@ function formatDate(iso: string) {
         <img :src="article.imageUrl" :alt="article.title" />
       </div>
 
-      <!-- 正文内容区 (支持 HTML 渲染) -->
-      <div class="article-body" v-html="article.content"></div>
+      <!-- 正文内容区 (改为 Markdown 渲染) -->
+      <div class="article-body">
+        <MdPreview :modelValue="article.content" :editorId="'preview-' + article.slug" />
+      </div>
 
       <!-- 底部 SEO 标签与情感文字 -->
       <footer class="article-footer">
@@ -134,7 +139,6 @@ function formatDate(iso: string) {
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-// (样式部分与之前完全一致，不需要修改)
 .article-page {
   max-width: 800px;
   margin: 0 auto;
@@ -225,11 +229,23 @@ function formatDate(iso: string) {
   }
 }
 
+// ============================================================
+// 正文样式 (让 MdPreview 融入全局设计)
+// ============================================================
 .article-body {
-  font-size: 17px;
-  line-height: 1.9;
-  color: @ink-2;
-  letter-spacing: 0.01em;
+  /* 覆盖 MdPreview 默认的样式，让它融入你的设计 */
+  :deep(.md-editor-preview-wrapper) {
+    padding: 0; 
+  }
+  
+  :deep(.md-editor-preview) {
+    font-family: inherit;
+    color: @ink-2;
+    font-size: 17px;
+    line-height: 1.9;
+    letter-spacing: 0.01em;
+    background: transparent;
+  }
 
   :deep(p) {
     margin-bottom: 1.5em;
