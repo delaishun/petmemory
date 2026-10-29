@@ -39,7 +39,8 @@ const updating = ref(false)
 async function loadOrder() {
   loading.value = true
   try {
-    order.value = await $api<AdminOrderDetail>(`/api/admin/orders/${orderId}`)
+    // 👇 核心修改：将路径改为 /api/pets/admin/orders
+    order.value = await $api<AdminOrderDetail>(`/api/pets/admin/orders/${orderId}`)
   } catch (err: any) {
     showToast(err?.data?.error || '加载订单信息失败')
     router.push('/petadm/orders')
@@ -59,7 +60,8 @@ async function updateStatus(newStatus: number) {
   if (!order.value || updating.value || order.value.status === newStatus) return
   updating.value = true
   try {
-    await $api(`/api/admin/orders/${orderId}/status`, {
+    // 👇 核心修改：将路径改为 /api/pets/admin/orders
+    await $api(`/api/pets/admin/orders/${orderId}/status`, {
       method: 'PATCH',
       body: { status: newStatus },
     })
@@ -135,7 +137,7 @@ function handleImagePreview(index: number) {
         </div>
         <div class="info-item">
           <span class="label">金额：</span>
-          <span class="value font-mono text-accent">${{ order.amount.toFixed(2) }}</span>
+          <span class="value font-mono text-accent">${{ Number(order.amount).toFixed(2) }}</span>
         </div>
       </div>
 

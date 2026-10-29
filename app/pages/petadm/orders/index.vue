@@ -43,8 +43,9 @@ async function loadOrders() {
   loading.value = true
   try {
     const offset = (currentPage.value - 1) * PAGE_SIZE
+    // 👇 核心修改：将路径改为 /api/pets/admin/orders
     const res = await $api<AdminOrderListResponse>(
-      `/api/admin/orders?limit=${PAGE_SIZE}&offset=${offset}`
+      `/api/pets/admin/orders?limit=${PAGE_SIZE}&offset=${offset}`
     )
     orders.value = res.items
     total.value = res.total
@@ -140,7 +141,7 @@ function changePage(page: number) {
               <div class="table-sub">{{ order.userNickname }} (ID: {{ order.userId }})</div>
             </td>
             <td>{{ getPlanTypeText(order.planType) }}</td>
-            <td class="text-mono">${{ order.amount.toFixed(2) }}</td>
+            <td class="text-mono">${{ Number(order.amount).toFixed(2) }}</td>
             <td>
               <span class="status-badge" :class="getStatusClass(order.status)">
                 {{ getStatusText(order.status) }}
