@@ -430,9 +430,9 @@ export default {
   order_empty: 'No orders yet',
 
   field_personality: 'Personality & Hobbies',
-  placeholder_personality:'e.g. shy but loves treats, sunbathing fan, hates baths (optional)',
+  placeholder_personality: 'e.g. shy but loves treats, sunbathing fan, hates baths (optional)',
 
-    // --- Manage Subscription ---
+  // --- Manage Subscription ---
   manage_sub_btn: 'Manage Subscription',
   manage_sub_title: 'Manage VIP Subscription',
   manage_sub_subtitle: 'Your VIP membership is auto-renewing',
@@ -443,4 +443,25 @@ export default {
   manage_sub_step_4: 'On the opened web page, click "Cancel Subscription" to cancel.',
   manage_sub_tips: 'After cancellation, your VIP benefits will continue until the end of the current billing cycle and will not affect your current use.',
   btn_got_it: 'Got it',
+
+  // --- Article Page ---
+  article_loading: 'Opening memories...',
+  article_not_found: 'Article not found or hidden',
+  article_back_to_list: 'Back to Articles',
+  article_divider_text: 'Companionship is the longest confession',
+  article_read_more: 'Read More Articles',
+  seo_tag_memorial: 'Pet Memorial',
+  seo_tag_past: 'Pet Memories',
+  seo_tag_memory: 'Pet Remembrance',
+  seo_tag_heaven: 'Pets in Heaven',
+  seo_tag_love: 'Love Across Time and Space',
+  // --- Article List Page ---
+  articles_title: 'Pet Articles',
+
+  admin_panel: 'Admin Panel',
+  admin_title: 'Admin Console',
+  admin_menu_articles: 'Articles',
+  admin_new_article: 'New Article',
+  admin_status_published: 'Published',
+  admin_status_draft: 'Draft',
 }

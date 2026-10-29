@@ -58,7 +58,7 @@ let countdownTimer: ReturnType<typeof setInterval> | null = null
 
 // ---------- 顶层 cookie / state ----------
 const token = useCookie<string | null>('token', {
-  maxAge: 60 * 60 * 24 * 7,
+  maxAge: 60 * 60 * 24 * 30,
   sameSite: 'lax',
   path: '/',
   secure: import.meta.env.PROD,

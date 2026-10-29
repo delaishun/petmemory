@@ -2,13 +2,18 @@
 import type { AuthUser } from '~/types/auth'
 
 export default defineNuxtPlugin(() => {
-  const token = useCookie('token')
+  // app/plugins/api.ts
+  const token = useCookie('token', {
+    maxAge: 60 * 60 * 24 * 30, // 👈 加上这行，与后端 30d 和 LoginModal 保持绝对一致
+    sameSite: 'lax',
+    path: '/',
+  })
   // 👈 补充泛型，确保 TS 知道这是个用户对象或 null
   const userState = useState<AuthUser | null>('auth:user', () => null)
 
   const api = $fetch.create({
     baseURL: useRuntimeConfig().public.apiBase as string,
-    
+
     // 请求拦截：自动注入 Token
     onRequest({ options }) {
       if (token.value) {

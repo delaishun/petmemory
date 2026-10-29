@@ -444,4 +444,25 @@ export default {
   manage_sub_tips: '取消后，您的 VIP 权益将持续到当前计费周期结束，不会影响当下的使用。',
   btn_got_it: '我知道了',
 
+  // --- 文章页面 ---
+  article_loading: '正在翻开回忆...',
+  article_not_found: '文章不存在或已被隐藏',
+  article_back_to_list: '返回文章列表',
+  article_divider_text: '陪伴是最长情的告白',
+  article_read_more: '阅读更多文章',
+  seo_tag_memorial: '宠物纪念',
+  seo_tag_past: '宠物往事',
+  seo_tag_memory: '宠物回忆',
+  seo_tag_heaven: '天堂的宠物',
+  seo_tag_love: '跨越时空的爱',
+  // --- 文章列表页 ---
+  articles_title: '宠物文章',
+
+  admin_panel: '管理后台',
+  admin_title: '管理控制台',
+  admin_menu_articles: '文章管理',
+  admin_new_article: '新建文章',
+  admin_status_published: '已发布',
+  admin_status_draft: '草稿',
+
 }

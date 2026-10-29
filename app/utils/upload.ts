@@ -5,7 +5,7 @@
 // ============================================================
 
 /** 允许上传的 OSS 目录（要和后端 plugins/oss.ts 的 ALLOWED_DIRS 保持一致） */
-export type OssDir = 'petm_pavatar' | 'pet_photos' | 'pet_uavatars' | 'pet_orders'
+export type OssDir = 'petm_pavatar' | 'pet_photos' | 'pet_uavatars' | 'pet_orders' | 'pet_articles'
 
 /** 后端 /oss/token/:fdir 返回的签名结构 */
 export interface OssToken {

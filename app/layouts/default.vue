@@ -60,10 +60,11 @@ const year = new Date().getFullYear()
         <nav class="site-header__nav" aria-label="Main Navigation">
           <NuxtLink to="/" class="site-header__link">{{ t('nav_home') }}</NuxtLink>
           <NuxtLink to="/pets" class="site-header__link">{{ t('nav_pets') }}</NuxtLink>
+          <NuxtLink to="/articles" class="site-header__link">{{ t('articles_title') }}</NuxtLink>
           <NuxtLink to="/about" class="site-header__link">{{ t('nav_about') }}</NuxtLink>
         </nav>
 
-        <!-- 右：语言切换 + 登录按钮 / 圆形头像 -->
+        <!-- 右：语言切换 + 管理后台 + 登录按钮 / 圆形头像 -->
         <div class="site-header__right">
           
           <!-- 语言切换器 -->
@@ -80,6 +81,16 @@ const year = new Date().getFullYear()
               @click="setLocale('cn')"
             >中</button>
           </div>
+
+          <!-- 👇 新增：管理后台入口 -->
+          <NuxtLink
+            v-if="isLoggedIn && user?.isAdmin"
+            to="/petadm"
+            class="site-header__admin"
+          >
+            {{ t('admin_panel') }}
+          </NuxtLink>
+          <!-- 👆 新增结束 -->
 
           <!-- 登录 / 头像 -->
           <template v-if="!isLoggedIn">
@@ -265,6 +276,23 @@ const year = new Date().getFullYear()
     align-items: center;
     gap: @sp-4;
   }
+
+  // 👇 新增：管理后台按钮样式
+  &__admin {
+    font-size: @fs-sm;
+    color: @accent;
+    background: @accent-soft;
+    padding: 4px 10px;
+    border-radius: @radius-pill;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background @dur-fast ease, color @dur-fast ease;
+
+    &:hover {
+      background: @accent;
+      color: @surface;
+    }
+  }
 }
 
 // ============================================================
@@ -388,7 +416,6 @@ const year = new Date().getFullYear()
     line-height: @lh-base;
   }
 
-  // 👈 新增的平铺链接区
   &__links {
     display: flex;
     flex-wrap: wrap;

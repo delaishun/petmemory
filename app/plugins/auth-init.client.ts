@@ -1,17 +1,16 @@
 // app/plugins/auth-init.client.ts
-//
-// 页面刚打开时，用本地 cookie 里的 token 换回用户信息。
-// 只跑在客户端（.client 后缀），避免 SSR 阶段每个请求都打一次 /me。
-//
-// 注意：SSR 页面如果需要登录态（比如首页要显示头像），
-// 需要在服务端也恢复一次，这个文件不负责。
-// 具体做法见文件末尾的说明。
-
 import type { AuthUser, MeResponse } from '~/types/auth'
 
 export default defineNuxtPlugin(() => {
   const user = useState<AuthUser | null>('auth:user', () => null)
-  const token = useCookie<string | null>('token')
+  
+  // 👇 统一带上 30 天的配置
+  const token = useCookie<string | null>('token', {
+    maxAge: 60 * 60 * 24 * 30,
+    sameSite: 'lax',
+    path: '/',
+    secure: import.meta.env.PROD,
+  })
 
   // 没有 token 就没必要请求
   if (!token.value) return
@@ -33,10 +32,8 @@ export default defineNuxtPlugin(() => {
     })
     .catch((err: any) => {
       // 401 或网络错误
-      // 401 说明 token 有效但用户被禁用/删除，同样清掉
       if (err?.response?.status === 401) {
         token.value = null
       }
-      // 网络错误（后端没起来）不清 token，用户下次刷新还能重试
     })
 })

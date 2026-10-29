@@ -24,6 +24,8 @@ export interface AuthUser {
   vipExpiresAt: string | null
   /** 后端根据 vip_expires_at > NOW() 计算后返回，前端直接用 */
   isVip: boolean
+  /** 是否为管理员（用于判定是否显示后台入口） 👈 新增 */
+  isAdmin: boolean
   point?: number
   /** users.created_at，ISO 8601 字符串 */
   createdAt: string
