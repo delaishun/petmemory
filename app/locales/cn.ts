@@ -468,4 +468,6 @@ export default {
   home_articles_title: '宠物文章',
   home_articles_more: '查看更多',
 
+  pet_banned: '已封禁',
+
 }

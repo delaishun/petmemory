@@ -36,9 +36,9 @@ interface PetDetail {
   avatarUrl: string;
   bio: string;
   personality: string;
-  soundEffect: string;       // ← 新增
+  soundEffect: string;
+  status: number; // 1=正常 0=隐藏 2=封禁
   createdAt: string;
-  status: number;
   owner: OwnerBrief;
   moodScore: number;
   currentExpressionUrl: string | null;
@@ -57,7 +57,8 @@ interface PetPublic {
   avatarUrl: string;
   bio: string;
   personality: string;
-  soundEffect: string;       // ← 新增
+  soundEffect: string;
+  status?: number;
   createdAt: string;
 }
 
@@ -420,7 +421,7 @@ const editablePet = computed<EditablePet | null>(() => {
     breed: pet.value.breed,
     hometown: pet.value.hometown,
     personality: pet.value.personality,
-    soundEffect: pet.value.soundEffect,      // ← 新增：透传给编辑弹窗
+    soundEffect: pet.value.soundEffect,
     birthday: pet.value.birthday,
     status: pet.value.status ?? 1,
   };
@@ -662,12 +663,12 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
   await Promise.all([refreshGiftRecords(), refreshPet(), refreshMe()]);
   showToast({ type: "success", message: t("gift_bonus_points") });
 
-  // 👇 新增：播放宠物叫声
+  // 播放宠物叫声
   if (pet.value?.soundEffect) {
     const soundUrl = `https://music.petmemory.me/${pet.value.soundEffect}.mp3`;
     const soundAudio = new Audio(soundUrl);
     
-    // 👇 将音量显式设置为 80% (1.0 是最大值)
+    // 将音量显式设置为 80%
     soundAudio.volume = 0.8;
 
     // 尝试自动播放。如果被浏览器策略拦截，静默失败，不影响送礼体验
@@ -889,7 +890,11 @@ useHead(() => ({
           <div class="pet-hero__content">
             <h1 class="pet-hero__name">
               {{ pet.name }}
-              <span v-if="pet.status === 0" class="pet-hero__hidden-tag">
+              <!-- 👇 修改标签展示逻辑 -->
+              <span v-if="pet.status === 2" class="pet-hero__hidden-tag pet-hero__hidden-tag--banned">
+                {{ t("pet_banned") || "已封禁" }}
+              </span>
+              <span v-else-if="pet.status === 0" class="pet-hero__hidden-tag">
                 {{ t("pet_hidden") }}
               </span>
             </h1>
@@ -1724,6 +1729,13 @@ useHead(() => ({
     background: @surface-2;
     border: 1px solid @border;
     border-radius: @radius-pill;
+
+    // 👇 新增：封禁状态的红色样式
+    &--banned {
+      color: @danger;
+      border-color: fade(@danger, 30%);
+      background: fade(@danger, 8%);
+    }
   }
 
   &--skeleton {

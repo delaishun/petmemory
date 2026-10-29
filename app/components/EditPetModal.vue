@@ -21,9 +21,9 @@ export interface EditablePet {
   breed: string
   hometown: string
   birthday: string | null   // 'YYYY-MM-DD' 或 null
-  status: number            // 1=正常 0=隐藏
+  status: number            // 1=正常 0=隐藏 2=封禁
   personality?: string      // 可选，兜底做兼容
-  soundEffect?: string      // ← 新增（可选，兜底做兼容）
+  soundEffect?: string      // 可选，兜底做兼容
 }
 
 /** 后端 PATCH /api/pets/:slug 返回 */
@@ -39,7 +39,8 @@ interface PetPublic {
   avatarUrl: string
   bio: string
   personality: string
-  soundEffect: string       // ← 新增
+  soundEffect: string
+  status?: number
   createdAt: string
 }
 
@@ -64,7 +65,7 @@ const visible = computed({
 })
 
 // ============================================================
-// 表单状态
+// 状态与计算属性
 // ============================================================
 
 const form = reactive({
@@ -85,6 +86,9 @@ const errors = reactive({
 
 const loading = ref(false)
 const { $api } = useNuxtApp()
+
+// 👇 新增：判断是否被封禁
+const isBanned = computed(() => props.pet?.status === 2)
 
 // ============================================================
 // 根据物种识别叫声参数
@@ -210,21 +214,27 @@ async function handleSubmit() {
   errors.global = ''
 
   try {
+    // 👇 构建提交数据
+    const body: any = {
+      name: form.name.trim(),
+      species: form.species.trim(),
+      breed: form.breed.trim(),
+      hometown: form.hometown.trim(),
+      personality: form.personality.trim(),
+      birthday: form.birthday || null,
+      soundEffect: detectSoundEffect(form.species),
+    }
+
+    // 👇 核心修改：只有非封禁状态，才提交 status
+    if (!isBanned.value) {
+      body.status = form.hidden ? 0 : 1
+    }
+
     const updated = await $api<PetPublic>(
       `/api/pets/${props.pet.slug}`,
       {
         method: 'PATCH',
-        body: {
-          name: form.name.trim(),
-          species: form.species.trim(),
-          breed: form.breed.trim(),
-          hometown: form.hometown.trim(),
-          personality: form.personality.trim(),
-          birthday: form.birthday || null,
-          status: form.hidden ? 0 : 1,
-          // 👇 新增：根据修改后的物种重新识别叫声参数
-          soundEffect: detectSoundEffect(form.species),
-        },
+        body,
       },
     )
 
@@ -354,17 +364,19 @@ async function handleSubmit() {
           </div>
         </div>
 
-        <!-- 隐藏开关 -->
+        <!-- 隐藏开关 (带封禁状态判断) -->
         <div class="switch-field">
           <div class="switch-field__text">
-            <div class="switch-field__label">{{ t('switch_hide_title') }}</div>
-            <div class="switch-field__hint">
-              {{ t('switch_hide_hint') }}
+            <div class="switch-field__label">
+              {{ isBanned ? '宠物已被封禁' : t('switch_hide_title') }}
+            </div>
+            <div class="switch-field__hint" :class="{ 'is-banned-text': isBanned }">
+              {{ isBanned ? '请联系管理员解除封禁，您暂时无法修改可见状态。' : t('switch_hide_hint') }}
             </div>
           </div>
           <van-switch
             v-model="form.hidden"
-            :disabled="loading"
+            :disabled="loading || isBanned"
             size="22"
             active-color="#A66039"
           />
@@ -553,6 +565,12 @@ async function handleSubmit() {
     font-size: @fs-xs;
     color: @ink-3;
     line-height: 1.4;
+
+    // 👇 新增：封禁警告样式
+    &.is-banned-text {
+      color: @danger;
+      font-weight: 500;
+    }
   }
 }
 
