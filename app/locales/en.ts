@@ -304,7 +304,7 @@ export default {
   about_drawing_title: 'Custom Hand-Drawn',
   about_drawing_desc: 'Commission a custom, 100% hand-drawn portrait. A short video of the drawing process will be recorded to witness the creation.',
   about_vip_title: 'VIP Privileges',
-  about_vip_desc: 'VIP pets enjoy beautifully themed background panels that change with festivals, accompanied by soothing exclusive background music to make every visit heartwarming. Get bonus points with VIP, and VIP time with points.',
+  about_vip_desc: 'VIP pets enjoy beautifully themed background panels that change with festivals, accompanied by soothing exclusive background music to make every visit heartwarming. Get bonus points with VIP.',
 
   user_change_nickname: 'Change Nickname',
   edit_nickname_title: 'Change Nickname',
