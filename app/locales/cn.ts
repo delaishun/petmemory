@@ -482,5 +482,45 @@ export default {
   btn_copy: '复制',
   share_link_copied: '链接已复制',
 
+    // 退款政策
+  refund_title: '退款与取消政策',
+  refund_last_updated: '最后更新日期',
+  refund_intro: '感谢您选择「宠忆」(PetMemory)。我们致力于提供温馨、宁静且无缝的纪念空间，以纪念和缅怀您的爱宠。由于我们的服务涉及数字宠物纪念空间和虚拟纪念物品，本退款与取消政策旨在说明您在本平台购物时的权利以及我们的条款。',
 
+  refund_sec1_title: '1. 支付处理',
+  refund_sec1_desc: '「宠忆」的所有支付均通过我们的记录商户（Merchant of Record）Paddle 进行安全处理。Paddle 代表我们处理所有支付交易、税务计算、账单查询以及拒付（Chargebacks）。',
+
+  refund_sec2_title: '2. 数字服务与虚拟商品',
+  refund_sec2_desc_1: '我们的服务主要包括：',
+  refund_sec2_item1_title: '数字纪念空间',
+  refund_sec2_item1_desc: '创建和托管个性化宠物纪念主页。',
+  refund_sec2_item2_title: '虚拟礼物与贡品',
+  refund_sec2_item2_desc: '放置在纪念空间内的虚拟物品（例如：鲜花、蜡烛、皇冠、记忆之翼）。',
+  refund_sec2_desc_2: '由于这些虚拟物品和在线空间具有即时交付和永久保留的特性，一旦数字内容完全渲染或充值到您的账户中，购买通常不予退款，除非下文明确说明的情况除外。',
+
+  refund_sec3_title: '3. 可退款情况',
+  refund_sec3_intro: '我们希望在您这段敏感的时期，您能获得完全满意的体验。在以下情况下，您有资格获得全额退款：',
+  refund_sec3_item1_title: '重复或意外扣款',
+  refund_sec3_item1_desc: '如果您在同一件商品或服务上被错误地扣款两次，或在短时间内意外重复购买。',
+  refund_sec3_item2_title: '技术故障',
+  refund_sec3_item2_desc: '如果您为某项虚拟物品或纪念功能付费，但由于技术故障导致该服务无法激活或显示，且我们的支持团队在 48 小时内未能解决该问题。',
+  refund_sec3_item3_title: '未使用的数字服务（冷静期）',
+  refund_sec3_item3_desc: '如果您购买了付费功能或纪念升级服务，并在购买后 14 天内提交退款请求，前提是该功能尚未被使用或公开部署。',
+
+  refund_sec4_title: '4. 不予退款的情况',
+  refund_sec4_desc: '在以下情况下将不予退款：',
+  refund_sec4_item1: '在虚拟礼物或纪念空间已经创建、部署或被公开互动后改变主意。',
+  refund_sec4_item2: '服务提供后，用户自行移除或删除了纪念主页或账号。',
+  refund_sec4_item3: '因违反我们的服务条款而导致账号被暂停或内容被移除。',
+
+  refund_sec5_title: '5. 如何申请退款',
+  refund_sec5_desc: '如果您认为自己符合我们的退款条件，请在交易后的 14 天内联系我们：',
+  refund_sec5_req_title: '所需提供的信息',
+  refund_sec5_req1: '您在「宠忆」注册的电子邮箱地址。',
+  refund_sec5_req2: 'Paddle 的订单 ID 或收据编号。',
+  refund_sec5_req3: '关于问题或退款原因的简要说明。',
+  refund_sec5_footer: '我们的支持团队将审核您的请求，并在 1 到 3 个工作日内回复。一旦批准，退款将通过 Paddle 原路退回到您的原支付方式。根据您的银行或信用卡提供商的不同，资金可能需要 5-10 个工作日才能退回到您的账户中。',
+
+  refund_sec6_title: '6. 联系我们',
+  refund_sec6_desc: '如果您对本退款政策有任何疑问或疑虑，请通过以下方式联系我们：',
 }

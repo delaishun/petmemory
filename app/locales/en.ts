@@ -480,4 +480,45 @@ export default {
   btn_copy: 'Copy',
   share_link_copied: 'Link copied to clipboard',
 
+    // Refund Policy
+  refund_title: 'Refund & Cancellation Policy',
+  refund_last_updated: 'Last Updated',
+  refund_intro: 'Thank you for choosing PetMemory. We strive to provide a compassionate, peaceful, and seamless sanctuary to honor and remember your beloved pets. Because our services involve digital pet memorial spaces and virtual memorial items, this Refund & Cancellation Policy outlines your rights and our terms regarding purchases made on our platform.',
+
+  refund_sec1_title: '1. Payment Processing',
+  refund_sec1_desc: 'All payments on PetMemory are processed securely through our Merchant of Record, Paddle. Paddle handles all payment transactions, tax calculations, billing inquiries, and chargebacks on our behalf.',
+
+  refund_sec2_title: '2. Digital Services & Virtual Goods',
+  refund_sec2_desc_1: 'Our services primarily consist of:',
+  refund_sec2_item1_title: 'Digital Memorial Spaces',
+  refund_sec2_item1_desc: 'Creation and hosting of personalized pet memorial pages.',
+  refund_sec2_item2_title: 'Virtual Gifts & Tributes',
+  refund_sec2_item2_desc: 'Virtual items (e.g., flowers, candles, crowns, memory wings) placed within memorial spaces.',
+  refund_sec2_desc_2: 'Due to the immediate digital delivery and permanent nature of these virtual items and online spaces, purchases are generally non-refundable once the digital content has been fully rendered or credited to your account, except as explicitly outlined below.',
+
+  refund_sec3_title: '3. Eligible Refund Circumstances',
+  refund_sec3_intro: 'We want you to be completely satisfied with your experience during this sensitive time. You are eligible for a full refund under the following conditions:',
+  refund_sec3_item1_title: 'Duplicate or Accidental Charges',
+  refund_sec3_item1_desc: 'If you were mistakenly charged twice or made an accidental duplicate purchase for the same item or service within a short period.',
+  refund_sec3_item2_title: 'Technical Failure',
+  refund_sec3_item2_desc: 'If you were charged for a virtual item or memorial feature, but a technical glitch prevented the service from being activated or displayed, and our support team is unable to resolve the issue within 48 hours.',
+  refund_sec3_item3_title: 'Unused Digital Services (Cooling-off Period)',
+  refund_sec3_item3_desc: 'If you purchased a paid feature or memorial upgrade and submit a refund request within 14 days of purchase, provided that the feature has not been used or publicly deployed.',
+
+  refund_sec4_title: '4. Non-Refundable Situations',
+  refund_sec4_desc: 'Refunds will not be granted under the following circumstances:',
+  refund_sec4_item1: 'Change of mind after a virtual gift or memorial space has already been created, deployed, or interacted with publicly.',
+  refund_sec4_item2: 'Removal or deletion of a memorial page or account by the user after the service has been rendered.',
+  refund_sec4_item3: 'Account suspension or content removal resulting from a violation of our Terms of Service.',
+
+  refund_sec5_title: '5. How to Request a Refund',
+  refund_sec5_desc: 'If you believe you qualify for a refund under our policy, please contact us within 14 days of the transaction:',
+  refund_sec5_req_title: 'Required Information',
+  refund_sec5_req1: 'Your registered email address on PetMemory.',
+  refund_sec5_req2: 'The Paddle Order ID or receipt number.',
+  refund_sec5_req3: 'A brief description of the issue or reason for the refund request.',
+  refund_sec5_footer: 'Our support team will review your request and respond within 1 to 3 business days. Once approved, refunds will be credited back to your original payment method via Paddle. Depending on your bank or credit card provider, it may take 5–10 business days for the funds to reflect in your account.',
+
+  refund_sec6_title: '6. Contact Us',
+  refund_sec6_desc: 'If you have any questions or concerns regarding our Refund Policy, please reach out to us at:',
 }
