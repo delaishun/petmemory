@@ -479,4 +479,5 @@ export default {
   pet_share_copy_label: 'Or copy this link',
   btn_copy: 'Copy',
   share_link_copied: 'Link copied to clipboard',
+
 }
