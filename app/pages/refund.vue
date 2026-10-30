@@ -64,7 +64,7 @@ useSeoMeta({
       <p>{{ t('refund_sec6_desc') }}</p>
       <ul>
         <li><strong>Website</strong>: <a href="https://www.petmemory.me" target="_blank">https://www.petmemory.me</a></li>
-        <li><strong>Email</strong>: support@petmemory.me</li>
+        <li><strong>Email</strong>: fczx1999@gmail.com</li>
       </ul>
     </div>
   </div>
