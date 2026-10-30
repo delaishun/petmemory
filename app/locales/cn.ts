@@ -483,7 +483,7 @@ export default {
   share_link_copied: '链接已复制',
 
     // 退款政策
-  refund_title: '退款与取消政策',
+  refund_title: '退款政策',
   refund_last_updated: '最后更新日期',
   refund_intro: '感谢您选择「宠忆」(PetMemory)。我们致力于提供温馨、宁静且无缝的纪念空间，以纪念和缅怀您的爱宠。由于我们的服务涉及数字宠物纪念空间和虚拟纪念物品，本退款与取消政策旨在说明您在本平台购物时的权利以及我们的条款。',
 

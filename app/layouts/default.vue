@@ -156,7 +156,7 @@ const year = new Date().getFullYear();
           <NuxtLink to="/privacy" class="site-footer__link">{{
             t("privacy_title")
           }}</NuxtLink>
-          <NuxtLink to="/refund" class="footer-link">{{ t("refund_title") }}</NuxtLink>
+          <NuxtLink to="/refund" class="site-footer__link">{{ t("refund_title") }}</NuxtLink>
         </div>
       </div>
 

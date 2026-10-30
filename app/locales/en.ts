@@ -481,7 +481,7 @@ export default {
   share_link_copied: 'Link copied to clipboard',
 
     // Refund Policy
-  refund_title: 'Refund & Cancellation Policy',
+  refund_title: 'Refund Policy',
   refund_last_updated: 'Last Updated',
   refund_intro: 'Thank you for choosing PetMemory. We strive to provide a compassionate, peaceful, and seamless sanctuary to honor and remember your beloved pets. Because our services involve digital pet memorial spaces and virtual memorial items, this Refund & Cancellation Policy outlines your rights and our terms regarding purchases made on our platform.',
 
