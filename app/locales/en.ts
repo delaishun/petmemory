@@ -472,4 +472,11 @@ export default {
   message_muted_placeholder: 'You are currently unable to leave a message',
 
   custom_order_vip_bonus: 'Special Offer: Order any custom portrait to receive a 1-Year VIP Membership (Worth $9.9) for free.',
+
+  pet_share: 'Share',
+  pet_share_title: "Share {name}'s page",
+  pet_share_subtitle: 'Help more people discover their story',
+  pet_share_copy_label: 'Or copy this link',
+  btn_copy: 'Copy',
+  share_link_copied: 'Link copied to clipboard',
 }

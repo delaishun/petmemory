@@ -475,4 +475,11 @@ export default {
 
   custom_order_vip_bonus: '专属礼遇：订购任意绘画方案，即免费获赠 1 年 VIP 会员（价值 $9.9），解锁与爱宠的跨时空对话。',
 
+  pet_share: '分享',
+  pet_share_title: '分享 {name} 的主页',
+  pet_share_subtitle: '让更多人认识 ta 的故事',
+  pet_share_copy_label: '或复制此链接',
+  btn_copy: '复制',
+  share_link_copied: '链接已复制',
+
 }

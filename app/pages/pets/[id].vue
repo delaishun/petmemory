@@ -667,7 +667,7 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
   if (pet.value?.soundEffect) {
     const soundUrl = `https://music.petmemory.me/${pet.value.soundEffect}.mp3`;
     const soundAudio = new Audio(soundUrl);
-    
+
     // 将音量显式设置为 80%
     soundAudio.volume = 0.8;
 
@@ -828,6 +828,93 @@ const introParts = computed(() => {
 });
 
 // ============================================================
+// 分享功能（仅主人可见）
+// ============================================================
+const shareModalVisible = ref(false);
+
+const shareUrl = computed(() => {
+  if (!pet.value) return "";
+  return `https://www.petmemory.me/pets/${pet.value.slug}`;
+});
+
+const shareText = computed(() => {
+  if (!pet.value) return "";
+  return `Visit the memorial page of ${pet.value.name} on PetMemory`;
+});
+
+function handleShare() {
+  shareModalVisible.value = true;
+}
+
+function shareToX() {
+  const url = encodeURIComponent(shareUrl.value);
+  const text = encodeURIComponent(shareText.value);
+  window.open(`https://x.com/intent/tweet?url=${url}&text=${text}`, "_blank");
+  shareModalVisible.value = false;
+}
+
+function shareToFacebook() {
+  const url = encodeURIComponent(shareUrl.value);
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+  shareModalVisible.value = false;
+}
+
+function shareToReddit() {
+  const url = encodeURIComponent(shareUrl.value);
+  const title = encodeURIComponent(shareText.value);
+  window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, "_blank");
+  shareModalVisible.value = false;
+}
+
+function shareToPinterest() {
+  const url = encodeURIComponent(shareUrl.value);
+  const media = encodeURIComponent(pet.value?.avatarUrl || "");
+  const description = encodeURIComponent(shareText.value);
+  window.open(
+    `https://www.pinterest.com/pin/create/button/?url=${url}&media=${media}&description=${description}`,
+    "_blank"
+  );
+  shareModalVisible.value = false;
+}
+
+function shareToTelegram() {
+  const url = encodeURIComponent(shareUrl.value);
+  const text = encodeURIComponent(shareText.value);
+  window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank");
+  shareModalVisible.value = false;
+}
+
+async function copyShareLink() {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(shareUrl.value);
+      showToast({
+        type: "success",
+        message: t("share_link_copied") || "Link copied to clipboard",
+      });
+      return;
+    }
+  } catch {
+    /* 降级 */
+  }
+  // 降级：适用于非 HTTPS 环境
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = shareUrl.value;
+    ta.style.position = "fixed";
+    ta.style.top = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast(ok ? "Link copied" : "Copy failed");
+  } catch {
+    showToast("Copy failed");
+  }
+}
+
+// ============================================================
 // 标题
 // ============================================================
 
@@ -839,31 +926,34 @@ const introParts = computed(() => {
 useSeoMeta({
   // title 交给 titleTemplate 自动拼接后缀
   title: () => `${pet.value?.name}'s Memorial`,
-  description: () => pet.value
-    ? `A memorial page for ${pet.value.name} (${pet.value.species}). ${pet.value.bio || 'Remember and honor a beloved companion on PetMemory.'}`
-    : 'A memorial page for a beloved pet on PetMemory.',
+  description: () =>
+    pet.value
+      ? `A memorial page for ${pet.value.name} (${pet.value.species}). ${
+          pet.value.bio || "Remember and honor a beloved companion on PetMemory."
+        }`
+      : "A memorial page for a beloved pet on PetMemory.",
 
-  ogTitle: () => pet.value ? `${pet.value.name} - PetMemory` : 'Pet Memorial',
-  ogDescription: () => pet.value
-    ? `A memorial page for ${pet.value.name}.`
-    : 'A memorial page for a beloved pet on PetMemory.',
+  ogTitle: () => (pet.value ? `${pet.value.name} - PetMemory` : "Pet Memorial"),
+  ogDescription: () =>
+    pet.value
+      ? `A memorial page for ${pet.value.name}.`
+      : "A memorial page for a beloved pet on PetMemory.",
   // 优先用宠物头像作为分享图，没有时回退到默认图
-  ogImage: () => pet.value?.avatarUrl || 'https://music.petmemory.me/og-cover.jpg',
-  ogType: 'profile',
+  ogImage: () => pet.value?.avatarUrl || "https://music.petmemory.me/og-cover.jpg",
+  ogType: "profile",
   ogUrl: () => `https://www.petmemory.me/pets/${route.params.id}`,
 
-  twitterCard: 'summary_large_image',
-  twitterTitle: () => pet.value ? `${pet.value.name} - PetMemory` : 'Pet Memorial',
-  twitterDescription: () => pet.value
-    ? `A memorial page for ${pet.value.name}.`
-    : 'A memorial page for a beloved pet on PetMemory.',
-  twitterImage: () => pet.value?.avatarUrl || 'https://music.petmemory.me/og-cover.jpg',
-})
+  twitterCard: "summary_large_image",
+  twitterTitle: () => (pet.value ? `${pet.value.name} - PetMemory` : "Pet Memorial"),
+  twitterDescription: () =>
+    pet.value
+      ? `A memorial page for ${pet.value.name}.`
+      : "A memorial page for a beloved pet on PetMemory.",
+  twitterImage: () => pet.value?.avatarUrl || "https://music.petmemory.me/og-cover.jpg",
+});
 useHead(() => ({
-  link: [
-    { rel: 'canonical', href: `https://www.petmemory.me/pets/${route.params.id}` },
-  ],
-}))
+  link: [{ rel: "canonical", href: `https://www.petmemory.me/pets/${route.params.id}` }],
+}));
 </script>
 
 <template>
@@ -919,7 +1009,10 @@ useHead(() => ({
             <h1 class="pet-hero__name">
               {{ pet.name }}
               <!-- 👇 修改标签展示逻辑 -->
-              <span v-if="pet.status === 2" class="pet-hero__hidden-tag pet-hero__hidden-tag--banned">
+              <span
+                v-if="pet.status === 2"
+                class="pet-hero__hidden-tag pet-hero__hidden-tag--banned"
+              >
                 {{ t("pet_banned") || "已封禁" }}
               </span>
               <span v-else-if="pet.status === 0" class="pet-hero__hidden-tag">
@@ -1282,6 +1375,15 @@ useHead(() => ({
               <van-icon name="chat-o" />
               <span>{{ t("pet_chat") }}</span>
             </button>
+            <button
+              v-if="isOwner"
+              type="button"
+              class="btn btn--lg pet-actions__share"
+              @click="handleShare"
+            >
+              <van-icon name="share-o" />
+              <span>{{ t("pet_share") || "分享" }}</span>
+            </button>
           </div>
 
           <div class="pet-actions__row">
@@ -1459,6 +1561,113 @@ useHead(() => ({
           @click="vipModalVisible = false"
         >
           {{ t("btn_i_know") }}
+        </button>
+      </div>
+    </van-popup>
+
+    <!-- ============================================ -->
+    <!-- 分享弹窗（仅主人可见触发）                      -->
+    <!-- ============================================ -->
+    <van-popup
+      v-model:show="shareModalVisible"
+      round
+      :style="{ width: 'min(360px, 90%)' }"
+      teleport="body"
+    >
+      <div class="share-popup">
+        <h3 class="share-popup__title">
+          {{ t("pet_share_title") || `Share ${pet?.name ?? ""}'s page` }}
+        </h3>
+        <p class="share-popup__subtitle">
+          {{ t("pet_share_subtitle") || "Help more people discover their story" }}
+        </p>
+
+        <div class="share-popup__icons">
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to X"
+            @click="shareToX"
+          >
+            <img
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/x-50.png"
+              alt="X"
+              loading="lazy"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Facebook"
+            @click="shareToFacebook"
+          >
+            <img
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/facebook-50.png"
+              alt="Facebook"
+              loading="lazy"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Reddit"
+            @click="shareToReddit"
+          >
+            <img
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/reddit-50.png"
+              alt="Reddit"
+              loading="lazy"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Pinterest"
+            @click="shareToPinterest"
+          >
+            <img
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/pinterest-50.png"
+              alt="Pinterest"
+              loading="lazy"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Telegram"
+            @click="shareToTelegram"
+          >
+            <img
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/telegram-50.png"
+              alt="Telegram"
+              loading="lazy"
+            />
+          </button>
+        </div>
+
+        <div class="share-popup__divider" />
+
+        <p class="share-popup__link-label">
+          {{ t("pet_share_copy_label") || "Or copy this link" }}
+        </p>
+        <div class="share-popup__link">
+          <input
+            class="share-popup__input"
+            :value="shareUrl"
+            readonly
+            @focus="($event.target as HTMLInputElement).select()"
+          />
+          <button type="button" class="btn btn--sm" @click="copyShareLink">
+            {{ t("btn_copy") || "Copy" }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--primary share-popup__close"
+          @click="shareModalVisible = false"
+        >
+          {{ t("btn_close") || "Close" }}
         </button>
       </div>
     </van-popup>
@@ -2686,6 +2895,125 @@ useHead(() => ({
     font-size: 18px;
     margin-top: 2px;
     flex-shrink: 0;
+  }
+
+  &__close {
+    width: 100%;
+  }
+}
+
+// ============================================================
+// 分享弹窗
+// ============================================================
+.pet-actions__share {
+  gap: @sp-1;
+
+  :deep(.van-icon) {
+    font-size: 16px;
+  }
+}
+
+.share-popup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: @sp-6 @sp-5 @sp-5;
+  text-align: center;
+
+  &__title {
+    margin: 0 0 @sp-2;
+    font-family: @font-serif;
+    font-size: @fs-lg;
+    font-weight: 700;
+    color: @ink-1;
+    .line-1();
+    max-width: 100%;
+  }
+
+  &__subtitle {
+    margin: 0 0 @sp-5;
+    font-size: @fs-sm;
+    color: @ink-3;
+  }
+
+  &__icons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: @sp-3;
+    margin-bottom: @sp-5;
+  }
+
+  &__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    padding: 10px;
+    background: @surface-2;
+    border: 1px solid @border;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform @dur-fast ease, border-color @dur-fast ease,
+      box-shadow @dur-fast ease;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    &:hover {
+      border-color: @accent;
+      box-shadow: @shadow-1;
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0) scale(0.95);
+    }
+  }
+
+  &__divider {
+    width: 100%;
+    height: 1px;
+    background: @border;
+    margin: 0 0 @sp-4;
+  }
+
+  &__link-label {
+    margin: 0 0 @sp-2;
+    font-size: @fs-xs;
+    color: @ink-3;
+    letter-spacing: 0.05em;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: @sp-2;
+    width: 100%;
+    margin-bottom: @sp-5;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: @fs-sm;
+    font-family: @font-mono;
+    color: @ink-2;
+    background: @surface-2;
+    border: 1px solid @border;
+    border-radius: @radius-sm;
+    outline: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: @accent;
+    }
   }
 
   &__close {
