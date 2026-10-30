@@ -403,7 +403,7 @@ export default {
   // Custom Order
   custom_order_title: 'Custom Hand-Drawn Portrait',
   custom_order_upload: 'Upload Reference Photos (Multiple allowed)',
-  custom_order_requirements: 'Requirements (e.g., style, background, text)',
+  custom_order_requirements: 'Requirements (e.g., style, background, text). Size: 8.27 × 11.69 inches (A4)',
   custom_order_address: 'Shipping Address',
   custom_order_address_placeholder: 'Enter your address (Required for physical)',
 

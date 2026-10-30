@@ -403,7 +403,7 @@ export default {
   // 定制手绘
   custom_order_title: '定制宠物手工绘画',
   custom_order_upload: '上传参考照片（可多张）',
-  custom_order_requirements: '绘画要求（如：风格、背景颜色、是否加入文字等）',
+  custom_order_requirements: '绘画要求（如：风格、背景颜色、是否加入文字等），画像尺寸为 8.27 × 11.69 英寸 (A4)',
   custom_order_address: '收件地址',
   custom_order_address_placeholder: '请输入详细收件信息（仅实物版需要）',
 
