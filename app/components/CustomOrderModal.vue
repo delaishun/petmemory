@@ -195,6 +195,12 @@ async function handleOrder(planType: 'digital' | 'physical') {
           <input v-model="shippingAddress" type="text" class="input" :placeholder="t('custom_order_address_placeholder')" />
         </div>
 
+        <!-- 👇 新增：VIP 赠送提示 -->
+        <div class="vip-bonus-banner">
+          <van-icon name="gem-o" class="vip-icon" />
+          <span>{{ t('custom_order_vip_bonus') }}</span>
+        </div>
+
         <!-- 购买选项卡片 -->
         <div class="plan-cards">
           <!-- 电子版 -->
@@ -293,6 +299,29 @@ async function handleOrder(planType: 'digital' | 'physical') {
     &:hover {
       border-color: @accent;
     }
+  }
+}
+
+/* 👇 新增：VIP 赠送提示样式 */
+.vip-bonus-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: @sp-2;
+  padding: @sp-3 @sp-4;
+  margin-top: @sp-4;
+  margin-bottom: @sp-1;
+  background: @gold-soft;
+  border: 1px dashed @gold;
+  border-radius: @radius;
+  color: darken(@gold, 20%);
+  font-size: @fs-sm;
+  font-weight: 500;
+  text-align: center;
+
+  .vip-icon {
+    font-size: 18px;
+    color: darken(@gold, 10%);
   }
 }
 

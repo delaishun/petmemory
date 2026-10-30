@@ -3,7 +3,7 @@
 import { showConfirmDialog, showToast, showImagePreview } from 'vant'
 import type { AuthUser, MeResponse } from '~/types/auth'
 import { useI18n } from '~/composables/useI18n'
-import ManageSubscriptionModal from '~/components/ManageSubscriptionModal.vue' // 👈 新增引入
+import ManageSubscriptionModal from '~/components/ManageSubscriptionModal.vue'
 
 // ============================================================
 // 国际化
@@ -153,7 +153,7 @@ const vipModalVisible = ref(false)
 
 // ---------- VIP 升级 / 续费 ----------
 const upgradeVipModalVisible = ref(false)
-const manageSubModalVisible = ref(false) // 👈 新增：管理订阅弹窗状态
+const manageSubModalVisible = ref(false) 
 
 async function onUpgradeVipSuccess() {
   showToast({
@@ -475,7 +475,7 @@ useHead(() => ({
             {{ t('user_buy_gift') }}
           </button>
 
-          <!-- 👇 VIP 按钮逻辑修改：区分升级与管理 -->
+          <!-- VIP 按钮逻辑 -->
           <button
             v-if="!user.isVip"
             type="button"
@@ -492,7 +492,6 @@ useHead(() => ({
           >
             {{ t('manage_sub_btn') }}
           </button>
-          <!-- 👆 VIP 按钮逻辑修改结束 -->
 
           <button
             type="button"
@@ -537,7 +536,7 @@ useHead(() => ({
       @success="onUpgradeVipSuccess"
     />
 
-    <!-- 管理订阅弹窗 👇 新增 -->
+    <!-- 管理订阅弹窗 -->
     <ManageSubscriptionModal
       v-model="manageSubModalVisible"
     />
@@ -1055,10 +1054,15 @@ useHead(() => ({
   border-top: 1px solid @border;
 
   @media (max-width: @bp-sm) {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: @sp-2;
 
-    .btn { width: 100%; }
+    .btn { 
+      width: 100%;
+      padding-left: @sp-1;
+      padding-right: @sp-1;
+    }
   }
 }
 
