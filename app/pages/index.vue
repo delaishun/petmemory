@@ -446,7 +446,7 @@ useSeoMeta({
           <div class="home-drawing__gallery">
             <figure class="home-drawing__item">
               <img 
-                src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/example1.jpg" 
+                src="https://music.petmemory.me/example2.jpg" 
                 alt="Hand-drawn example" 
                 loading="lazy" 
               />
@@ -454,7 +454,7 @@ useSeoMeta({
             </figure>
             <figure class="home-drawing__item">
               <img 
-                src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/66.jpg" 
+                src="https://music.petmemory.me/66.jpg" 
                 alt="Artist" 
                 loading="lazy" 
               />
