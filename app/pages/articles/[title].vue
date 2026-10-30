@@ -1,7 +1,7 @@
 <!-- app/pages/articles/[title].vue -->
 <script setup lang="ts">
 import { useI18n } from '~/composables/useI18n'
-// 👇 新增：引入 Markdown 预览组件和样式
+// 👇 引入 Markdown 预览组件和样式
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 
@@ -12,7 +12,7 @@ const { t } = useI18n()
 const route = useRoute()
 const { $api } = useNuxtApp()
 
-// 获取路由参数，这里对应的是 slug (如 my_love_dog)
+// 获取路由参数，这里对应的是 slug（如 my_love_dog）
 const articleSlug = computed(() => String(route.params.title || ''))
 
 // ============================================================
@@ -29,49 +29,109 @@ interface ArticleDetail {
 }
 
 // ============================================================
-// 数据获取
+// 数据获取（await 确保 SSR 阶段 meta 能拿到真实数据）
 // ============================================================
 const { data: article, pending, error } = await useAsyncData<ArticleDetail>(
   () => `article:${articleSlug.value}`,
   () => $api<ArticleDetail>(`/api/articles/${articleSlug.value}`),
-  { watch: [articleSlug] } // 当路由参数变化时重新请求
+  { watch: [articleSlug] },
 )
 
 // ============================================================
-// SEO 标签 (用于底部展示及动态 Meta)
+// 页面底部展示用的标签（仅 UI 展示，不参与 meta）
 // ============================================================
 const seoTags = computed(() => [
   t('seo_tag_memorial'),
   t('seo_tag_past'),
   t('seo_tag_memory'),
   t('seo_tag_heaven'),
-  t('seo_tag_love')
+  t('seo_tag_love'),
 ])
 
 // ============================================================
-// SEO 配置
+// SEO
 // ============================================================
-useHead(() => {
-  if (!article.value) {
-    return { title: `${t('article_not_found')} · ${t('app_name')}` }
-  }
-  
-  // 动态生成包含 SEO 标签的 meta description
-  const metaDesc = `${article.value.title} - ${seoTags.value.join(', ')}`
-  
-  return {
-    title: `${article.value.title} · ${t('app_name')}`,
-    meta: [
-      { name: 'description', content: metaDesc }
-    ]
-  }
+
+// 从 Markdown 提取纯文本作为 meta description（剥离代码块/图片/链接语法等）
+function stripMarkdown(md: string): string {
+  if (!md) return ''
+  return md
+    .replace(/```[\s\S]*?```/g, '') // 代码块
+    .replace(/`[^`]*`/g, '') // 行内代码
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // 图片
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // 链接保留文字
+    .replace(/^#{1,6}\s+/gm, '') // 标题符号
+    .replace(/[*_~>]/g, '') // 强调 / 删除线 / 引用
+    .replace(/^\s*[-+*]\s+/gm, '') // 无序列表
+    .replace(/^\s*\d+\.\s+/gm, '') // 有序列表
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '') // 分隔线
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+const plainText = computed(() => stripMarkdown(article.value?.content || ''))
+
+useSeoMeta({
+  // 交给 nuxt.config.ts 的 titleTemplate 拼成 "xxx - Pet Memorial | PetMemory"
+  title: () => article.value?.title || t('article_not_found'),
+
+  description: () =>
+    plainText.value.slice(0, 160) ||
+    (article.value
+      ? `${article.value.title} - PetMemory`
+      : 'Read pet memorial articles on PetMemory.'),
+
+  // Open Graph
+  ogTitle: () =>
+    article.value ? `${article.value.title} - PetMemory` : 'Article - PetMemory',
+  ogDescription: () =>
+    plainText.value.slice(0, 200) ||
+    'Read pet memorial articles on PetMemory.',
+  // 优先用文章自己的封面图，回退到默认分享图
+  ogImage: () =>
+    article.value?.imageUrl || 'https://music.petmemory.me/og-cover.jpg',
+  ogImageWidth: 1200,
+  ogImageHeight: 600,
+  ogType: 'article',
+  ogUrl: () => `https://www.petmemory.me/articles/${articleSlug.value}`,
+
+  // 文章专属时效标签，帮助搜索引擎理解内容新鲜度
+  articlePublishedTime: () => article.value?.createdAt,
+  articleModifiedTime: () => article.value?.updatedAt,
+
+  // Twitter / X
+  twitterCard: 'summary_large_image',
+  twitterTitle: () =>
+    article.value ? `${article.value.title} - PetMemory` : 'Article - PetMemory',
+  twitterDescription: () =>
+    plainText.value.slice(0, 200) ||
+    'Read pet memorial articles on PetMemory.',
+  twitterImage: () =>
+    article.value?.imageUrl || 'https://music.petmemory.me/og-cover.jpg',
+
+  // 文章不存在时不让搜索引擎索引（避免被收录成错误页）
+  robots: () => (article.value ? 'index, follow' : 'noindex, nofollow'),
 })
 
-// 格式化日期
+// 统一 canonical（useSeoMeta 没有 canonical 字段，需要走 useHead）
+useHead(() => ({
+  link: [
+    {
+      rel: 'canonical',
+      href: `https://www.petmemory.me/articles/${articleSlug.value}`,
+    },
+  ],
+}))
+
+// ============================================================
+// 日期格式化
+// ============================================================
 function formatDate(iso: string) {
   if (!iso) return ''
   const d = new Date(iso)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate(),
+  ).padStart(2, '0')}`
 }
 </script>
 

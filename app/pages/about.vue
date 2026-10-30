@@ -4,9 +4,25 @@ import { useI18n } from '~/composables/useI18n'
 
 const { t } = useI18n()
 
-useHead(() => ({
-  title: `${t('about_title')} · ${t('app_name')}`,
-}))
+useSeoMeta({
+  title: 'About PetMemory',
+
+  description:
+    'Learn about PetMemory — a peaceful virtual sanctuary created to honor beloved pets and support those who carry their memory.',
+
+  ogTitle: 'About PetMemory',
+  ogDescription: 'A peaceful virtual sanctuary for beloved pets.',
+  ogImage: 'https://music.petmemory.me/og-cover.jpg',
+  ogImageWidth: 1200,
+  ogImageHeight: 600,
+  ogType: 'website',
+  ogUrl: 'https://www.petmemory.me/about',
+
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'About PetMemory',
+  twitterDescription: 'A peaceful virtual sanctuary for beloved pets.',
+  twitterImage: 'https://music.petmemory.me/og-cover.jpg',
+})
 </script>
 
 <template>

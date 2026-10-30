@@ -831,11 +831,39 @@ const introParts = computed(() => {
 // 标题
 // ============================================================
 
+// useHead(() => ({
+//   title: pet.value
+//     ? `${pet.value.name} · ${t("app_name")}`
+//     : `${t("nav_pets")} · ${t("app_name")}`,
+// }));
+useSeoMeta({
+  // title 交给 titleTemplate 自动拼接后缀
+  title: () => `${pet.value?.name}'s Memorial`,
+  description: () => pet.value
+    ? `A memorial page for ${pet.value.name} (${pet.value.species}). ${pet.value.bio || 'Remember and honor a beloved companion on PetMemory.'}`
+    : 'A memorial page for a beloved pet on PetMemory.',
+
+  ogTitle: () => pet.value ? `${pet.value.name} - PetMemory` : 'Pet Memorial',
+  ogDescription: () => pet.value
+    ? `A memorial page for ${pet.value.name}.`
+    : 'A memorial page for a beloved pet on PetMemory.',
+  // 优先用宠物头像作为分享图，没有时回退到默认图
+  ogImage: () => pet.value?.avatarUrl || 'https://music.petmemory.me/og-cover.jpg',
+  ogType: 'profile',
+  ogUrl: () => `https://www.petmemory.me/pets/${route.params.id}`,
+
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => pet.value ? `${pet.value.name} - PetMemory` : 'Pet Memorial',
+  twitterDescription: () => pet.value
+    ? `A memorial page for ${pet.value.name}.`
+    : 'A memorial page for a beloved pet on PetMemory.',
+  twitterImage: () => pet.value?.avatarUrl || 'https://music.petmemory.me/og-cover.jpg',
+})
 useHead(() => ({
-  title: pet.value
-    ? `${pet.value.name} · ${t("app_name")}`
-    : `${t("nav_pets")} · ${t("app_name")}`,
-}));
+  link: [
+    { rel: 'canonical', href: `https://www.petmemory.me/pets/${route.params.id}` },
+  ],
+}))
 </script>
 
 <template>

@@ -48,6 +48,13 @@ const sections = computed(() => [
     content: t('privacy_sec9_desc'),
   },
 ])
+
+useSeoMeta({
+  title: 'Privacy Policy',
+  description:
+    'PetMemory privacy policy: how we collect, use, and protect your personal information.',
+  robots: 'noindex, follow',
+})
 </script>
 
 <template>

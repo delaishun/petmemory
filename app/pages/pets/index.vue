@@ -103,9 +103,28 @@ async function loadMore() {
 // 标题
 // ============================================================
 
-useHead(() => ({
-  title: `${t('pets_title')} · ${t('app_name')}`,
-}))
+// useHead(() => ({
+//   title: `${t('pets_title')} · ${t('app_name')}`,
+// }))
+useSeoMeta({
+  title: 'All Pet Memorials',
+
+  description:
+    'Browse all beloved pets remembered on PetMemory. Visit their memorial pages, leave messages, and share in their memory.',
+
+  ogTitle: 'All Pet Memorials - PetMemory',
+  ogDescription: 'Browse all beloved pets remembered on PetMemory.',
+  ogImage: 'https://music.petmemory.me/og-cover.jpg',
+  ogImageWidth: 1200,
+  ogImageHeight: 600,
+  ogType: 'website',
+  ogUrl: 'https://www.petmemory.me/pets',
+
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'All Pet Memorials - PetMemory',
+  twitterDescription: 'Browse all beloved pets remembered on PetMemory.',
+  twitterImage: 'https://music.petmemory.me/og-cover.jpg',
+})
 </script>
 
 <template>

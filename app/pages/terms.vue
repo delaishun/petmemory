@@ -49,6 +49,12 @@ const sections = computed(() => [
     content: t('terms_sec9_desc'),
   },
 ])
+
+useSeoMeta({
+  title: 'Terms of Service',
+  description: 'PetMemory terms of service and user agreement.',
+  robots: 'noindex, follow',
+})
 </script>
 
 <template>

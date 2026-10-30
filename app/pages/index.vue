@@ -212,15 +212,44 @@ function formatDate(iso: string) {
 // 标题 & SEO
 // ============================================================
 
-useHead(() => ({
-  title: `${t('app_name')} · ${t('home_slogan')}`,
-  meta: [
-    {
-      name: 'description',
-      content: t('home_seo_desc'),
-    },
-  ],
-}));
+// useHead(() => ({
+//   title: `${t('app_name')} · ${t('home_slogan')}`,
+//   meta: [
+//     {
+//       name: 'description',
+//       content: t('home_seo_desc'),
+//     },
+//   ],
+// }));
+// ============================================================
+// SEO
+// ============================================================
+
+useSeoMeta({
+  // 交给 nuxt.config.ts 的 titleTemplate 拼成完整首页标题：
+  // 'PetMemory' → 'PetMemory - Pet Memorial | Virtual Pet Sanctuary'
+  title: 'PetMemory',
+
+  description:
+    'Create a lasting memorial page for your beloved pet. Share photos, leave messages, exchange gifts, and keep their memory alive in a peaceful virtual sanctuary.',
+
+  // Open Graph（社交分享）
+  ogTitle: 'PetMemory - Virtual Pet Memorial & Sanctuary',
+  ogDescription:
+    'Create a lasting memorial page for your beloved pet. Share photos, leave messages, and keep their memory alive.',
+  ogImage: 'https://music.petmemory.me/og-cover.jpg',
+  ogImageWidth: 1200,
+  ogImageHeight: 600,
+  ogType: 'website',
+  ogUrl: 'https://www.petmemory.me/',
+
+  // Twitter / X
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'PetMemory - Virtual Pet Memorial & Sanctuary',
+  twitterDescription:
+    'Create a lasting memorial page for your beloved pet.',
+  twitterImage: 'https://music.petmemory.me/og-cover.jpg',
+})
 </script>
 
 <template>
@@ -587,7 +616,7 @@ useHead(() => ({
   align-items: center;
   overflow: hidden;
 
-  background-image: url('https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/banner.jpg');
+  background-image: url('https://music.petmemory.me/banner.jpg');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center 80%;

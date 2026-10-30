@@ -76,15 +76,36 @@ const defaultArticleCover =
 // ============================================================
 // SEO
 // ============================================================
-useHead(() => ({
-  title: `${t('articles_title')} · ${t('app_name')}`,
-  meta: [
-    {
-      name: 'description',
-      content: '关于爱、记忆与陪伴的宠物纪念文章。'
-    }
-  ]
-}))
+// useHead(() => ({
+//   title: `${t('articles_title')} · ${t('app_name')}`,
+//   meta: [
+//     {
+//       name: 'description',
+//       content: '关于爱、记忆与陪伴的宠物纪念文章。'
+//     }
+//   ]
+// }))
+useSeoMeta({
+  title: 'Pet Memorial Articles & Guides',
+
+  description:
+    'Guides, stories, and resources about pet loss, remembrance, and creating meaningful memorials for your beloved companions.',
+
+  ogTitle: 'Pet Memorial Articles & Guides - PetMemory',
+  ogDescription:
+    'Guides, stories, and resources about pet loss and remembrance.',
+  ogImage: 'https://music.petmemory.me/og-cover.jpg',
+  ogImageWidth: 1200,
+  ogImageHeight: 600,
+  ogType: 'website',
+  ogUrl: 'https://www.petmemory.me/articles',
+
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Pet Memorial Articles & Guides - PetMemory',
+  twitterDescription:
+    'Guides, stories, and resources about pet loss and remembrance.',
+  twitterImage: 'https://music.petmemory.me/og-cover.jpg',
+})
 </script>
 
 <template>

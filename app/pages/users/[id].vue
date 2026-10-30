@@ -304,9 +304,14 @@ async function handleLogout() {
   await navigateTo('/')
 }
 
-useHead(() => ({
+// useHead(() => ({
+//   title: user.value ? `${user.value.nickname} · ${t('app_name')}` : `${t('user_profile')} · ${t('app_name')}`,
+// }))
+useSeoMeta({
   title: user.value ? `${user.value.nickname} · ${t('app_name')}` : `${t('user_profile')} · ${t('app_name')}`,
-}))
+  description: 'View memorials for pets remembered by this user on PetMemory.',
+  robots: 'noindex, follow',
+})
 </script>
 
 <template>
