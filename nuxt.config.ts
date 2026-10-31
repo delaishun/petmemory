@@ -121,7 +121,7 @@ export default defineNuxtConfig({
       ossBaseUrl: 'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com',
       googleClientId:
         '120679372597-3gu57t735ah595vap1489hm975vq4uqe.apps.googleusercontent.com',
-      paddleClientToken: 'test_d2ede7ad3346bc1c22aa2268739',
+      paddleClientToken: 'live_a13155a4f9309f40374ce0dc163',
     },
   },
 })
