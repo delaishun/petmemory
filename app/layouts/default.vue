@@ -46,7 +46,13 @@ const year = new Date().getFullYear();
       <div class="container site-header__inner">
         <!-- 左：Logo -->
         <NuxtLink to="/" class="site-header__logo">
-          <img src="/favicon-32x32.png" alt="Logo" class="site-header__logo-icon" />
+          <span class="site-header__logo-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path
+                d="M12 21s-6.7-4.3-9.3-8.1C.6 9.9 2.2 6 6.1 6c2 0 3.5 1.1 4.4 2.4l1.5 2.1 1.5-2.1C14.4 7.1 15.9 6 17.9 6c3.9 0 5.5 3.9 3.4 6.9C18.7 16.7 12 21 12 21z"
+              />
+            </svg>
+          </span>
           <span class="site-header__logo-text serif">{{ t("app_name") }}</span>
         </NuxtLink>
 
@@ -150,9 +156,7 @@ const year = new Date().getFullYear();
           <NuxtLink to="/privacy" class="site-footer__link">{{
             t("privacy_title")
           }}</NuxtLink>
-          <NuxtLink to="/refund" class="site-footer__link">{{
-            t("refund_title")
-          }}</NuxtLink>
+          <NuxtLink to="/refund" class="site-footer__link">{{ t("refund_title") }}</NuxtLink>
         </div>
       </div>
 
@@ -229,12 +233,15 @@ const year = new Date().getFullYear();
   }
 
   &__logo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 30px;
     height: 30px;
-    object-fit: cover; // 确保图片不变形
-    border-radius: 50%; // 如果原图是方形的，这里会将其裁剪为圆形。如果原图已经是圆形，这行可以保留
-    display: block;
-    // 去掉了原来的 background 和 box-shadow，让图标更自然
+    border-radius: 50%;
+    background: @accent;
+    color: @ink-1;
+    box-shadow: 0 2px 6px fade(@accent, 45%);
   }
 
   &__logo-text {

@@ -1,8 +1,8 @@
 <!-- app/pages/index.vue -->
 <script setup lang="ts">
-import { showToast } from 'vant'
-import { useI18n } from '~/composables/useI18n'
-import type { AuthUser } from '~/types/auth'
+import { showToast } from "vant";
+import { useI18n } from "~/composables/useI18n";
+import type { AuthUser } from "~/types/auth";
 
 // ============================================================
 // 类型
@@ -65,17 +65,17 @@ interface HomeMessage {
 
 // 👇 新增：文章类型
 interface HomeArticle {
-  id: number
-  slug: string
-  title: string
-  imageUrl: string
-  createdAt: string
+  id: number;
+  slug: string;
+  title: string;
+  imageUrl: string;
+  createdAt: string;
 }
 
 // ============================================================
 // 国际化
 // ============================================================
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
 // ============================================================
 // 数据（请求并行）
@@ -101,9 +101,11 @@ const { data: recentMessages, pending: messagesPending } = await useAsyncData<
 >("home:messages", () => $api<HomeMessage[]>(`/api/home/messages?limit=${HOME_LIMIT}`));
 
 // 👇 新增：获取最近的文章
-const { data: recentArticles, pending: articlesPending } = await useAsyncData<{ items: HomeArticle[], total: number }>(
-  "home:articles",
-  () => $api<{ items: HomeArticle[], total: number }>(`/api/articles?limit=${ARTICLE_LIMIT}`)
+const { data: recentArticles, pending: articlesPending } = await useAsyncData<{
+  items: HomeArticle[];
+  total: number;
+}>("home:articles", () =>
+  $api<{ items: HomeArticle[]; total: number }>(`/api/articles?limit=${ARTICLE_LIMIT}`)
 );
 
 // ============================================================
@@ -131,8 +133,8 @@ const defaultUserAvatar =
   );
 
 // 👇 新增：文章封面兜底图
-const defaultArticleCover = 
-  'data:image/svg+xml;utf8,' +
+const defaultArticleCover =
+  "data:image/svg+xml;utf8," +
   encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
        <rect width="800" height="450" fill="#F9F7F3"/>
@@ -156,17 +158,17 @@ function handleGiftClick(gift: HomeGift) {
 // ============================================================
 // 定制手绘 & 登录控制
 // ============================================================
-const me = useState<AuthUser | null>('auth:user', () => null)
-const loginModalVisible = ref(false)
-const customOrderModalVisible = ref(false)
+const me = useState<AuthUser | null>("auth:user", () => null);
+const loginModalVisible = ref(false);
+const customOrderModalVisible = ref(false);
 
 function handleCustomOrder() {
   if (!me.value) {
-    showToast(t('msg_please_login') || '请先登录')
-    loginModalVisible.value = true
-    return
+    showToast(t("msg_please_login") || "请先登录");
+    loginModalVisible.value = true;
+    return;
   }
-  customOrderModalVisible.value = true
+  customOrderModalVisible.value = true;
 }
 
 // ============================================================
@@ -181,10 +183,10 @@ function formatTime(iso: string): string {
   const hour = 60 * minute;
   const day = 24 * hour;
 
-  if (diff < minute) return t('time_just_now');
-  if (diff < hour) return t('time_mins_ago', { n: Math.floor(diff / minute) });
-  if (diff < day) return t('time_hours_ago', { n: Math.floor(diff / hour) });
-  if (diff < 7 * day) return t('time_days_ago', { n: Math.floor(diff / day) });
+  if (diff < minute) return t("time_just_now");
+  if (diff < hour) return t("time_mins_ago", { n: Math.floor(diff / minute) });
+  if (diff < day) return t("time_hours_ago", { n: Math.floor(diff / hour) });
+  if (diff < 7 * day) return t("time_days_ago", { n: Math.floor(diff / day) });
 
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -204,8 +206,10 @@ function formatFullTime(iso: string): string {
 
 // 文章日期格式化
 function formatDate(iso: string) {
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
 }
 
 // ============================================================
@@ -228,28 +232,27 @@ function formatDate(iso: string) {
 useSeoMeta({
   // 交给 nuxt.config.ts 的 titleTemplate 拼成完整首页标题：
   // 'PetMemory' → 'PetMemory - Pet Memorial | Virtual Pet Sanctuary'
-  title: 'PetMemory',
+  title: "PetMemory",
 
   description:
-    'Create a lasting memorial page for your beloved pet. Share photos, leave messages, exchange gifts, and keep their memory alive in a peaceful virtual sanctuary.',
+    "Create a lasting memorial page for your beloved pet. Share photos, leave messages, exchange gifts, and keep their memory alive in a peaceful virtual sanctuary.",
 
   // Open Graph（社交分享）
-  ogTitle: 'PetMemory - Virtual Pet Memorial & Sanctuary',
+  ogTitle: "PetMemory - Virtual Pet Memorial & Sanctuary",
   ogDescription:
-    'Create a lasting memorial page for your beloved pet. Share photos, leave messages, and keep their memory alive.',
-  ogImage: 'https://music.petmemory.me/og-cover.jpg',
+    "Create a lasting memorial page for your beloved pet. Share photos, leave messages, and keep their memory alive.",
+  ogImage: "https://music.petmemory.me/og-cover.jpg",
   ogImageWidth: 1200,
   ogImageHeight: 600,
-  ogType: 'website',
-  ogUrl: 'https://www.petmemory.me/',
+  ogType: "website",
+  ogUrl: "https://www.petmemory.me/",
 
   // Twitter / X
-  twitterCard: 'summary_large_image',
-  twitterTitle: 'PetMemory - Virtual Pet Memorial & Sanctuary',
-  twitterDescription:
-    'Create a lasting memorial page for your beloved pet.',
-  twitterImage: 'https://music.petmemory.me/og-cover.jpg',
-})
+  twitterCard: "summary_large_image",
+  twitterTitle: "PetMemory - Virtual Pet Memorial & Sanctuary",
+  twitterDescription: "Create a lasting memorial page for your beloved pet.",
+  twitterImage: "https://music.petmemory.me/og-cover.jpg",
+});
 </script>
 
 <template>
@@ -257,7 +260,7 @@ useSeoMeta({
     <div class="container">
       <!-- 首屏欢迎语 (Banner) -->
       <header class="home-hero">
-        <h1 class="home-hero__title">{{ t('app_name') }}</h1>
+        <h1 class="home-hero__title">{{ t("app_name") }}</h1>
       </header>
 
       <!-- ============================================ -->
@@ -266,11 +269,18 @@ useSeoMeta({
       <section class="home-section">
         <div class="section-title">
           <div class="section-title__left">
-            <h2 class="section-title__main">{{ t('home_about_title') }}</h2>
+            <h2 class="section-title__main">{{ t("home_about_title") }}</h2>
           </div>
         </div>
         <div class="home-about">
-          <p class="home-about__desc">{{ t('home_seo_desc') }}</p>
+          <div class="home-about__image-wrap">
+            <img
+              src="https://music.petmemory.me/cat128.gif"
+              alt="Cat icon"
+              loading="lazy"
+            />
+          </div>
+          <p class="home-about__desc">{{ t("home_seo_desc") }}</p>
         </div>
       </section>
 
@@ -280,9 +290,11 @@ useSeoMeta({
       <section class="home-section">
         <div class="section-title">
           <div class="section-title__left">
-            <h2 class="section-title__main">{{ t('home_recent_pets') }}</h2>
+            <h2 class="section-title__main">{{ t("home_recent_pets") }}</h2>
           </div>
-          <NuxtLink to="/pets" class="section-title__more">{{ t('home_all_pets') }}</NuxtLink>
+          <NuxtLink to="/pets" class="section-title__more">{{
+            t("home_all_pets")
+          }}</NuxtLink>
         </div>
 
         <!-- 加载中 -->
@@ -300,7 +312,7 @@ useSeoMeta({
 
         <!-- 空状态 -->
         <div v-else class="home-section__empty">
-          <p>{{ t('home_empty_pets') }}</p>
+          <p>{{ t("home_empty_pets") }}</p>
         </div>
       </section>
 
@@ -310,7 +322,7 @@ useSeoMeta({
       <section class="home-section">
         <div class="section-title">
           <div class="section-title__left">
-            <h2 class="section-title__main">{{ t('home_recent_gifts') }}</h2>
+            <h2 class="section-title__main">{{ t("home_recent_gifts") }}</h2>
           </div>
         </div>
 
@@ -326,7 +338,9 @@ useSeoMeta({
             :key="item.id"
             type="button"
             class="gift-chip"
-            :title="t('home_gift_tooltip', { sender: item.sender.nickname, pet: item.pet.name })"
+            :title="
+              t('home_gift_tooltip', { sender: item.sender.nickname, pet: item.pet.name })
+            "
             @click="handleGiftClick(item)"
           >
             <img
@@ -347,7 +361,7 @@ useSeoMeta({
 
         <!-- 空状态 -->
         <div v-else class="home-section__empty">
-          <p>{{ t('home_empty_gifts') }}</p>
+          <p>{{ t("home_empty_gifts") }}</p>
         </div>
       </section>
 
@@ -357,7 +371,7 @@ useSeoMeta({
       <section class="home-section">
         <div class="section-title">
           <div class="section-title__left">
-            <h2 class="section-title__main">{{ t('home_recent_messages') }}</h2>
+            <h2 class="section-title__main">{{ t("home_recent_messages") }}</h2>
           </div>
         </div>
 
@@ -400,13 +414,13 @@ useSeoMeta({
                   {{ msg.author.nickname }}
                 </span>
 
-                <span class="msg-item__action">{{ t('msg_to') }}</span>
+                <span class="msg-item__action">{{ t("msg_to") }}</span>
 
                 <NuxtLink :to="`/pets/${msg.pet.slug}`" class="msg-item__pet-name">
                   {{ msg.pet.name }}
                 </NuxtLink>
 
-                <span class="msg-item__action">{{ t('msg_action') }}</span>
+                <span class="msg-item__action">{{ t("msg_action") }}</span>
                 <span class="msg-item__time">
                   {{ formatTime(msg.createdAt) }}
                 </span>
@@ -418,7 +432,7 @@ useSeoMeta({
 
         <!-- 空状态 -->
         <div v-else class="home-section__empty">
-          <p>{{ t('home_empty_messages') }}</p>
+          <p>{{ t("home_empty_messages") }}</p>
         </div>
       </section>
 
@@ -428,37 +442,33 @@ useSeoMeta({
       <section class="home-section">
         <div class="section-title">
           <div class="section-title__left">
-            <h2 class="section-title__main">{{ t('home_drawing_title') }}</h2>
+            <h2 class="section-title__main">{{ t("home_drawing_title") }}</h2>
           </div>
         </div>
         <div class="home-drawing">
           <div class="home-drawing__info">
-            <p class="home-drawing__desc">{{ t('home_drawing_desc') }}</p>
-            
+            <p class="home-drawing__desc">{{ t("home_drawing_desc") }}</p>
+
             <button
               type="button"
               class="btn btn--primary home-drawing__cta"
               @click="handleCustomOrder"
             >
-              {{ t('home_drawing_cta') }}
+              {{ t("home_drawing_cta") }}
             </button>
           </div>
           <div class="home-drawing__gallery">
             <figure class="home-drawing__item">
-              <img 
-                src="https://music.petmemory.me/example2.jpg" 
-                alt="Hand-drawn example" 
-                loading="lazy" 
+              <img
+                src="https://music.petmemory.me/example2.jpg"
+                alt="Hand-drawn example"
+                loading="lazy"
               />
-              <figcaption>{{ t('home_drawing_example_label') }}</figcaption>
+              <figcaption>{{ t("home_drawing_example_label") }}</figcaption>
             </figure>
             <figure class="home-drawing__item">
-              <img 
-                src="https://music.petmemory.me/66.jpg" 
-                alt="Artist" 
-                loading="lazy" 
-              />
-              <figcaption>{{ t('home_drawing_artist_label') }}</figcaption>
+              <img src="https://music.petmemory.me/66.jpg" alt="Artist" loading="lazy" />
+              <figcaption>{{ t("home_drawing_artist_label") }}</figcaption>
             </figure>
           </div>
         </div>
@@ -467,20 +477,27 @@ useSeoMeta({
       <!-- ============================================ -->
       <!-- 5. 宠物文章 (新增)                            -->
       <!-- ============================================ -->
-      <section class="home-section" v-if="articlesPending || (recentArticles && recentArticles.items.length > 0)">
+      <section
+        class="home-section"
+        v-if="articlesPending || (recentArticles && recentArticles.items.length > 0)"
+      >
         <div class="section-title">
           <div class="section-title__left">
-            <h2 class="section-title__main">{{ t('home_articles_title') }}</h2>
+            <h2 class="section-title__main">{{ t("home_articles_title") }}</h2>
           </div>
           <NuxtLink to="/articles" class="section-title__more">
-            {{ t('home_articles_more') }}
+            {{ t("home_articles_more") }}
             <van-icon name="arrow" />
           </NuxtLink>
         </div>
 
         <!-- 加载中 -->
         <div v-if="articlesPending" class="article-grid-home">
-          <div v-for="i in 4" :key="i" class="article-card-home article-card-home--skeleton">
+          <div
+            v-for="i in 4"
+            :key="i"
+            class="article-card-home article-card-home--skeleton"
+          >
             <div class="skeleton article-card-home__img-skeleton" />
             <div class="skeleton article-card-home__title-skeleton" />
           </div>
@@ -495,20 +512,21 @@ useSeoMeta({
             class="article-card-home"
           >
             <div class="article-card-home__img-wrap">
-              <img 
-                :src="item.imageUrl || defaultArticleCover" 
-                :alt="item.title" 
-                loading="lazy" 
+              <img
+                :src="item.imageUrl || defaultArticleCover"
+                :alt="item.title"
+                loading="lazy"
               />
             </div>
             <div class="article-card-home__content">
               <h3 class="article-card-home__title">{{ item.title }}</h3>
-              <time class="article-card-home__date">{{ formatDate(item.createdAt) }}</time>
+              <time class="article-card-home__date">{{
+                formatDate(item.createdAt)
+              }}</time>
             </div>
           </NuxtLink>
         </div>
       </section>
-
     </div>
 
     <!-- ============================================ -->
@@ -525,12 +543,12 @@ useSeoMeta({
           <img :src="currentGift.gift.imageUrl" :alt="currentGift.gift.name" />
         </div>
         <p class="gift-record__label">
-          {{ t('gift_record_label') }}<strong>{{ currentGift.gift.name }}</strong>
+          {{ t("gift_record_label") }}<strong>{{ currentGift.gift.name }}</strong>
         </p>
 
         <div class="gift-record__divider" />
 
-        <p class="gift-record__from">{{ t('gift_record_from') }}</p>
+        <p class="gift-record__from">{{ t("gift_record_from") }}</p>
 
         <NuxtLink
           v-if="currentGift.sender.id"
@@ -550,11 +568,11 @@ useSeoMeta({
         <div v-else class="gift-record__sender gift-record__sender--anon">
           <img class="gift-record__avatar" :src="defaultUserAvatar" alt="anon" />
           <span class="gift-record__name">
-            {{ currentGift.sender.nickname || t('gift_record_anon') }}
+            {{ currentGift.sender.nickname || t("gift_record_anon") }}
           </span>
         </div>
 
-        <p class="gift-record__to">{{ t('gift_record_to') }}</p>
+        <p class="gift-record__to">{{ t("gift_record_to") }}</p>
         <NuxtLink
           :to="`/pets/${currentGift.pet.slug}`"
           class="gift-record__sender"
@@ -579,14 +597,14 @@ useSeoMeta({
           class="btn btn--primary gift-record__close"
           @click="giftModalVisible = false"
         >
-          {{ t('btn_close') }}
+          {{ t("btn_close") }}
         </button>
       </div>
     </van-popup>
 
     <!-- 定制手绘弹窗 -->
     <CustomOrderModal v-model="customOrderModalVisible" @success="() => {}" />
-    
+
     <!-- 登录弹窗 -->
     <LoginModal v-model="loginModalVisible" />
   </div>
@@ -608,7 +626,7 @@ useSeoMeta({
 .home-hero {
   position: relative;
   text-align: center;
-  padding: @sp-8 @sp-4 160px; 
+  padding: @sp-8 @sp-4 160px;
   min-height: 420px;
   display: flex;
   flex-direction: column;
@@ -616,7 +634,7 @@ useSeoMeta({
   align-items: center;
   overflow: hidden;
 
-  background-image: url('https://music.petmemory.me/banner.jpg');
+  background-image: url("https://music.petmemory.me/banner.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center 80%;
@@ -638,8 +656,8 @@ useSeoMeta({
     z-index: 1;
     margin: 0;
     margin-top: -30px;
-    font-size: 52px; 
-    font-family: 'Comic Sans MS', 'Chalkboard SE', 'YouYuan', 'PingFang SC', sans-serif;
+    font-size: 52px;
+    font-family: "Comic Sans MS", "Chalkboard SE", "YouYuan", "PingFang SC", sans-serif;
     font-weight: 800;
     color: @ink-1;
     letter-spacing: 0.08em;
@@ -667,7 +685,7 @@ useSeoMeta({
 
   &:first-of-type {
     .section-title {
-      border-bottom: none; 
+      border-bottom: none;
     }
   }
 
@@ -713,7 +731,7 @@ useSeoMeta({
   justify-content: center;
   gap: @sp-4;
   padding: @sp-5 @sp-4;
-  min-height: 240px; 
+  min-height: 240px;
   background-color: @surface;
   border: 1px solid @border;
   border-radius: @radius-lg;
@@ -969,16 +987,44 @@ useSeoMeta({
 // ============================================================
 // 4. 关于宠忆
 // ============================================================
+// ============================================================
+// 4. 关于宠忆
+// ============================================================
 .home-about {
   padding: @sp-6 @sp-5;
   background: @surface;
   border: 1px solid @border;
   border-radius: @radius-lg;
-  text-align: center;
   box-shadow: @shadow-1;
+  
+  // 👇 改为 Flex 横向布局
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: @sp-5;
+
+  // 👇 移动端改为垂直排列
+  @media (max-width: @bp-sm) {
+    flex-direction: column;
+    gap: @sp-3;
+    padding: @sp-5 @sp-4;
+  }
+
+  &__image-wrap {
+    flex-shrink: 0;
+    width: 128px;
+    height: 128px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+  }
 
   &__desc {
-    margin: 0 auto;
+    margin: 0;
     max-width: 700px;
     font-size: @fs-base;
     color: @ink-2;
@@ -1104,7 +1150,8 @@ useSeoMeta({
   text-decoration: none;
   color: inherit;
   box-shadow: @shadow-1;
-  transition: transform @dur-fast ease, box-shadow @dur-fast ease, border-color @dur-fast ease;
+  transition: transform @dur-fast ease, box-shadow @dur-fast ease,
+    border-color @dur-fast ease;
 
   &:hover {
     transform: translateY(-3px);
