@@ -59,7 +59,8 @@ const exchangeSelections = ref<Record<string, number>>({})
 // 常量
 const MIN_PURCHASE_PRICE = 500 // $5.00
 const EXCHANGE_COST = 1000 // 1000 积分
-const ALLOWED_EXCHANGE_CODES = ['bone', 'carrot', 'corn']
+// 👇 修改点：加入 'biscuit' 允许兑换
+const ALLOWED_EXCHANGE_CODES = ['bone', 'carrot', 'corn', 'biscuit']
 
 // Paddle 安全加载
 declare global {
