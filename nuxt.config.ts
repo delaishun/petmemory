@@ -165,7 +165,8 @@ export default defineNuxtConfig({
       googleClientId:
         '120679372597-3gu57t735ah595vap1489hm975vq4uqe.apps.googleusercontent.com',
       // 注意：保留了你当前使用的 live 生产环境 token
-      paddleClientToken: 'live_a13155a4f9309f40374ce0dc163',
+      paddleClientToken: 'test_d2ede7ad3346bc1c22aa2268739',   //sandbox
+      // paddleClientToken: 'live_a13155a4f9309f40374ce0dc163',  //product
     },
   },
 })
