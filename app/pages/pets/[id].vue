@@ -139,10 +139,10 @@ const { data: photos, refresh: refreshPhotos } = await useAsyncData<PhotoPublic[
   () => $api<PhotoPublic[]>(`/api/pets/${slug.value}/photos`)
 );
 
-const { data: messages } = await useAsyncData<MessagePage>(
+const { data: messages, refresh: refreshMessages } = await useAsyncData<MessagePage>(
   () => `pet:${slug.value}:messages`,
   () => $api<MessagePage>(`/api/pets/${slug.value}/messages?limit=${PAGE_SIZE}&offset=0`)
-);
+)
 
 const { data: giftSummary } = await useAsyncData<PetGiftSummary[]>(
   () => `pet:${slug.value}:gifts`,
@@ -668,7 +668,14 @@ async function onBuyGiftSuccess() {
 
 async function onGiftsSent(summary: PetGiftSummary[]) {
   giftSummary.value = summary;
-  await Promise.all([refreshGiftRecords(), refreshPet(), refreshMe()]);
+  // 👇 修改：把留言和对话也加入刷新队列，确保数据完全同步
+  await Promise.all([
+    refreshGiftRecords(), 
+    refreshPet(), 
+    refreshMe(),
+    refreshMessages(),      // 刷新留言
+    refreshPublicChat()     // 刷新对话
+  ]);
   showToast({ type: "success", message: t("gift_bonus_points") });
 
   // 播放宠物叫声
