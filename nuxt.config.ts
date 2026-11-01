@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@vant/nuxt'],
+  modules: ['@vant/nuxt', '@nuxtjs/sitemap'],
   css: [
     'vant/lib/index.css',
     '~/assets/css/common.less',
@@ -142,9 +142,14 @@ export default defineNuxtConfig({
     '/petadm/**': { swr: false },
   },
 
+  sitemap: {
+    sources: ['/api/__sitemap__/urls'], // 注册刚才创建的端点
+  },
+
   runtimeConfig: {
     public: {
       apiBase: 'https://api.petmemory.me',
+      siteUrl: 'https://www.petmemory.me', // 确保与你的生产域名一致
       ossBaseUrl: 'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com',
       googleClientId:
         '120679372597-3gu57t735ah595vap1489hm975vq4uqe.apps.googleusercontent.com',
