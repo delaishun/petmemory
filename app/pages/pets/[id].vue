@@ -431,9 +431,17 @@ function handleEdit() {
   editPetModalVisible.value = true;
 }
 
-function onPetUpdated(updated: PetPublic) {
+async function onPetUpdated(updated: PetPublic) {
   if (!pet.value) return;
   pet.value = { ...pet.value, ...updated };
+
+  // 2. 强制绕过 CDN 缓存，直接向后端 API 请求最新全量数据
+  try {
+    const freshData = await $api<PetDetail>(`/api/pets/${slug.value}`);
+    pet.value = freshData;
+  } catch (err) {
+    console.warn("拉取最新数据失败，使用局部更新", err);
+  }
 }
 
 // ============================================================
@@ -1433,6 +1441,7 @@ useHead(() => ({
     <EditPetModal
       v-model="editPetModalVisible"
       :pet="editablePet"
+      :key="pet ? `${pet.name}-${pet.bio}-${pet.personality}-${pet.species}` : 'no-pet'"
       @success="onPetUpdated"
     />
 
