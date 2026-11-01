@@ -25,6 +25,12 @@ interface AdminUserDetail {
   createdAt: string
 }
 
+interface GiftItem {
+  id: number
+  name: string
+  price: number
+}
+
 // ============================================================
 // 状态
 // ============================================================
@@ -45,6 +51,11 @@ const minVipDate = new Date()
 // 积分输入框
 const pointAmount = ref<number | ''>('')
 
+// 赠送礼物相关
+const gifts = ref<GiftItem[]>([])
+const selectedGiftId = ref<number | ''>('')
+const giftQuantity = ref(1)
+
 // ============================================================
 // 初始化加载
 // ============================================================
@@ -60,8 +71,17 @@ async function loadUser() {
   }
 }
 
+async function loadGifts() {
+  try {
+    gifts.value = await $api<GiftItem[]>('/api/gifts')
+  } catch (err) {
+    console.error('加载礼物列表失败', err)
+  }
+}
+
 onMounted(() => {
   loadUser()
+  loadGifts()
 })
 
 // ============================================================
@@ -199,6 +219,33 @@ async function handleAddPoints() {
   }
 }
 
+// ============================================================
+// 4. 赠送礼物
+// ============================================================
+async function handleSendGift() {
+  if (!selectedGiftId.value) return showToast('请选择礼物')
+  if (giftQuantity.value < 1) return showToast('数量至少为 1')
+  if (updating.value) return
+  
+  updating.value = true
+  try {
+    await $api(`/api/users/admin/${userId}/gift`, {
+      method: 'POST',
+      body: { 
+        giftId: Number(selectedGiftId.value), 
+        quantity: giftQuantity.value 
+      },
+    })
+    showToast({ type: 'success', message: '赠送成功' })
+    selectedGiftId.value = ''
+    giftQuantity.value = 1
+  } catch (err: any) {
+    showToast(err?.data?.error || '赠送失败')
+  } finally {
+    updating.value = false
+  }
+}
+
 // 头像兜底
 const defaultAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#F5EEE4"/><circle cx="20" cy="16" r="7" fill="#DCD0BF"/><path d="M6 40c0-8 6-12 14-12s14 4 14 12z" fill="#DCD0BF"/></svg>`)
 </script>
@@ -312,6 +359,31 @@ const defaultAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmln
           />
           <button class="btn btn--primary" :disabled="updating || !pointAmount" @click="handleAddPoints">
             确认调整
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 4. 赠送礼物区 -->
+      <div class="manage-section">
+        <div class="section-title">
+          <h3>赠送礼物</h3>
+          <span class="section-desc">管理员直接向用户的仓库中增加礼物。</span>
+        </div>
+
+        <div class="action-group gift-group">
+          <select v-model="selectedGiftId" class="gift-select" :disabled="updating">
+            <option value="" disabled>请选择要赠送的礼物</option>
+            <option v-for="g in gifts" :key="g.id" :value="g.id">
+              {{ g.name }} (价格: {{ g.price }})
+            </option>
+          </select>
+          
+          <van-stepper v-model="giftQuantity" min="1" integer :disabled="updating" />
+          
+          <button class="btn btn--primary" :disabled="updating || !selectedGiftId" @click="handleSendGift">
+            赠送
           </button>
         </div>
       </div>
@@ -497,21 +569,31 @@ const defaultAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmln
   flex-wrap: wrap;
 }
 
-.point-group {
+.point-group, .gift-group {
   align-items: center;
 
-  .point-input {
-    width: 160px;
+  .point-input, .gift-select {
     height: 36px;
     padding: 0 @sp-3;
     border: 1px solid @border-strong;
     border-radius: @radius;
     font-size: @fs-sm;
     outline: none;
+    background: @surface;
+    color: @ink-1;
     
     &:focus {
       border-color: @accent;
     }
+  }
+
+  .point-input {
+    width: 160px;
+  }
+
+  .gift-select {
+    min-width: 200px;
+    cursor: pointer;
   }
 }
 </style>
