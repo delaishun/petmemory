@@ -113,13 +113,13 @@ useSeoMeta({
     <!-- 页面头部 -->
     <header class="page-header">
       <h1 class="page-title">{{ t('articles_title') }}</h1>
-      <p class="page-desc">关于爱、记忆与陪伴的故事。</p>
+      <p class="page-desc">{{ t('article_page_desc') }}</p>
     </header>
 
     <!-- 空状态 -->
     <div v-if="items.length === 0" class="empty-state">
       <van-icon name="notes-o" size="48" class="empty-icon" />
-      <p>目前还没有发布任何文章。</p>
+      <p>{{ t('article_empty') }}</p>
     </div>
 
     <!-- 文章网格列表 -->
@@ -144,7 +144,7 @@ useSeoMeta({
               {{ new Date(item.createdAt).toLocaleDateString() }}
             </time>
             <span class="article-card__read-more">
-              阅读 <van-icon name="arrow" />
+              {{ t('article_read') }} <van-icon name="arrow" />
             </span>
           </div>
         </div>
@@ -159,13 +159,13 @@ useSeoMeta({
         :disabled="loadingMore" 
         @click="loadMore"
       >
-        {{ loadingMore ? '加载中...' : '显示更多文章' }}
+        {{ loadingMore ? t('pets_loading') : t('article_load_more') }}
       </button>
     </div>
     
     <!-- 底部提示 -->
     <div v-else-if="items.length > 0" class="end-tip">
-      - 已经到底啦 -
+      - {{ t('article_end_tip') }} -
     </div>
   </div>
 </template>

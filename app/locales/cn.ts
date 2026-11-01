@@ -459,6 +459,11 @@ export default {
   seo_tag_love: '跨越时空的爱',
   // --- 文章列表页 ---
   articles_title: '宠物文章',
+  article_page_desc: '关于爱、记忆与陪伴的故事。',
+  article_empty: '目前还没有发布任何文章。',
+  article_read: '阅读',
+  article_load_more: '显示更多文章',
+  article_end_tip: '已经到底啦',
 
   admin_panel: '管理后台',
   admin_title: '管理控制台',

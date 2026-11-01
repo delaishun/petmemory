@@ -459,6 +459,11 @@ export default {
   seo_tag_love: 'Love Across Time and Space',
   // --- Article List Page ---
   articles_title: 'Pet Articles',
+  article_page_desc: 'Stories of love, memory, and companionship.',
+  article_empty: 'No articles have been published yet.',
+  article_read: 'Read',
+  article_load_more: 'Show more articles',
+  article_end_tip: 'You have reached the end',
 
   admin_panel: 'Admin Panel',
   admin_title: 'Admin Console',
