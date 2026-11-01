@@ -568,6 +568,16 @@ useSeoMeta({
             <van-icon name="photo-o" class="vip-popup__item-icon" />
             <span>{{ t('user_vip_desc_2') }}</span>
           </li>
+          <!-- 👇 新增：背景音乐 -->
+          <li class="vip-popup__item">
+            <van-icon name="music-o" class="vip-popup__item-icon" />
+            <span>{{ t('user_vip_desc_3') }}</span>
+          </li>
+          <!-- 👇 新增：相册权益 -->
+          <li class="vip-popup__item">
+            <van-icon name="album-o" class="vip-popup__item-icon" />
+            <span>{{ t('user_vip_desc_4') }}</span>
+          </li>
         </ul>
 
         <button

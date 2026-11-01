@@ -168,6 +168,16 @@ async function handleSubscribe() {
           <van-icon name="success" class="check-icon" />
           <span>{{ t('vip_album_privilege') || '解锁宠物相册上传功能' }}</span>
         </li>
+        <!-- 👇 新增：背景音乐 -->
+        <li class="vip-modal__feature-item">
+          <van-icon name="success" class="check-icon" />
+          <span>{{ t('user_vip_desc_3') }}</span>
+        </li>
+        <!-- 👇 新增：相册权益 -->
+        <li class="vip-modal__feature-item">
+          <van-icon name="success" class="check-icon" />
+          <span>{{ t('user_vip_desc_4') }}</span>
+        </li>
         <li class="vip-modal__feature-item highlight">
           <van-icon name="gold-coin-o" class="check-icon" />
           <span>{{ t('vip_bonus_points_tip') || '开通 VIP 即赠 10,000 积分' }}</span>

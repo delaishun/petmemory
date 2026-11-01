@@ -57,8 +57,10 @@ export default {
   user_add_pet: '+ 添加宠物',
   user_logout: '退出登录',
   user_vip_title: 'VIP 专属特权',
-  user_vip_desc_1: '可以和自己的宠物进行跨时空对话',
-  user_vip_desc_2: '宠物主页享受天堂及节日专属特效房间',
+  user_vip_desc_1: '跨越时空，与心爱的 ta 尽情交谈',
+  user_vip_desc_2: '随节日更替的专属动态背景面板',
+  user_vip_desc_3: '让每一次探望都充满温度的治愈背景音乐',
+  user_vip_desc_4: '珍藏美好瞬间的无限相册空间',
 
   // 页脚
   footer_slogan: '为每一份陪伴，留一个温柔的位置。',

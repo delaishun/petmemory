@@ -57,8 +57,10 @@ export default {
   user_add_pet: '+ Add Pet',
   user_logout: 'Logout',
   user_vip_title: 'VIP Privileges',
-  user_vip_desc_1: 'Chat with your pets across time and space',
-  user_vip_desc_2: 'Pet profiles enjoy Heaven & Festival special effects',
+  user_vip_desc_1: 'Chat with your beloved pets across time and space',
+  user_vip_desc_2: 'Exclusive dynamic background panels that change with festivals',
+  user_vip_desc_3: 'Soothing background music to warm every visit',
+  user_vip_desc_4: 'A boundless album space to cherish beautiful memories',
 
   // 页脚
   footer_slogan: 'Leaving a gentle place for every companionship.',
