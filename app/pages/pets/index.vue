@@ -15,7 +15,7 @@ interface OwnerBrief {
   id: number
   nickname: string
   avatarUrl: string | null
-  isVip?: boolean // 补充 isVip 字段
+  isVip?: boolean
 }
 
 interface PetListItem {
@@ -36,43 +36,41 @@ interface PetListPage {
 }
 
 // ============================================================
-// 数据
+// 数据获取与分页逻辑
 // ============================================================
 
 const { $api } = useNuxtApp()
 
 const PAGE_SIZE = 20
 
-const pets = ref<PetListItem[]>([])
-const total = ref(0)
-
-// 首屏加载
-const initialLoading = ref(true)
-// 加载更多中
-const loadingMore = ref(false)
-// 加载更多失败时的提示
-const loadMoreError = ref('')
-
-const hasMore = computed(() => pets.value.length < total.value)
-
-// 首屏
-const { error: fetchError } = await useAsyncData<PetListPage>(
+// 1. 使用 useAsyncData 获取首屏数据，直接解构出 pending 和 error
+const { data: firstPage, pending, error: fetchError } = await useAsyncData<PetListPage>(
   'pets:list:first',
-  () =>
-    $api<PetListPage>(`/api/pets?limit=${PAGE_SIZE}&offset=0`),
-  {
-    transform: (res) => {
-      pets.value = res.items
-      total.value = res.total
-      initialLoading.value = false
-      return res
-    },
-  },
+  () => $api<PetListPage>(`/api/pets?limit=${PAGE_SIZE}&offset=0`)
 )
 
-// ============================================================
-// 加载更多
-// ============================================================
+// 2. 用于存放“加载更多”的额外数据
+const extraPets = ref<PetListItem[]>([])
+const extraTotal = ref(0)
+
+// 3. 组合所有宠物列表
+const pets = computed(() => {
+  const firstItems = firstPage.value?.items || []
+  return [...firstItems, ...extraPets.value]
+})
+
+// 4. 组合总数量
+const total = computed(() => {
+  // 如果加载过更多，用最新的 total，否则用首屏的 total
+  return extraTotal.value || firstPage.value?.total || 0
+})
+
+// 5. 是否有更多数据
+const hasMore = computed(() => pets.value.length < total.value)
+
+// 加载更多相关状态
+const loadingMore = ref(false)
+const loadMoreError = ref('')
 
 async function loadMore() {
   if (loadingMore.value || !hasMore.value) return
@@ -85,9 +83,9 @@ async function loadMore() {
     const res = await $api<PetListPage>(
       `/api/pets?limit=${PAGE_SIZE}&offset=${pets.value.length}`,
     )
-    // 追加
-    pets.value = [...pets.value, ...res.items]
-    total.value = res.total
+    // 追加数据
+    extraPets.value = [...extraPets.value, ...res.items]
+    extraTotal.value = res.total
   } catch (err: any) {
     loadMoreError.value =
       err?.data?.error ||
@@ -103,15 +101,10 @@ async function loadMore() {
 // 标题
 // ============================================================
 
-// useHead(() => ({
-//   title: `${t('pets_title')} · ${t('app_name')}`,
-// }))
 useSeoMeta({
   title: 'All Pet Memorials',
-
   description:
     'Browse all beloved pets remembered on PetMemory. Visit their memorial pages, leave messages, and share in their memory.',
-
   ogTitle: 'All Pet Memorials - PetMemory',
   ogDescription: 'Browse all beloved pets remembered on PetMemory.',
   ogImage: 'https://music.petmemory.me/og-cover.jpg',
@@ -119,7 +112,6 @@ useSeoMeta({
   ogImageHeight: 600,
   ogType: 'website',
   ogUrl: 'https://www.petmemory.me/pets',
-
   twitterCard: 'summary_large_image',
   twitterTitle: 'All Pet Memorials - PetMemory',
   twitterDescription: 'Browse all beloved pets remembered on PetMemory.',
@@ -134,10 +126,11 @@ useSeoMeta({
       <header class="pets-header">
         <h1 class="pets-header__title serif">{{ t('pets_title') }}</h1>
         <p class="pets-header__subtitle">
-          <template v-if="!initialLoading && total > 0">
+          <!-- 👇 用 pending 替代 initialLoading -->
+          <template v-if="!pending && total > 0">
             {{ t('pets_count_pre') }} <strong>{{ total }}</strong> {{ t('pets_count_suf') }}
           </template>
-          <template v-else-if="!initialLoading">
+          <template v-else-if="!pending">
             {{ t('home_empty_pets') }}
           </template>
           <template v-else>&nbsp;</template>
@@ -150,8 +143,8 @@ useSeoMeta({
         <p class="empty__desc">{{ t('common_retry_later') }}</p>
       </div>
 
-      <!-- 首屏骨架屏 -->
-      <div v-else-if="initialLoading" class="pet-grid">
+      <!-- 首屏骨架屏 👇 用 pending 替代 initialLoading -->
+      <div v-else-if="pending" class="pet-grid">
         <div
           v-for="i in 4"
           :key="i"
@@ -172,13 +165,11 @@ useSeoMeta({
       <!-- 宠物网格 -->
       <template v-else>
         <div class="pet-grid">
-          <!-- 直接使用 PetCard 组件 -->
           <PetCard v-for="pet in pets" :key="pet.id" :pet="pet" />
         </div>
 
         <!-- 加载更多 -->
         <div class="pets-more">
-          <!-- 有更多 -->
           <template v-if="hasMore">
             <button
               type="button"
@@ -193,7 +184,6 @@ useSeoMeta({
             </p>
           </template>
 
-          <!-- 已全部加载 -->
           <p v-else class="pets-more__end">{{ t('pets_no_more') }}</p>
         </div>
       </template>
