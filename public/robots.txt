@@ -1,2 +1,10 @@
 User-Agent: *
-Disallow:
+# 禁止抓取后台管理页面
+Disallow: /petadm/
+# 禁止抓取用户私有主页
+Disallow: /users/
+# 允许抓取其他所有公开页面
+Allow: /
+
+# 声明 Sitemap 地址
+Sitemap: https://www.petmemory.me/sitemap.xml
