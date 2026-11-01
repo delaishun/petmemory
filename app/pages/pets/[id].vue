@@ -1364,10 +1364,6 @@ useHead(() => ({
 
         <!-- 操作区 -->
         <div class="pet-actions">
-          <div v-if="isLoggedIn && myPoint !== undefined" class="pet-actions__points">
-            <van-icon name="gold-coin-o" />
-            <span>{{ t("user_points", { n: myPoint }) }}</span>
-          </div>
 
           <div class="pet-actions__row">
             <button v-if="isOwner" type="button" class="btn btn--lg" @click="handleEdit">
