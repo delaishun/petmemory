@@ -24,21 +24,33 @@ interface ArticleListResponse {
 }
 
 // ============================================================
-// 数据获取
+// 数据获取与分页逻辑
 // ============================================================
-// 初始获取第一页数据 (SSR)
-const { data: initialData } = await useAsyncData<ArticleListResponse>(
+// 1. 初始获取第一页数据 (SSR)，解构出 pending 状态
+const { data: initialData, pending } = await useAsyncData<ArticleListResponse>(
   'articles:list:first',
   () => $api<ArticleListResponse>(`/api/articles?limit=${PAGE_SIZE}&offset=0`)
 )
 
-// 使用 ref 管理列表数据和总数
-const items = ref<ArticleListItem[]>(initialData.value?.items ?? [])
-const total = ref(initialData.value?.total ?? 0)
+// 2. 用于存放“加载更多”的额外数据
+const extraItems = ref<ArticleListItem[]>([])
+const extraTotal = ref(0)
 
+// 3. 组合所有文章列表
+const items = computed(() => {
+  const firstItems = initialData.value?.items || []
+  return [...firstItems, ...extraItems.value]
+})
+
+// 4. 组合总数量
+const total = computed(() => {
+  return extraTotal.value || initialData.value?.total || 0
+})
+
+// 加载更多相关状态
 const loadingMore = ref(false)
 
-// 是否还有更多数据
+// 5. 是否还有更多数据
 const hasMore = computed(() => items.value.length < total.value)
 
 // 加载更多
@@ -50,8 +62,9 @@ async function loadMore() {
     const res = await $api<ArticleListResponse>(
       `/api/articles?limit=${PAGE_SIZE}&offset=${items.value.length}`
     )
-    items.value.push(...res.items)
-    total.value = res.total
+    // 追加数据（用 ref 追加，不修改 computed）
+    extraItems.value = [...extraItems.value, ...res.items]
+    extraTotal.value = res.total
   } catch (err: any) {
     // 可以在这里加一个 Toast 提示
     console.error('加载更多文章失败:', err)
@@ -76,15 +89,6 @@ const defaultArticleCover =
 // ============================================================
 // SEO
 // ============================================================
-// useHead(() => ({
-//   title: `${t('articles_title')} · ${t('app_name')}`,
-//   meta: [
-//     {
-//       name: 'description',
-//       content: '关于爱、记忆与陪伴的宠物纪念文章。'
-//     }
-//   ]
-// }))
 useSeoMeta({
   title: 'Pet Memorial Articles & Guides',
 
@@ -116,8 +120,13 @@ useSeoMeta({
       <p class="page-desc">{{ t('article_page_desc') }}</p>
     </header>
 
+    <!-- 👇 首屏加载中 -->
+    <div v-if="pending" class="loading-state">
+      <van-loading type="spinner" color="#A66039" size="32" />
+    </div>
+
     <!-- 空状态 -->
-    <div v-if="items.length === 0" class="empty-state">
+    <div v-else-if="items.length === 0" class="empty-state">
       <van-icon name="notes-o" size="48" class="empty-icon" />
       <p>{{ t('article_empty') }}</p>
     </div>
@@ -207,8 +216,13 @@ useSeoMeta({
 }
 
 // ============================================================
-// 空状态
+// 状态（加载中 / 空）
 // ============================================================
+.loading-state {
+  text-align: center;
+  padding: @sp-8 0;
+}
+
 .empty-state {
   text-align: center;
   padding: @sp-8 0;
@@ -261,7 +275,7 @@ useSeoMeta({
     }
   }
 
-    &__img-wrap {
+  &__img-wrap {
     aspect-ratio: 16 / 9;
     background: @surface-2;
     overflow: hidden;
@@ -270,7 +284,7 @@ useSeoMeta({
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.4s @ease-out; /* 👈 直接写死 0.4s 即可，或者用 @dur-base */
+      transition: transform 0.4s @ease-out;
       display: block;
     }
   }
