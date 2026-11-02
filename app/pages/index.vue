@@ -85,10 +85,12 @@ const { $api } = useNuxtApp();
 
 const HOME_LIMIT = 10;
 const ARTICLE_LIMIT = 4; // 首页显示 4 篇文章
+const timestamp = Date.now();
 
 const { data: recentPets, pending: petsPending } = await useAsyncData<HomePet[]>(
   "home:pets",
-  () => $api<HomePet[]>(`/api/home/pets?limit=${HOME_LIMIT}`)
+  () => $api<HomePet[]>(`/api/home/pets?limit=${HOME_LIMIT}&_t=${timestamp}`),
+  { getCachedData: () => undefined } // 👈 强制不使用 payload 缓存，每次水合都重新请求
 );
 
 const { data: recentGifts, pending: giftsPending } = await useAsyncData<HomeGift[]>(
