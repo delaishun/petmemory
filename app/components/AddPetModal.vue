@@ -22,11 +22,12 @@ interface PetPublic {
   breed: string
   gender: number
   birthday: string | null
+  leaveDate: string | null // 👈 新增
   hometown: string
   avatarUrl: string
   bio: string
   personality: string
-  soundEffect: string          // ← 新增
+  soundEffect: string
   createdAt: string
 }
 
@@ -60,6 +61,7 @@ const form = reactive({
   hometown: '',
   personality: '',
   birthday: '',
+  leaveDate: '', // 👈 新增
 })
 
 const errors = reactive({
@@ -110,29 +112,52 @@ function detectSoundEffect(speciesStr: string): string {
 }
 
 // ============================================================
-// 生日选择器
+// 日期选择器（通用逻辑）
 // ============================================================
 
-const showDatePicker = ref(false)
-const datePickerValue = ref<string[]>(['2020', '01', '01'])
 const minDate = new Date(2000, 0, 1)
 const maxDate = new Date()
 
-function openDatePicker() {
+// 1. 生日
+const showBirthdayPicker = ref(false)
+const birthdayPickerValue = ref<string[]>(['2020', '01', '01'])
+
+function openBirthdayPicker() {
   if (form.birthday) {
     const [y, m, d] = form.birthday.split('-')
-    if (y && m && d) datePickerValue.value = [y, m, d]
+    if (y && m && d) birthdayPickerValue.value = [y, m, d]
   }
-  showDatePicker.value = true
+  showBirthdayPicker.value = true
 }
 
-function onDateConfirm({ selectedValues }: { selectedValues: string[] }) {
+function onBirthdayConfirm({ selectedValues }: { selectedValues: string[] }) {
   form.birthday = selectedValues.join('-')
-  showDatePicker.value = false
+  showBirthdayPicker.value = false
 }
 
 function clearBirthday() {
   form.birthday = ''
+}
+
+// 2. 离开日期（Pass Date）
+const showLeaveDatePicker = ref(false)
+const leaveDatePickerValue = ref<string[]>(['2024', '01', '01'])
+
+function openLeaveDatePicker() {
+  if (form.leaveDate) {
+    const [y, m, d] = form.leaveDate.split('-')
+    if (y && m && d) leaveDatePickerValue.value = [y, m, d]
+  }
+  showLeaveDatePicker.value = true
+}
+
+function onLeaveDateConfirm({ selectedValues }: { selectedValues: string[] }) {
+  form.leaveDate = selectedValues.join('-')
+  showLeaveDatePicker.value = false
+}
+
+function clearLeaveDate() {
+  form.leaveDate = ''
 }
 
 // ============================================================
@@ -227,8 +252,8 @@ async function handleSubmit() {
         hometown: form.hometown.trim() || undefined,
         personality: form.personality.trim() || undefined,
         birthday: form.birthday || undefined,
+        leaveDate: form.leaveDate || undefined, // 👈 新增
         avatarUrl: url,
-        // 👇 新增：根据物种自动识别传入的叫声参数
         soundEffect: detectSoundEffect(form.species),
       },
     })
@@ -262,6 +287,7 @@ function resetForm() {
   form.hometown = ''
   form.personality = ''
   form.birthday = ''
+  form.leaveDate = '' // 👈 新增
   avatarFile.value = null
   avatarPreview.value = ''
   errors.name = ''
@@ -403,7 +429,7 @@ watch(
         <!-- 生日 -->
         <div class="field">
           <label class="field__label" for="pet-birthday">{{ t('field_birthday') }}</label>
-          <div class="date-field" @click="openDatePicker">
+          <div class="date-field" @click="openBirthdayPicker">
             <span :class="{ 'date-field__placeholder': !form.birthday }">
               {{ form.birthday || t('placeholder_birthday') }}
             </span>
@@ -412,6 +438,22 @@ watch(
               name="cross"
               class="date-field__clear"
               @click.stop="clearBirthday"
+            />
+          </div>
+        </div>
+
+        <!-- 👇 新增：离开日期 -->
+        <div class="field">
+          <label class="field__label" for="pet-leave-date">{{ t('field_leave_date') }}</label>
+          <div class="date-field" @click="openLeaveDatePicker">
+            <span :class="{ 'date-field__placeholder': !form.leaveDate }">
+              {{ form.leaveDate || t('placeholder_leave_date') }}
+            </span>
+            <van-icon
+              v-if="form.leaveDate"
+              name="cross"
+              class="date-field__clear"
+              @click.stop="clearLeaveDate"
             />
           </div>
         </div>
@@ -442,18 +484,35 @@ watch(
 
     <!-- 生日选择器 -->
     <van-popup
-      v-model:show="showDatePicker"
+      v-model:show="showBirthdayPicker"
       position="bottom"
       round
       teleport="body"
     >
       <van-date-picker
-        v-model="datePickerValue"
+        v-model="birthdayPickerValue"
         :title="t('date_picker_title')"
         :min-date="minDate"
         :max-date="maxDate"
-        @confirm="onDateConfirm"
-        @cancel="showDatePicker = false"
+        @confirm="onBirthdayConfirm"
+        @cancel="showBirthdayPicker = false"
+      />
+    </van-popup>
+
+    <!-- 👇 新增：离开日期选择器 -->
+    <van-popup
+      v-model:show="showLeaveDatePicker"
+      position="bottom"
+      round
+      teleport="body"
+    >
+      <van-date-picker
+        v-model="leaveDatePickerValue"
+        :title="t('leave_date_picker_title')"
+        :min-date="minDate"
+        :max-date="maxDate"
+        @confirm="onLeaveDateConfirm"
+        @cancel="showLeaveDatePicker = false"
       />
     </van-popup>
   </van-popup>
@@ -593,7 +652,7 @@ watch(
 }
 
 // ============================================================
-// 生日字段
+// 日期字段
 // ============================================================
 .date-field {
   display: flex;

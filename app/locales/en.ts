@@ -528,4 +528,8 @@ export default {
 
   refund_sec6_title: '6. Contact Us',
   refund_sec6_desc: 'If you have any questions or concerns regarding our Refund Policy, please reach out to us at:',
+
+  field_leave_date: '离开日期 (Pass Date)',
+  placeholder_leave_date: '选择离开日期（选填）',
+  leave_date_picker_title: '选择离开日期',   
 }

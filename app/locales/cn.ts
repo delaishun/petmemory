@@ -530,4 +530,8 @@ export default {
 
   refund_sec6_title: '6. 联系我们',
   refund_sec6_desc: '如果您对本退款政策有任何疑问或疑虑，请通过以下方式联系我们：',
+
+  field_leave_date: '离开日期 (Pass Date)',
+  placeholder_leave_date: '选择离开日期（选填）',
+  leave_date_picker_title: '选择离开日期',  
 }

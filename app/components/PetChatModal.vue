@@ -188,11 +188,20 @@ async function handleSend() {
   scrollToBottom()
 
   try {
+    // 👇 修改点：获取本地时间并带在 body 里
+    const now = new Date()
+    const clientTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    const clientHour = now.getHours()
+
     const res = await $api<SendChatResponse>(
       `/api/pets/${props.slug}/chat`,
       {
         method: 'POST',
-        body: { content },
+        body: { 
+          content,
+          clientTime,
+          clientHour
+        },
       },
     )
 

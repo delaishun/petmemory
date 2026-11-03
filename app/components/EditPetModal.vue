@@ -21,6 +21,7 @@ export interface EditablePet {
   breed: string
   hometown: string
   birthday: string | null   // 'YYYY-MM-DD' 或 null
+  leaveDate: string | null  // 👈 新增
   status: number            // 1=正常 0=隐藏 2=封禁
   personality?: string      // 可选，兜底做兼容
   soundEffect?: string      // 可选，兜底做兼容
@@ -35,6 +36,7 @@ interface PetPublic {
   breed: string
   gender: number
   birthday: string | null
+  leaveDate: string | null  // 👈 新增
   hometown: string
   avatarUrl: string
   bio: string
@@ -75,6 +77,7 @@ const form = reactive({
   hometown: '',
   personality: '',
   birthday: '',        // 'YYYY-MM-DD' 或空
+  leaveDate: '',       // 👈 新增
   hidden: false,       // true = status 0
 })
 
@@ -87,7 +90,7 @@ const errors = reactive({
 const loading = ref(false)
 const { $api } = useNuxtApp()
 
-// 👇 新增：判断是否被封禁
+// 👇 判断是否被封禁
 const isBanned = computed(() => props.pet?.status === 2)
 
 // ============================================================
@@ -123,6 +126,7 @@ function fillFromPet() {
   form.hometown = p.hometown
   form.personality = p.personality ?? ''
   form.birthday = p.birthday ?? ''
+  form.leaveDate = p.leaveDate ?? '' // 👈 新增
   form.hidden = p.status === 0
   errors.name = ''
   errors.species = ''
@@ -147,31 +151,56 @@ watch(
 )
 
 // ============================================================
-// 生日选择器
+// 日期选择器（通用逻辑）
 // ============================================================
 
-const showDatePicker = ref(false)
-const datePickerValue = ref<string[]>(['2020', '01', '01'])
 const minDate = new Date(2000, 0, 1)
 const maxDate = new Date()
 
-function openDatePicker() {
+// 1. 生日
+const showBirthdayPicker = ref(false)
+const birthdayPickerValue = ref<string[]>(['2020', '01', '01'])
+
+function openBirthdayPicker() {
   if (form.birthday) {
     const [y, m, d] = form.birthday.split('-')
-    if (y && m && d) datePickerValue.value = [y, m, d]
+    if (y && m && d) birthdayPickerValue.value = [y, m, d]
   } else {
-    datePickerValue.value = ['2020', '01', '01']
+    birthdayPickerValue.value = ['2020', '01', '01']
   }
-  showDatePicker.value = true
+  showBirthdayPicker.value = true
 }
 
-function onDateConfirm({ selectedValues }: { selectedValues: string[] }) {
+function onBirthdayConfirm({ selectedValues }: { selectedValues: string[] }) {
   form.birthday = selectedValues.join('-')
-  showDatePicker.value = false
+  showBirthdayPicker.value = false
 }
 
 function clearBirthday() {
   form.birthday = ''
+}
+
+// 2. 离开日期（Pass Date）
+const showLeaveDatePicker = ref(false)
+const leaveDatePickerValue = ref<string[]>(['2024', '01', '01'])
+
+function openLeaveDatePicker() {
+  if (form.leaveDate) {
+    const [y, m, d] = form.leaveDate.split('-')
+    if (y && m && d) leaveDatePickerValue.value = [y, m, d]
+  } else {
+    leaveDatePickerValue.value = ['2024', '01', '01']
+  }
+  showLeaveDatePicker.value = true
+}
+
+function onLeaveDateConfirm({ selectedValues }: { selectedValues: string[] }) {
+  form.leaveDate = selectedValues.join('-')
+  showLeaveDatePicker.value = false
+}
+
+function clearLeaveDate() {
+  form.leaveDate = ''
 }
 
 // ============================================================
@@ -214,7 +243,7 @@ async function handleSubmit() {
   errors.global = ''
 
   try {
-    // 👇 构建提交数据
+    // 构建提交数据
     const body: any = {
       name: form.name.trim(),
       species: form.species.trim(),
@@ -222,10 +251,11 @@ async function handleSubmit() {
       hometown: form.hometown.trim(),
       personality: form.personality.trim(),
       birthday: form.birthday || null,
+      leaveDate: form.leaveDate || null, // 👈 新增
       soundEffect: detectSoundEffect(form.species),
     }
 
-    // 👇 核心修改：只有非封禁状态，才提交 status
+    // 核心修改：只有非封禁状态，才提交 status
     if (!isBanned.value) {
       body.status = form.hidden ? 0 : 1
     }
@@ -351,7 +381,7 @@ async function handleSubmit() {
         <!-- 生日 -->
         <div class="field">
           <label class="field__label" for="edit-pet-birthday">{{ t('field_birthday') }}</label>
-          <div class="date-field" @click="openDatePicker">
+          <div class="date-field" @click="openBirthdayPicker">
             <span :class="{ 'date-field__placeholder': !form.birthday }">
               {{ form.birthday || t('placeholder_birthday') }}
             </span>
@@ -360,6 +390,22 @@ async function handleSubmit() {
               name="cross"
               class="date-field__clear"
               @click.stop="clearBirthday"
+            />
+          </div>
+        </div>
+
+        <!-- 👇 新增：离开日期 -->
+        <div class="field">
+          <label class="field__label" for="edit-pet-leave-date">{{ t('field_leave_date') }}</label>
+          <div class="date-field" @click="openLeaveDatePicker">
+            <span :class="{ 'date-field__placeholder': !form.leaveDate }">
+              {{ form.leaveDate || t('placeholder_leave_date') }}
+            </span>
+            <van-icon
+              v-if="form.leaveDate"
+              name="cross"
+              class="date-field__clear"
+              @click.stop="clearLeaveDate"
             />
           </div>
         </div>
@@ -408,18 +454,35 @@ async function handleSubmit() {
 
     <!-- 生日选择器 -->
     <van-popup
-      v-model:show="showDatePicker"
+      v-model:show="showBirthdayPicker"
       position="bottom"
       round
       teleport="body"
     >
       <van-date-picker
-        v-model="datePickerValue"
+        v-model="birthdayPickerValue"
         :title="t('date_picker_title')"
         :min-date="minDate"
         :max-date="maxDate"
-        @confirm="onDateConfirm"
-        @cancel="showDatePicker = false"
+        @confirm="onBirthdayConfirm"
+        @cancel="showBirthdayPicker = false"
+      />
+    </van-popup>
+
+    <!-- 👇 新增：离开日期选择器 -->
+    <van-popup
+      v-model:show="showLeaveDatePicker"
+      position="bottom"
+      round
+      teleport="body"
+    >
+      <van-date-picker
+        v-model="leaveDatePickerValue"
+        :title="t('leave_date_picker_title')"
+        :min-date="minDate"
+        :max-date="maxDate"
+        @confirm="onLeaveDateConfirm"
+        @cancel="showLeaveDatePicker = false"
       />
     </van-popup>
   </van-popup>
@@ -501,7 +564,7 @@ async function handleSubmit() {
 }
 
 // ============================================================
-// 生日字段
+// 日期字段
 // ============================================================
 .date-field {
   display: flex;
@@ -566,7 +629,7 @@ async function handleSubmit() {
     color: @ink-3;
     line-height: 1.4;
 
-    // 👇 新增：封禁警告样式
+    // 封禁警告样式
     &.is-banned-text {
       color: @danger;
       font-weight: 500;

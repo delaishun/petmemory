@@ -32,6 +32,7 @@ interface PetDetail {
   breed: string;
   gender: number;
   birthday: string | null;
+  leaveDate: string | null; // 👈 新增
   hometown: string;
   avatarUrl: string;
   bio: string;
@@ -53,6 +54,7 @@ interface PetPublic {
   breed: string;
   gender: number;
   birthday: string | null;
+  leaveDate: string | null; // 👈 新增
   hometown: string;
   avatarUrl: string;
   bio: string;
@@ -423,6 +425,7 @@ const editablePet = computed<EditablePet | null>(() => {
     personality: pet.value.personality,
     soundEffect: pet.value.soundEffect,
     birthday: pet.value.birthday,
+    leaveDate: pet.value.leaveDate, // 👈 新增
     status: pet.value.status ?? 1,
   };
 });
@@ -825,6 +828,8 @@ const introParts = computed(() => {
     if (genderText.value) parts.push(genderText.value);
     if (p.hometown) parts.push(`${t("from")} ${p.hometown}`);
     if (p.birthday) parts.push(`${t("intro_born_on")} ${p.birthday}`);
+    // 👇 新增：英文展示离开日期
+    if (p.leaveDate) parts.push(`went to heaven on ${p.leaveDate}`);
   } else {
     if (p.species && p.breed) {
       parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")}${p.breed}`);
@@ -837,6 +842,8 @@ const introParts = computed(() => {
     if (genderText.value) parts.push(genderText.value);
     if (p.hometown) parts.push(`${t("from")}${p.hometown}`);
     if (p.birthday) parts.push(`${p.birthday} ${t("intro_born_on")}`);
+    // 👇 新增：中文展示离开日期
+    if (p.leaveDate) parts.push(`${p.leaveDate} 回到了天堂`);
   }
 
   return parts;
@@ -933,11 +940,6 @@ async function copyShareLink() {
 // 标题
 // ============================================================
 
-// useHead(() => ({
-//   title: pet.value
-//     ? `${pet.value.name} · ${t("app_name")}`
-//     : `${t("nav_pets")} · ${t("app_name")}`,
-// }));
 useSeoMeta({
   // title 交给 titleTemplate 自动拼接后缀
   title: () => `${pet.value?.name}'s Memorial`,
@@ -1444,7 +1446,7 @@ useHead(() => ({
     <EditPetModal
       v-model="editPetModalVisible"
       :pet="editablePet"
-      :key="pet ? `${pet.name}-${pet.bio}-${pet.personality}-${pet.species}` : 'no-pet'"
+      :key="pet ? `${pet.name}-${pet.bio}-${pet.personality}-${pet.species}-${pet.leaveDate}` : 'no-pet'"
       @success="onPetUpdated"
     />
 
