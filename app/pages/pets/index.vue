@@ -117,6 +117,11 @@ useSeoMeta({
   twitterDescription: 'Browse all beloved pets remembered on PetMemory.',
   twitterImage: 'https://music.petmemory.me/og-cover.jpg',
 })
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://www.petmemory.me/pets' }
+  ]
+})
 </script>
 
 <template>

@@ -110,6 +110,11 @@ useSeoMeta({
     'Guides, stories, and resources about pet loss and remembrance.',
   twitterImage: 'https://music.petmemory.me/og-cover.jpg',
 })
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://www.petmemory.me/articles' }
+  ]
+})
 </script>
 
 <template>

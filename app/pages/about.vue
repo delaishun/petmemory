@@ -23,6 +23,11 @@ useSeoMeta({
   twitterDescription: 'A peaceful virtual sanctuary for beloved pets.',
   twitterImage: 'https://music.petmemory.me/og-cover.jpg',
 })
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://www.petmemory.me/about' } // 对应修改路径
+  ]
+})
 </script>
 
 <template>

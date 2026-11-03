@@ -254,6 +254,11 @@ useSeoMeta({
   twitterDescription: "Create a lasting memorial page for your beloved pet.",
   twitterImage: "https://music.petmemory.me/og-cover.jpg",
 });
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://www.petmemory.me/' }
+  ]
+})
 </script>
 
 <template>
