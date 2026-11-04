@@ -161,9 +161,36 @@ async function onUpgradeVipSuccess() {
     message: t('vip_subscribe_success') || '支付成功！正在同步 VIP 状态...',
     duration: 3000
   })
-  setTimeout(async () => {
-    await Promise.all([refreshMe(), refreshUser()])
-  }, 2500)
+
+  // 因为 Paddle 的 Webhook 是异步到达服务器的，
+  // 我们采用轮询机制，每隔 2 秒查询一次，最多查 15 次（30秒）
+  let attempts = 0
+  const maxAttempts = 15 
+  
+  const timer = setInterval(async () => {
+    attempts++
+    try {
+      const res = await $api<MeResponse>('/api/auth/me')
+      if (res?.user) {
+        me.value = res.user
+        
+        // 👇 如果拿到了 isVip === true，说明后端 Webhook 处理完毕了
+        if (res.user.isVip) {
+          clearInterval(timer)
+          await refreshUser() // 顺便刷新页面上的用户数据
+          showToast({ type: 'success', message: 'VIP 特权已生效！' })
+        }
+      }
+    } catch (e) {
+      // 网络波动等错误忽略，继续下一次轮询
+    }
+    
+    // 如果到了最大尝试次数，还没成功，就清除定时器并强制刷新一次（兜底）
+    if (attempts >= maxAttempts) {
+      clearInterval(timer)
+      await Promise.all([refreshMe(), refreshUser()])
+    }
+  }, 2000)
 }
 
 // ---------- 添加宠物 ----------
