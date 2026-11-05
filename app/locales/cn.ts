@@ -74,6 +74,7 @@ export default {
   footer_weibo: '微博',
   footer_wechat: '微信公众号',
   footer_copyright: '© {year} {app_name} · 用心记录每一段陪伴',
+  footer_pricing: '价格说明', // 👈 新增
 
   // 通用
   gender_boy: '男孩',
@@ -489,7 +490,7 @@ export default {
   btn_copy: '复制',
   share_link_copied: '链接已复制',
 
-    // 退款政策
+  // 退款政策
   refund_title: '退款政策',
   refund_last_updated: '最后更新日期',
   refund_intro: '感谢您选择「宠忆」(PetMemory)。我们致力于提供温馨、宁静且无缝的纪念空间，以纪念和缅怀您的爱宠。由于我们的服务涉及数字宠物纪念空间和虚拟纪念物品，本退款与取消政策旨在说明您在本平台购物时的权利以及我们的条款。',
@@ -534,4 +535,33 @@ export default {
   field_leave_date: '离开日期 (Pass Date)',
   placeholder_leave_date: '选择离开日期（选填）',
   leave_date_picker_title: '选择离开日期',  
+
+  // --- 价格页面 (新增) ---
+  pricing_title: '价格说明',
+  pricing_intro: '我们提供线上宠物纪念服务，包括 VIP 会员（自定义背景主题、专属音乐、扩容相册）、虚拟礼物以及定制宠物手绘。',
+  pricing_vip_section: 'VIP 会员',
+  pricing_vip_name: 'PetMemory VIP',
+  pricing_vip_f1: '专属动态背景面板',
+  pricing_vip_f2: '轻柔专属背景音乐',
+  pricing_vip_f3: '解锁多张照片相册',
+  pricing_vip_f4: 'AI 宠物谈心功能',
+  pricing_vip_price: '9.9',
+  pricing_vip_period: '/年',
+  pricing_gifts_section: '虚拟礼物',
+  gift_flower: '鲜花',
+  gift_ball: '小球',
+  gift_bone: '骨头',
+  gift_carrot: '胡萝卜',
+  gift_burger: '汉堡',
+  gift_bell: '铃铛',
+  gift_corn: '玉米',
+  gift_nest: '小窝',
+  gift_star: '星星',
+  gift_biscuit: '饼干',
+  gift_candle: '烛光',
+  gift_wings: '天使之翼',
+  gift_crown: '王冠',
+  pricing_portraits_section: '定制宠物手绘',
+  pricing_portrait_1: '定制宠物电子版手绘',
+  pricing_portrait_2: '定制宠物手绘（电子版 & 实体纪念相框）',
 }

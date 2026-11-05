@@ -74,6 +74,7 @@ export default {
   footer_weibo: 'Weibo',
   footer_wechat: 'WeChat',
   footer_copyright: '© {year} {app_name} · Record every companionship with heart',
+  footer_pricing: 'Pricing', // 👈 新增
 
   // 通用
   gender_boy: 'Boy',
@@ -487,7 +488,7 @@ export default {
   btn_copy: 'Copy',
   share_link_copied: 'Link copied to clipboard',
 
-    // Refund Policy
+  // Refund Policy
   refund_title: 'Refund Policy',
   refund_last_updated: 'Last Updated',
   refund_intro: 'Thank you for choosing PetMemory. We strive to provide a compassionate, peaceful, and seamless sanctuary to honor and remember your beloved pets. Because our services involve digital pet memorial spaces and virtual memorial items, this Refund & Cancellation Policy outlines your rights and our terms regarding purchases made on our platform.',
@@ -532,4 +533,33 @@ export default {
   field_leave_date: 'Pass Date',
   placeholder_leave_date: 'Select pass date (Optional)',
   leave_date_picker_title: 'Select Pass Date',
+
+  // --- Pricing Page (新增) ---
+  pricing_title: 'Pricing',
+  pricing_intro: 'We offer online pet memorial services, including VIP subscriptions (custom background themes, special music, and expanded photo albums), virtual gifts, and custom pet portrait artwork.',
+  pricing_vip_section: 'VIP Subscription',
+  pricing_vip_name: 'PetMemory VIP',
+  pricing_vip_f1: 'Custom background themes',
+  pricing_vip_f2: 'Exclusive special music',
+  pricing_vip_f3: 'Expanded photo albums',
+  pricing_vip_f4: 'AI Pet Chat feature',
+  pricing_vip_price: '9.9',
+  pricing_vip_period: '/year',
+  pricing_gifts_section: 'Virtual Gifts',
+  gift_flower: 'Flower',
+  gift_ball: 'Ball',
+  gift_bone: 'Bone',
+  gift_carrot: 'Carrot',
+  gift_burger: 'Burger',
+  gift_bell: 'Bell',
+  gift_corn: 'Corn',
+  gift_nest: 'Nest',
+  gift_star: 'Star',
+  gift_biscuit: 'Biscuit',
+  gift_candle: 'Candle',
+  gift_wings: 'Wings',
+  gift_crown: 'Crown',
+  pricing_portraits_section: 'Custom Portrait Artwork',
+  pricing_portrait_1: 'Custom Digital Pet Portrait Design',
+  pricing_portrait_2: 'Custom Pet Portrait Design (Digital & Print Keepsake)',
 }

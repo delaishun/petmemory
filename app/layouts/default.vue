@@ -144,6 +144,9 @@ const year = new Date().getFullYear();
 
         <!-- 精简后的链接区 -->
         <div class="site-footer__links">
+          <!-- 👇 仅在页脚保留 Pricing 链接 -->
+          <NuxtLink to="/pricing" class="site-footer__link">{{ t("footer_pricing") }}</NuxtLink>
+          
           <NuxtLink to="/about" class="site-footer__link">{{
             t("footer_about_us")
           }}</NuxtLink>
