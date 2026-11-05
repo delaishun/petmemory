@@ -6,11 +6,11 @@ import type { AuthUser } from "~/types/auth";
 
 const { t } = useI18n();
 const { $api } = useNuxtApp();
-// me 在这里不再需要判断 isVip，因为只有非 VIP 才能唤起此弹窗
 const me = useState<AuthUser | null>("auth:user", () => null);
 
 const config = useRuntimeConfig();
 const paddleClientToken = String(config.public.paddleClientToken || "");
+const paymentProvider = String(config.public.paymentProvider || "paddle"); // 👈 读取支付渠道开关
 
 interface Props {
   modelValue: boolean;
@@ -20,42 +20,37 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
-  (e: "success"): void; // 支付成功回调
+  (e: "success"): void;
 }>();
 
-// ============================================================
-// v-model 代理
-// ============================================================
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit("update:modelValue", v),
 });
 
-// ============================================================
-// 状态
-// ============================================================
 const submitting = ref(false);
 
-// Paddle 安全加载
+// 声明全局对象
 declare global {
   interface Window {
     Paddle: any;
+    DodoPayments: any; // 👈 声明 Dodo SDK
   }
 }
 
 // ============================================================
-// Paddle 初始化与安全加载
+// 工具函数：等待第三方 SDK 加载完成
 // ============================================================
-function waitForPaddle(): Promise<any> {
+function waitForSDK(sdkName: 'Paddle' | 'DodoPayments'): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0;
-    const maxAttempts = 50; // 最多等 5 秒
+    const maxAttempts = 50;
 
     const check = () => {
-      if (window.Paddle) {
-        resolve(window.Paddle);
+      if (window[sdkName]) {
+        resolve(window[sdkName]);
       } else if (attempts >= maxAttempts) {
-        reject(new Error("Paddle SDK load timeout"));
+        reject(new Error(`${sdkName} SDK load timeout`));
       } else {
         attempts++;
         setTimeout(check, 100);
@@ -65,11 +60,14 @@ function waitForPaddle(): Promise<any> {
   });
 }
 
+// ============================================================
+// Paddle 相关逻辑
+// ============================================================
 let paddleInitialized = false;
 async function initPaddle() {
   if (paddleInitialized || !paddleClientToken) return;
   try {
-    const paddle = await waitForPaddle();
+    const paddle = await waitForSDK('Paddle');
     if (paddleClientToken.startsWith("test_")) {
       paddle.Environment.set("sandbox");
     }
@@ -78,12 +76,7 @@ async function initPaddle() {
       token: paddleClientToken,
       eventCallback: (event: any) => {
         if (event.name === "checkout.completed") {
-          showToast({
-            type: "success",
-            message: t("vip_subscribe_success") || "订阅成功，VIP 特权已生效！",
-          });
-          visible.value = false;
-          emit("success");
+          handleSuccess();
         }
       },
     });
@@ -93,40 +86,90 @@ async function initPaddle() {
   }
 }
 
+async function handlePaddleSubscribe() {
+  const paddle = await waitForSDK('Paddle');
+  const res = await $api<{ priceId: string; userId: number }>(
+    "/api/paddle/checkout-vip",
+    { method: "POST" }
+  );
+
+  paddle.Checkout.open({
+    items: [{ priceId: res.priceId, quantity: 1 }],
+    customData: { userId: res.userId, type: "vip" },
+  });
+}
+
+// ============================================================
+// Dodo Payments 相关逻辑
+// ============================================================
+async function handleDodoSubscribe() {
+  // 1. 请求后端创建 Checkout Session
+  const res = await $api<{ checkout_url: string; session_id: string }>(
+    "/api/dodo/create-checkout",
+    {
+      method: "POST",
+      body: { type: "vip", payload: {} }
+    }
+  );
+
+  // 2. 等待 Dodo SDK 并唤起 Overlay
+  const dodo = await waitForSDK('DodoPayments');
+  
+  if (res.checkout_url) {
+    dodo.init({
+      url: res.checkout_url,
+      onSuccess: (data: any) => {
+        // Dodo 支付成功
+        console.log('Dodo payment success', data);
+        handleSuccess();
+      },
+      onClose: () => {
+        // 用户关闭了弹窗，重置 loading 状态
+        submitting.value = false;
+      }
+    });
+  } else {
+    throw new Error("Failed to get checkout URL");
+  }
+}
+
+// ============================================================
+// 统一入口与状态处理
+// ============================================================
+function handleSuccess() {
+  showToast({
+    type: "success",
+    message: t("vip_subscribe_success") || "订阅成功，VIP 特权已生效！",
+  });
+  visible.value = false;
+  submitting.value = false;
+  emit("success");
+}
+
+// 监听弹窗打开，如果是 Paddle 模式则需要提前初始化
 watch(visible, (open) => {
-  if (open) {
+  if (open && paymentProvider === "paddle") {
     initPaddle();
   }
 });
 
-// ============================================================
-// 发起订阅支付
-// ============================================================
 async function handleSubscribe() {
   submitting.value = true;
   try {
-    const paddle = await waitForPaddle();
-
-    // 向后端请求 VIP 的 checkout 参数
-    const res = await $api<{ priceId: string; userId: number }>(
-      "/api/paddle/checkout-vip",
-      {
-        method: "POST",
-      }
-    );
-
-    // 调起 Paddle 收银台
-    paddle.Checkout.open({
-      items: [{ priceId: res.priceId, quantity: 1 }],
-      customData: {
-        userId: res.userId,
-        type: "vip", // 👈 关键：告诉后端这是个 VIP 订阅
-      },
-    });
+    if (paymentProvider === "dodo") {
+      await handleDodoSubscribe();
+    } else {
+      await handlePaddleSubscribe();
+    }
   } catch (err: any) {
-    showToast(err?.data?.error || "发起支付失败，请重试");
-  } finally {
+    showToast(err?.data?.error || err.message || "发起支付失败，请重试");
     submitting.value = false;
+  } finally {
+    // 如果是 Paddle 模式，唤起的是 Paddle 自己的 iframe，这里可以立刻恢复按钮。
+    // 如果是 Dodo，Overlay 可能是异步加载的，我们保留 loading 状态直到 onSuccess 或 onClose
+    if (paymentProvider === "paddle") {
+      submitting.value = false;
+    }
   }
 }
 </script>
@@ -169,12 +212,10 @@ async function handleSubscribe() {
           <van-icon name="success" class="check-icon" />
           <span>{{ t("user_vip_desc_2") || "宠物主页享受专属动态特效房间" }}</span>
         </li>
-        <!-- 👇 新增：背景音乐 -->
         <li class="vip-modal__feature-item">
           <van-icon name="success" class="check-icon" />
           <span>{{ t("user_vip_desc_3") }}</span>
         </li>
-        <!-- 👇 新增：相册权益 -->
         <li class="vip-modal__feature-item">
           <van-icon name="success" class="check-icon" />
           <span>{{ t("user_vip_desc_4") }}</span>
@@ -209,11 +250,11 @@ async function handleSubscribe() {
         </button>
       </div>
 
-      <!-- 小字提示 -->
+      <!-- 小字提示（改为了更通用的描述，避免写死 Paddle） -->
       <p class="vip-modal__terms">
         {{
           t("vip_terms_tip") ||
-          "订阅即代表同意服务条款，首年到期后将自动续费。可随时在 Paddle 取消。"
+          "订阅即代表同意服务条款，首年到期后将自动续费。可随时在支付平台取消。"
         }}
       </p>
     </div>
@@ -221,6 +262,7 @@ async function handleSubscribe() {
 </template>
 
 <style scoped lang="less">
+/* 样式保持不变 */
 @import "~/assets/css/common.less";
 
 .vip-modal {
@@ -277,7 +319,7 @@ async function handleSubscribe() {
       font-size: 42px;
       font-family: @font-mono;
       font-weight: 700;
-      color: #d4af37; // 金价数字
+      color: #d4af37;
       margin: 0 4px;
     }
     .period {

@@ -115,6 +115,11 @@ export default defineNuxtConfig({
           async: true,
           defer: true,
         },
+        {
+          src: 'https://checkout.dodopayments.com/checkout.js',
+          async: true,
+          defer: true,
+        },
       ],
     },
   },
@@ -173,6 +178,8 @@ export default defineNuxtConfig({
       // 注意：保留了你当前使用的 live 生产环境 token
       paddleClientToken: 'test_d2ede7ad3346bc1c22aa2268739',   //sandbox
       // paddleClientToken: 'live_a13155a4f9309f40374ce0dc163',  //product
+      // dodo  paddle
+      paymentProvider: 'dodo', 
     },
   },
 })

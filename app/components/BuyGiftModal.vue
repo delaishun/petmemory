@@ -10,6 +10,7 @@ const me = useState<AuthUser | null>('auth:user', () => null)
 
 const config = useRuntimeConfig()
 const paddleClientToken = String(config.public.paddleClientToken || '')
+const paymentProvider = String(config.public.paymentProvider || 'paddle') // 👈 读取支付渠道开关
 
 // ============================================================
 // 类型
@@ -59,13 +60,13 @@ const exchangeSelections = ref<Record<string, number>>({})
 // 常量
 const MIN_PURCHASE_PRICE = 500 // $5.00
 const EXCHANGE_COST = 1000 // 1000 积分
-// 👇 修改点：加入 'biscuit' 允许兑换
 const ALLOWED_EXCHANGE_CODES = ['bone', 'carrot', 'corn', 'biscuit']
 
-// Paddle 安全加载
+// 声明全局 SDK
 declare global {
   interface Window {
     Paddle: any
+    DodoPayments: any // 👈 声明 Dodo SDK
   }
 }
 
@@ -119,7 +120,9 @@ watch(visible, async (open) => {
     activeTab.value = 'purchase'
     await loadGifts()
     initDefaultSelection()
-    initPaddle()
+    if (paymentProvider === 'paddle') {
+      initPaddle()
+    }
   }
 })
 
@@ -139,7 +142,6 @@ function initDefaultSelection() {
   quantities.value = {}
   exchangeSelections.value = {}
   
-  // 👈 修改点：默认选中 鲜花 3，小球 2
   const presetQuantities: Record<string, number> = {
     flower: 3,
     ball: 2
@@ -147,7 +149,6 @@ function initDefaultSelection() {
 
   let currentTotal = 0
 
-  // 应用预设数量
   gifts.value.forEach(gift => {
     const presetQty = presetQuantities[gift.code]
     if (presetQty) {
@@ -156,7 +157,6 @@ function initDefaultSelection() {
     }
   })
 
-  // 兜底逻辑：如果因为礼物下架等原因导致预设加起来不到 $5
   if (currentTotal < MIN_PURCHASE_PRICE) {
     const sortedGifts = [...gifts.value].sort((a, b) => b.price - a.price)
     for (const gift of sortedGifts) {
@@ -171,59 +171,7 @@ function initDefaultSelection() {
 }
 
 // ============================================================
-// Paddle 初始化与安全加载
-// ============================================================
-function waitForPaddle(): Promise<any> {
-  return new Promise((resolve, reject) => {
-    let attempts = 0
-    const maxAttempts = 50 // 最多等 5 秒
-
-    const check = () => {
-      if (window.Paddle) {
-        resolve(window.Paddle)
-      } else if (attempts >= maxAttempts) {
-        reject(new Error('Paddle SDK load timeout'))
-      } else {
-        attempts++
-        setTimeout(check, 100)
-      }
-    }
-    check()
-  })
-}
-
-let paddleInitialized = false
-async function initPaddle() {
-  if (paddleInitialized || !paddleClientToken) return
-  try {
-    const paddle = await waitForPaddle()
-    if (paddleClientToken.startsWith('test_')) {
-      paddle.Environment.set('sandbox')
-    }
-    
-    paddle.Initialize({
-      token: paddleClientToken,
-      eventCallback: (event: any) => {
-        if (event.name === 'checkout.completed') {
-          showToast({ type: 'success', message: '支付成功！礼物已发放到仓库' })
-          
-          if (window.Paddle) {
-            window.Paddle.Checkout.close()
-          }
-
-          visible.value = false
-          emit('success')
-        }
-      }
-    })
-    paddleInitialized = true
-  } catch (err) {
-    console.error('Paddle Init Failed:', err)
-  }
-}
-
-// ============================================================
-// 交互逻辑
+// 交互逻辑 👈 补上这部分丢失的代码
 // ============================================================
 function inc(code: string) {
   const cur = quantities.value[code] || 0
@@ -244,10 +192,130 @@ function toggleExchange(code: string) {
 }
 
 // ============================================================
-// 发起支付 / 兑换
+// 通用 SDK 加载等待
 // ============================================================
+function waitForSDK(sdkName: 'Paddle' | 'DodoPayments'): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let attempts = 0
+    const maxAttempts = 50
+
+    const check = () => {
+      if (window[sdkName]) {
+        resolve(window[sdkName])
+      } else if (attempts >= maxAttempts) {
+        reject(new Error(`${sdkName} SDK load timeout`))
+      } else {
+        attempts++
+        setTimeout(check, 100)
+      }
+    }
+    check()
+  })
+}
+
+// ============================================================
+// Paddle 支付逻辑
+// ============================================================
+let paddleInitialized = false
+async function initPaddle() {
+  if (paddleInitialized || !paddleClientToken) return
+  try {
+    const paddle = await waitForSDK('Paddle')
+    if (paddleClientToken.startsWith('test_')) {
+      paddle.Environment.set('sandbox')
+    }
+    
+    paddle.Initialize({
+      token: paddleClientToken,
+      eventCallback: (event: any) => {
+        if (event.name === 'checkout.completed') {
+          handleSuccess('支付成功！礼物已发放到仓库')
+        }
+      }
+    })
+    paddleInitialized = true
+  } catch (err) {
+    console.error('Paddle Init Failed:', err)
+  }
+}
+
+async function handlePaddlePurchase() {
+  const paddle = await waitForSDK('Paddle')
+  
+  const itemsToBuy = Object.entries(quantities.value)
+    .filter(([_, qty]) => qty > 0)
+    .map(([code, qty]) => {
+      const gift = gifts.value.find(g => g.code === code)!
+      return { giftId: gift.id, quantity: qty }
+    })
+
+  // 获取后端生成的 Paddle 参数
+  const res = await $api<{ paddleItems: any[]; items: any[] }>('/api/paddle/checkout', {
+    method: 'POST',
+    body: { items: itemsToBuy }
+  })
+
+  paddle.Checkout.open({
+    items: res.paddleItems,
+    customData: {
+      userId: me.value?.id,
+      items: res.items
+    }
+  })
+}
+
+// ============================================================
+// Dodo Payments 支付逻辑
+// ============================================================
+async function handleDodoPurchase() {
+  const itemsToBuy = Object.entries(quantities.value)
+    .filter(([_, qty]) => qty > 0)
+    .map(([code, qty]) => {
+      const gift = gifts.value.find(g => g.code === code)!
+      return { giftId: gift.id, quantity: qty, code }
+    })
+
+  // 调用后端创建 Dodo Checkout Session
+  const res = await $api<{ checkout_url: string }>('/api/dodo/create-checkout', {
+    method: 'POST',
+    body: {
+      type: 'gift',
+      payload: {
+        totalAmount: totalDbPrice.value / 100, // 传美元金额，例如 5.50
+        giftDetails: itemsToBuy // 传给后端存 metadata，Webhook 回调时使用
+      }
+    }
+  })
+
+  const dodo = await waitForSDK('DodoPayments')
+  if (!res.checkout_url) throw new Error('Failed to get checkout URL')
+
+  dodo.init({
+    url: res.checkout_url,
+    onSuccess: (data: any) => {
+      console.log('Dodo payment success', data)
+      handleSuccess('支付成功！礼物已发放到仓库')
+    },
+    onClose: () => {
+      submitting.value = false
+    }
+  })
+}
+
+// ============================================================
+// 统一成功处理与支付入口
+// ============================================================
+function handleSuccess(msg: string) {
+  showToast({ type: 'success', message: msg })
+  if (paymentProvider === 'paddle' && window.Paddle) {
+    window.Paddle.Checkout.close()
+  }
+  visible.value = false
+  submitting.value = false
+  emit('success')
+}
+
 async function handlePurchase() {
-  // 👈 双重保险：金额不足时直接拦截
   if (!isPurchaseValid.value) {
     showToast(`最低支付金额为 $5.00，当前仅 $${totalDollarPrice.value}`)
     return
@@ -255,33 +323,20 @@ async function handlePurchase() {
   
   submitting.value = true
   try {
-    const paddle = await waitForPaddle()
-    
-    const itemsToBuy = Object.entries(quantities.value)
-      .filter(([_, qty]) => qty > 0)
-      .map(([code, qty]) => {
-        const gift = gifts.value.find(g => g.code === code)!
-        return { giftId: gift.id, quantity: qty }
-      })
-
-    // 获取后端生成的 Paddle 参数
-    const res = await $api<{ paddleItems: any[]; items: any[] }>('/api/paddle/checkout', {
-      method: 'POST',
-      body: { items: itemsToBuy }
-    })
-
-    // 调起 Paddle 收银台
-    paddle.Checkout.open({
-      items: res.paddleItems,
-      customData: {
-        userId: me.value?.id,
-        items: res.items
-      }
-    })
+    if (paymentProvider === 'dodo') {
+      await handleDodoPurchase()
+    } else {
+      await handlePaddlePurchase()
+    }
   } catch (err: any) {
-    showToast(err?.data?.error || '发起支付失败，请重试')
-  } finally {
+    showToast(err?.data?.error || err.message || '发起支付失败，请重试')
     submitting.value = false
+  } finally {
+    // 如果是 Paddle，这里是同步调起收银台，立刻恢复 loading。
+    // 如果是 Dodo，让它在 onClose 或 onSuccess 时恢复。
+    if (paymentProvider === 'paddle') {
+      submitting.value = false
+    }
   }
 }
 
@@ -313,6 +368,7 @@ async function handleExchange() {
 </script>
 
 <template>
+  <!-- 模板部分保持不变 -->
   <van-popup
     v-model:show="visible"
     round
@@ -359,7 +415,6 @@ async function handleExchange() {
               <div class="gift-row__meta">
                 <span class="gift-row__price">${{ (gift.price / 100).toFixed(2) }}</span>
                 <span class="gift-row__mood">+{{ gift.moodValue }} 心情</span>
-                <!-- 👇 新增：显示有效期 -->
                 <span class="gift-row__expire" v-if="gift.expireSeconds">
                   有效期: {{ formatExpireTime(gift.expireSeconds) }}
                 </span>
@@ -387,7 +442,6 @@ async function handleExchange() {
               <div class="gift-row__meta">
                 <span class="gift-row__price">{{ EXCHANGE_COST }} 积分</span>
                 <span class="gift-row__mood">+{{ gift.moodValue }} 心情</span>
-                <!-- 👇 新增：显示有效期 -->
                 <span class="gift-row__expire" v-if="gift.expireSeconds">
                   有效期: {{ formatExpireTime(gift.expireSeconds) }}
                 </span>
@@ -444,6 +498,7 @@ async function handleExchange() {
 </template>
 
 <style scoped lang="less">
+/* 样式部分保持不变 */
 @import "~/assets/css/common.less";
 
 .buy-gift {
@@ -560,7 +615,6 @@ async function handleExchange() {
   }
 }
 
-/* 礼物列表项 */
 .gift-row {
   display: flex;
   align-items: center;
@@ -593,7 +647,7 @@ async function handleExchange() {
   &__meta {
     display: flex;
     align-items: center;
-    flex-wrap: wrap; /* 👈 新增 wrap，防止多标签换行溢出 */
+    flex-wrap: wrap;
     gap: @sp-2;
     font-size: @fs-xs;
   }
@@ -608,7 +662,6 @@ async function handleExchange() {
     color: @ink-3;
   }
 
-  /* 👇 新增：有效期标签样式 */
   &__expire {
     color: @ink-3;
     background: @surface-2;
@@ -626,7 +679,6 @@ async function handleExchange() {
   }
 }
 
-/* 步进器 */
 .stepper-btn {
   display: inline-flex;
   align-items: center;
