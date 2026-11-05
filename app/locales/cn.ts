@@ -564,4 +564,9 @@ export default {
   pricing_portraits_section: '定制宠物手绘',
   pricing_portrait_1: '定制宠物电子版手绘',
   pricing_portrait_2: '定制宠物手绘（电子版 & 实体纪念相框）',
+
+  pricing_btn_get_vip: '立即订阅',
+  pricing_vip_active: '已是 VIP 会员',
+  pricing_refund_notice: '所有购买均受我们的 ',
+  pricing_refund_suffix: ' 约束。',
 }

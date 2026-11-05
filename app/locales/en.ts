@@ -562,4 +562,10 @@ export default {
   pricing_portraits_section: 'Custom Portrait Artwork',
   pricing_portrait_1: 'Custom Digital Pet Portrait Design',
   pricing_portrait_2: 'Custom Pet Portrait Design (Digital & Print Keepsake)',
+
+  // 👇 新增
+  pricing_btn_get_vip: 'Subscribe Now',
+  pricing_vip_active: 'VIP Active',
+  pricing_refund_notice: 'All purchases are subject to our ',
+  pricing_refund_suffix: '.',
 }

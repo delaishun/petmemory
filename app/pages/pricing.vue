@@ -1,10 +1,36 @@
 <!-- app/pages/pricing.vue -->
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from '~/composables/useI18n'
+import type { AuthUser } from "~/types/auth";
 
 const { t } = useI18n()
 
-type I18nKey = Parameters<typeof t>[0]
+// 👇 获取全局用户状态
+const user = useState<AuthUser | null>("auth:user", () => null);
+
+// 👇 弹窗状态
+const loginModalVisible = ref(false);
+const upgradeVipModalVisible = ref(false);
+
+// 👇 订阅按钮点击逻辑
+function handleSubscribe() {
+  if (!user.value) {
+    // 未登录：弹出登录框
+    loginModalVisible.value = true;
+  } else if (!user.value.isVip) {
+    // 已登录但非 VIP：弹出购买窗口
+    upgradeVipModalVisible.value = true;
+  }
+}
+
+// 登录成功后的回调：如果登录成功且不是 VIP，直接弹出购买窗口（体验更好）
+function onLoginSuccess() {
+  loginModalVisible.value = false;
+  if (user.value && !user.value.isVip) {
+    upgradeVipModalVisible.value = true;
+  }
+}
 
 // SEO 配置
 useSeoMeta({
@@ -28,7 +54,8 @@ useHead({
   link: [{ rel: 'canonical', href: 'https://www.petmemory.me/pricing' }]
 })
 
-// 礼物列表，只存 key 和 价格
+type I18nKey = Parameters<typeof t>[0]
+
 const gifts: { key: I18nKey; price: number }[] = [
   { key: 'gift_flower', price: 1.00 },
   { key: 'gift_ball', price: 1.00 },
@@ -45,7 +72,6 @@ const gifts: { key: I18nKey; price: number }[] = [
   { key: 'gift_crown', price: 5.00 },
 ]
 
-// 定制画作数据
 const portraits: { key: I18nKey; price: number }[] = [
   { key: 'pricing_portrait_1', price: 45 },
   { key: 'pricing_portrait_2', price: 60 },
@@ -80,8 +106,24 @@ const portraits: { key: I18nKey; price: number }[] = [
               <li><van-icon name="success" /> {{ t('pricing_vip_f4') }}</li>
             </ul>
           </div>
-          <div class="vip-card__price">
-            <span class="currency">$</span>{{ t('pricing_vip_price') }}<span class="period">{{ t('pricing_vip_period') }}</span>
+          
+          <!-- 👇 右侧价格与订阅按钮 -->
+          <div class="vip-card__action">
+            <div class="vip-card__price">
+              <span class="currency">$</span>{{ t('pricing_vip_price') }}<span class="period">{{ t('pricing_vip_period') }}</span>
+            </div>
+            
+            <button 
+              v-if="!user?.isVip" 
+              type="button" 
+              class="btn btn--primary vip-card__btn"
+              @click="handleSubscribe"
+            >
+              {{ t('pricing_btn_get_vip') }}
+            </button>
+            <div v-else class="vip-card__active">
+              <van-icon name="checked" /> {{ t('pricing_vip_active') }}
+            </div>
           </div>
         </div>
       </section>
@@ -110,14 +152,35 @@ const portraits: { key: I18nKey; price: number }[] = [
         </div>
       </section>
 
+      <!-- 👇 底部退款政策提示 -->
+      <div class="pricing-footer-note">
+        <p>
+          {{ t('pricing_refund_notice') }}
+          <NuxtLink to="/refund" class="pricing-footer-note__link">{{ t('refund_title') }}</NuxtLink>
+          {{ t('pricing_refund_suffix') }}
+        </p>
+      </div>
+
     </div>
+
+    <!-- 登录弹窗 -->
+    <LoginModal 
+      v-if="loginModalVisible" 
+      v-model="loginModalVisible" 
+      @success="onLoginSuccess" 
+    />
+    
+    <!-- VIP 购买弹窗 -->
+    <UpgradeVipModal 
+      v-if="upgradeVipModalVisible" 
+      v-model="upgradeVipModalVisible" 
+    />
   </div>
 </template>
 
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-/* 样式部分保持不变 */
 .pricing-page {
   max-width: 800px;
   margin: 0 auto;
@@ -160,6 +223,7 @@ const portraits: { key: I18nKey; price: number }[] = [
   }
 }
 
+// 修改 VIP 卡片布局以适应按钮
 .vip-card {
   display: flex;
   align-items: center;
@@ -227,6 +291,22 @@ const portraits: { key: I18nKey; price: number }[] = [
     }
   }
 
+  // 👇 新增右侧区域样式
+  &__action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: @sp-3;
+
+    @media (max-width: @bp-sm) {
+      width: 100%;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: @sp-2;
+    }
+  }
+
   &__price {
     font-size: 36px;
     font-weight: 800;
@@ -243,6 +323,22 @@ const portraits: { key: I18nKey; price: number }[] = [
       font-weight: 500;
       color: @ink-3;
     }
+  }
+
+  &__btn {
+    // 使用全局的基础按钮样式，这里微调宽高
+    padding-left: @sp-5;
+    padding-right: @sp-5;
+    border-radius: @radius-pill;
+  }
+
+  &__active {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: @gold-hover;
+    font-weight: 600;
+    font-size: @fs-sm;
   }
 }
 
@@ -316,6 +412,31 @@ const portraits: { key: I18nKey; price: number }[] = [
     font-weight: 700;
     color: @accent;
     font-family: @font-mono;
+  }
+}
+
+// 👇 新增底部退款提示样式
+.pricing-footer-note {
+  margin-top: @sp-8;
+  text-align: center;
+  font-size: @fs-sm;
+  color: @ink-3;
+
+  p {
+    margin: 0;
+  }
+
+  &__link {
+    color: @accent;
+    text-decoration: underline;
+    text-decoration-color: fade(@accent, 50%);
+    text-underline-offset: 2px;
+    transition: color @dur-fast ease;
+
+    &:hover {
+      color: @accent-hover;
+      text-decoration-color: @accent-hover;
+    }
   }
 }
 </style>
