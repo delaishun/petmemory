@@ -537,17 +537,18 @@ export default {
   leave_date_picker_title: '选择离开日期',  
 
   // --- 价格页面 (新增) ---
-  pricing_title: '价格说明',
-  pricing_intro: '我们提供线上宠物纪念服务，包括 VIP 会员（自定义背景主题、专属音乐、扩容相册）、虚拟礼物以及定制宠物手绘。',
-  pricing_vip_section: 'VIP 会员',
-  pricing_vip_name: 'PetMemory VIP',
-  pricing_vip_f1: '专属动态背景面板',
+  pricing_title: '价格与纪念品',
+  pricing_intro: '探索我们提供的纪念服务。从高级数字纪念空间、互动式纪念伴侣，到可触摸的定制宠物画像纪念品，找到最适合纪念您爱宠的方式。',
+  pricing_vip_section: '高级数字纪念空间',
+  pricing_vip_name: 'PetMemory VIP 专属空间',
+  pricing_vip_f1: '专属空间自定义背景主题',
   pricing_vip_f2: '轻柔专属背景音乐',
-  pricing_vip_f3: '解锁多张照片相册',
-  pricing_vip_f4: 'AI 宠物谈心功能',
+  pricing_vip_f3: '扩容相册，珍藏美好回忆',
+  pricing_vip_f4: '互动式宠物纪念伴侣', // 去掉了 AI 和 谈心
   pricing_vip_price: '9.9',
   pricing_vip_period: '/年',
-  pricing_gifts_section: '虚拟礼物',
+  
+  pricing_gifts_section: '虚拟纪念贡品',
   gift_flower: '鲜花',
   gift_ball: '小球',
   gift_bone: '骨头',
@@ -561,11 +562,12 @@ export default {
   gift_candle: '烛光',
   gift_wings: '天使之翼',
   gift_crown: '王冠',
-  pricing_portraits_section: '定制宠物手绘',
-  pricing_portrait_1: '定制宠物电子版手绘',
-  pricing_portrait_2: '定制宠物手绘（电子版 & 实体纪念相框）',
-
-  pricing_btn_get_vip: '立即订阅',
+  
+  pricing_portraits_section: '定制宠物画像纪念品',
+  pricing_portrait_1: '纯手工定制电子版画像',
+  pricing_portrait_2: '纯手工定制实体画像（含精美装裱）',
+  
+  pricing_btn_get_vip: '升级专属空间',
   pricing_vip_active: '已是 VIP 会员',
   pricing_refund_notice: '所有购买均受我们的 ',
   pricing_refund_suffix: ' 约束。',

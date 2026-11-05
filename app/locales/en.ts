@@ -535,17 +535,19 @@ export default {
   leave_date_picker_title: 'Select Pass Date',
 
   // --- Pricing Page (新增) ---
-  pricing_title: 'Pricing',
-  pricing_intro: 'We offer online pet memorial services, including VIP subscriptions (custom background themes, special music, and expanded photo albums), virtual gifts, and custom pet portrait artwork.',
-  pricing_vip_section: 'VIP Subscription',
-  pricing_vip_name: 'PetMemory VIP',
-  pricing_vip_f1: 'Custom background themes',
-  pricing_vip_f2: 'Exclusive special music',
-  pricing_vip_f3: 'Expanded photo albums',
-  pricing_vip_f4: 'AI Pet Chat feature',
+    // --- Pricing Page (Updated) ---
+  pricing_title: 'Pricing & Keepsakes',
+  pricing_intro: 'Explore our offerings to create a lasting tribute. From premium digital memorial spaces and interactive companions to tangible custom pet portrait keepsakes, find the perfect way to honor your beloved pet.',
+  pricing_vip_section: 'Premium Digital Memorial Space',
+  pricing_vip_name: 'PetMemory VIP Sanctuary',
+  pricing_vip_f1: 'Custom background themes for your sanctuary',
+  pricing_vip_f2: 'Exclusive soothing background music',
+  pricing_vip_f3: 'Expanded photo albums to cherish memories',
+  pricing_vip_f4: 'Interactive Pet Memorial Companion', // 去掉了 AI 和 Chat
   pricing_vip_price: '9.9',
   pricing_vip_period: '/year',
-  pricing_gifts_section: 'Virtual Gifts',
+  
+  pricing_gifts_section: 'Virtual Memorial Tributes',
   gift_flower: 'Flower',
   gift_ball: 'Ball',
   gift_bone: 'Bone',
@@ -559,12 +561,12 @@ export default {
   gift_candle: 'Candle',
   gift_wings: 'Wings',
   gift_crown: 'Crown',
-  pricing_portraits_section: 'Custom Portrait Artwork',
-  pricing_portrait_1: 'Custom Digital Pet Portrait Design',
-  pricing_portrait_2: 'Custom Pet Portrait Design (Digital & Print Keepsake)',
-
-  // 👇 新增
-  pricing_btn_get_vip: 'Subscribe Now',
+  
+  pricing_portraits_section: 'Custom Pet Portrait Keepsakes',
+  pricing_portrait_1: 'Digital Custom Pet Portrait', // 强调数字纪念品
+  pricing_portrait_2: 'Physical Custom Pet Portrait (Framed Keepsake)', // 强调物理纪念品
+  
+  pricing_btn_get_vip: 'Upgrade Space',
   pricing_vip_active: 'VIP Active',
   pricing_refund_notice: 'All purchases are subject to our ',
   pricing_refund_suffix: '.',

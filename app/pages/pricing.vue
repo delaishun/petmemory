@@ -6,25 +6,23 @@ import type { AuthUser } from "~/types/auth";
 
 const { t } = useI18n()
 
-// 👇 获取全局用户状态
+// 获取全局用户状态
 const user = useState<AuthUser | null>("auth:user", () => null);
 
-// 👇 弹窗状态
+// 弹窗状态
 const loginModalVisible = ref(false);
 const upgradeVipModalVisible = ref(false);
 
-// 👇 订阅按钮点击逻辑
+// 订阅按钮点击逻辑
 function handleSubscribe() {
   if (!user.value) {
-    // 未登录：弹出登录框
     loginModalVisible.value = true;
   } else if (!user.value.isVip) {
-    // 已登录但非 VIP：弹出购买窗口
     upgradeVipModalVisible.value = true;
   }
 }
 
-// 登录成功后的回调：如果登录成功且不是 VIP，直接弹出购买窗口（体验更好）
+// 登录成功后的回调
 function onLoginSuccess() {
   loginModalVisible.value = false;
   if (user.value && !user.value.isVip) {
@@ -32,21 +30,21 @@ function onLoginSuccess() {
   }
 }
 
-// SEO 配置
+// 优化 SEO 描述，去掉 AI 字眼，强调纪念品
 useSeoMeta({
-  title: 'Pricing - PetMemory',
+  title: 'Pricing & Keepsakes - PetMemory',
   description:
-    'Explore the pricing for our virtual pet memorial services, including VIP subscriptions, virtual gifts, and custom pet portrait artwork.',
-  ogTitle: 'Pricing - PetMemory',
-  ogDescription: 'Explore the pricing for our virtual pet memorial services.',
+    'Explore options for premium digital pet memorial spaces, virtual tributes, and custom pet portrait keepsakes to honor your beloved pet.',
+  ogTitle: 'Pricing & Keepsakes - PetMemory',
+  ogDescription: 'Premium digital memorial spaces and custom pet portrait keepsakes.',
   ogImage: 'https://music.petmemory.me/og-cover.jpg',
   ogImageWidth: 1200,
   ogImageHeight: 600,
   ogType: 'website',
   ogUrl: 'https://www.petmemory.me/pricing',
   twitterCard: 'summary_large_image',
-  twitterTitle: 'Pricing - PetMemory',
-  twitterDescription: 'Explore the pricing for our virtual pet memorial services.',
+  twitterTitle: 'Pricing & Keepsakes - PetMemory',
+  twitterDescription: 'Premium digital memorial spaces and custom pet portrait keepsakes.',
   twitterImage: 'https://music.petmemory.me/og-cover.jpg',
 })
 
@@ -90,7 +88,20 @@ const portraits: { key: I18nKey; price: number }[] = [
         </p>
       </header>
 
-      <!-- VIP 会员区 -->
+      <!-- 👇 调整顺序：优先展示定制画像纪念品 -->
+      <section class="pricing-section">
+        <h2 class="pricing-section__title">{{ t('pricing_portraits_section') }}</h2>
+        <div class="portrait-grid">
+          <div v-for="item in portraits" :key="item.key" class="portrait-card">
+            <div class="portrait-card__info">
+              <h3 class="portrait-card__title">{{ t(item.key) }}</h3>
+            </div>
+            <div class="portrait-card__price">${{ item.price }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIP 会员区 (高级纪念空间) -->
       <section class="pricing-section">
         <h2 class="pricing-section__title">{{ t('pricing_vip_section') }}</h2>
         <div class="vip-card">
@@ -103,11 +114,12 @@ const portraits: { key: I18nKey; price: number }[] = [
               <li><van-icon name="success" /> {{ t('pricing_vip_f1') }}</li>
               <li><van-icon name="success" /> {{ t('pricing_vip_f2') }}</li>
               <li><van-icon name="success" /> {{ t('pricing_vip_f3') }}</li>
+              <!-- 修改后的第4点：互动式伴侣 -->
               <li><van-icon name="success" /> {{ t('pricing_vip_f4') }}</li>
             </ul>
           </div>
           
-          <!-- 👇 右侧价格与订阅按钮 -->
+          <!-- 右侧价格与订阅按钮 -->
           <div class="vip-card__action">
             <div class="vip-card__price">
               <span class="currency">$</span>{{ t('pricing_vip_price') }}<span class="period">{{ t('pricing_vip_period') }}</span>
@@ -128,7 +140,7 @@ const portraits: { key: I18nKey; price: number }[] = [
         </div>
       </section>
 
-      <!-- 虚拟礼物区 -->
+      <!-- 虚拟纪念贡品区 -->
       <section class="pricing-section">
         <h2 class="pricing-section__title">{{ t('pricing_gifts_section') }}</h2>
         <div class="gift-grid">
@@ -139,20 +151,7 @@ const portraits: { key: I18nKey; price: number }[] = [
         </div>
       </section>
 
-      <!-- 定制手绘区 -->
-      <section class="pricing-section">
-        <h2 class="pricing-section__title">{{ t('pricing_portraits_section') }}</h2>
-        <div class="portrait-grid">
-          <div v-for="item in portraits" :key="item.key" class="portrait-card">
-            <div class="portrait-card__info">
-              <h3 class="portrait-card__title">{{ t(item.key) }}</h3>
-            </div>
-            <div class="portrait-card__price">${{ item.price }}</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 👇 底部退款政策提示 -->
+      <!-- 底部退款政策提示 -->
       <div class="pricing-footer-note">
         <p>
           {{ t('pricing_refund_notice') }}
@@ -181,6 +180,7 @@ const portraits: { key: I18nKey; price: number }[] = [
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
+/* 这里的样式保持不变 */
 .pricing-page {
   max-width: 800px;
   margin: 0 auto;
@@ -223,7 +223,6 @@ const portraits: { key: I18nKey; price: number }[] = [
   }
 }
 
-// 修改 VIP 卡片布局以适应按钮
 .vip-card {
   display: flex;
   align-items: center;
@@ -291,7 +290,6 @@ const portraits: { key: I18nKey; price: number }[] = [
     }
   }
 
-  // 👇 新增右侧区域样式
   &__action {
     display: flex;
     flex-direction: column;
@@ -326,7 +324,6 @@ const portraits: { key: I18nKey; price: number }[] = [
   }
 
   &__btn {
-    // 使用全局的基础按钮样式，这里微调宽高
     padding-left: @sp-5;
     padding-right: @sp-5;
     border-radius: @radius-pill;
@@ -415,7 +412,6 @@ const portraits: { key: I18nKey; price: number }[] = [
   }
 }
 
-// 👇 新增底部退款提示样式
 .pricing-footer-note {
   margin-top: @sp-8;
   text-align: center;
