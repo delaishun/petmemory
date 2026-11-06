@@ -407,7 +407,7 @@ export default {
   custom_order_title: 'Custom Hand-Drawn Portrait',
   custom_order_upload: 'Upload Reference Photos (Multiple allowed)',
   custom_order_requirements: 'Requirements (e.g., style, background, text). Size: 8.27 × 11.69 inches (A4)',
-  
+
   custom_order_plan_digital_title: 'Digital Version',
   custom_order_plan_digital_desc: 'High-quality hand-drawn PDF/PNG delivered to your email within 20 days.',
   custom_order_plan_digital_btn: 'Order $45',
@@ -538,7 +538,7 @@ export default {
   pricing_vip_f4: 'Interactive Pet Memorial Companion', // 去掉 AI 和 Chat
   pricing_vip_price: '9.9',
   pricing_vip_period: '/year',
-  
+
   pricing_gifts_section: 'Virtual Memorial Tributes',
   gift_flower: 'Flower',
   gift_ball: 'Ball',
@@ -553,10 +553,10 @@ export default {
   gift_candle: 'Candle',
   gift_wings: 'Wings',
   gift_crown: 'Crown',
-  
+
   pricing_portraits_section: 'Custom Pet Portrait Keepsakes',
   pricing_portrait_1: 'Digital Custom Pet Portrait', // 移除了 $60 实体版
-  
+
   pricing_btn_get_vip: 'Upgrade Space',
   pricing_vip_active: 'VIP Active',
   pricing_refund_notice: 'All purchases are subject to our ',
@@ -568,11 +568,25 @@ export default {
   manage_sub_paddle_step_2: 'Search for the billing email from Paddle (subject usually contains "Your Paddle receipt").',
   manage_sub_paddle_step_3: 'Open the email and click the "Manage Subscription" link.',
   manage_sub_paddle_step_4: 'Click "Cancel Subscription" on the web page.',
-  
+
   // Dodo 专属
   manage_sub_dodo_desc: 'Your VIP is managed via Dodo Payments. To cancel auto-renewal:',
   manage_sub_dodo_step_1: 'Go to the email address you used to register.',
   manage_sub_dodo_step_2: 'Search for the receipt email from Dodo Payments.',
   manage_sub_dodo_step_3: 'Open the email and click the "Customer Portal" or "Manage Subscription" link.',
   manage_sub_dodo_step_4: 'Click "Cancel Subscription" on the web page.',
+
+  // --- Contact Page ---
+  contact_title: 'Contact Us',
+  contact_subtitle: 'Have a question, feedback, or just want to say hi? We are always here to help.',
+  contact_email_label: 'Email Support',
+  contact_email_action: 'Send an Email',
+  contact_email_hint: 'We usually respond within 24-48 hours.',
+  contact_faq_title: 'Frequently Asked Questions',
+  contact_faq_1_q: 'How can I order a custom pet portrait?',
+  contact_faq_1_a: 'Please visit our Pricing page, select the Digital Custom Pet Portrait, upload clear reference photos, and complete the checkout process.',
+  contact_faq_2_q: 'How do I cancel my VIP subscription?',
+  contact_faq_2_a: 'Search your email inbox for a receipt from our payment partner (Paddle or Dodo). Open the receipt and click the "Manage Subscription" link to cancel.',
+  contact_faq_3_q: 'Why am I unable to leave a message?',
+  contact_faq_3_a: 'You may not be logged in, or your account might be restricted. Please check your login status. If the issue persists, contact support.',
 }

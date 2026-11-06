@@ -577,4 +577,18 @@ export default {
   manage_sub_dodo_step_2: '搜索来自 Dodo Payments 的收据邮件。',
   manage_sub_dodo_step_3: '打开邮件，点击里面的 "Customer Portal" 或 "Manage Subscription" 链接。',
   manage_sub_dodo_step_4: '在打开的网页中，点击 "Cancel Subscription" 即可取消。',
+
+    // --- 联系我们页面 ---
+  contact_title: '联系我们',
+  contact_subtitle: '有任何疑问、建议，或者只是想和我们聊聊？我们随时在这里为你提供帮助。',
+  contact_email_label: '邮件支持',
+  contact_email_action: '发送邮件',
+  contact_email_hint: '我们通常会在 24-48 小时内回复。',
+  contact_faq_title: '常见问题',
+  contact_faq_1_q: '如何订购定制宠物画像？',
+  contact_faq_1_a: '请前往“价格说明”页面，选择纯手工定制电子版画像，上传清晰的参考照片，并完成支付流程。',
+  contact_faq_2_q: '如何取消 VIP 订阅？',
+  contact_faq_2_a: '请在您的邮箱中搜索来自支付平台（Paddle 或 Dodo）的收据邮件。打开邮件，点击其中的 "Manage Subscription"（管理订阅）链接即可取消。',
+  contact_faq_3_q: '为什么我无法留言？',
+  contact_faq_3_a: '可能是您未登录，或者账号被限制。请检查登录状态。如果问题依然存在，请联系客服。',
 }

@@ -137,6 +137,7 @@ export default defineNuxtConfig({
     '/terms': { isr: 3600 },
     '/refund': { isr: 3600 },
     '/pricing': { isr: 3600 }, // 👈 新增 Pricing 页面缓存
+    '/contact': { isr: 3600 }, // 👈 新增这一行
 
     // 3. 宠物模块
     // 👇 精确匹配 /pets 列表页，缓存 30 分钟 (1800秒)
