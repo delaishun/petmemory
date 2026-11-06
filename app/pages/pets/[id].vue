@@ -723,14 +723,9 @@ function handleChat() {
     showDialog({ message: t("vip_feature_chat_owner_only") });
     return;
   }
-  if (!me.value.isVip) {
-    showDialog({
-      title: t("vip_feature_title"),
-      message: t("vip_feature_chat_desc"),
-      confirmButtonText: t("btn_i_know"),
-    });
-    return;
-  }
+  
+  // 👇 核心修改点：删除了原有的非 VIP 拦截逻辑
+  // 现在所有主人（无论是否 VIP）都能打开弹窗
   chatModalVisible.value = true;
 }
 

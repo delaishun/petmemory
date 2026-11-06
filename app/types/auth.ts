@@ -29,6 +29,7 @@ export interface AuthUser {
   point?: number
   /** users.created_at，ISO 8601 字符串 */
   createdAt: string
+  payment_provider?: 'paddle' | 'dodo' | null
 }
 
 // ============================================================

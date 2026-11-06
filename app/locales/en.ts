@@ -589,4 +589,7 @@ export default {
   contact_faq_2_a: 'Search your email inbox for a receipt from our payment partner (Paddle or Dodo). Open the receipt and click the "Manage Subscription" link to cancel.',
   contact_faq_3_q: 'Why am I unable to leave a message?',
   contact_faq_3_a: 'You may not be logged in, or your account might be restricted. Please check your login status. If the issue persists, contact support.',
+
+  pet_chat_free_limit_reached: "You've used your 3 free interactions with this pet. Upgrade to VIP for unlimited conversations.",
+  
 }

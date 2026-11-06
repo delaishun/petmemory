@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { showToast } from 'vant'
 import { useI18n } from '~/composables/useI18n'
+import type { AuthUser } from '~/types/auth' // 👈 引入用户类型
 
 // ============================================================
 // 国际化
@@ -62,6 +63,15 @@ const visible = computed({
 const { $api } = useNuxtApp()
 
 // ============================================================
+// 全局状态 & 弹窗控制
+// ============================================================
+
+// 获取全局用户状态，用于判断是否为 VIP
+const user = useState<AuthUser | null>('auth:user', () => null)
+// 控制 VIP 升级弹窗
+const upgradeVipModalVisible = ref(false)
+
+// ============================================================
 // 状态
 // ============================================================
 
@@ -72,8 +82,9 @@ const loadingHistory = ref(false)
 const sending = ref(false)
 const errorMsg = ref('')
 
-const remaining = ref(10)
-const limit = ref(10)
+// 这里的初始值不重要，打开弹窗后会立即从后端获取覆盖
+const remaining = ref(0)
+const limit = ref(3)
 
 // DOM 引用，用于自动滚动
 const scrollRef = ref<HTMLDivElement | null>(null)
@@ -90,6 +101,11 @@ const canSend = computed(() => {
 })
 
 const limitReached = computed(() => remaining.value <= 0)
+
+// 👇 新增：判断是否是非 VIP 且额度已用完
+const isFreeLimitReached = computed(() => {
+  return limitReached.value && !user.value?.isVip
+})
 
 const remainingText = computed(() => {
   if (limitReached.value) return t('pet_chat_limit_reached')
@@ -188,7 +204,7 @@ async function handleSend() {
   scrollToBottom()
 
   try {
-    // 👇 修改点：获取本地时间并带在 body 里
+    // 获取本地时间并带在 body 里
     const now = new Date()
     const clientTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     const clientHour = now.getHours()
@@ -222,6 +238,12 @@ async function handleSend() {
       err?.data?.message ||
       err?.message ||
       t('pet_chat_send_failed')
+      
+    // 👇 如果是 429（额度用完），强制刷新一下 remaining 状态，让 UI 显示升级提示
+    if (err?.status === 429) {
+      remaining.value = 0
+    }
+    
     showToast({ type: 'fail', message: errorMsg.value })
   } finally {
     sending.value = false
@@ -253,8 +275,9 @@ watch(
       messages.value = []
       inputContent.value = ''
       errorMsg.value = ''
-      remaining.value = 10
-      limit.value = 10
+      // 👇 不再写死 10，重置为默认占位即可，重新打开时会被接口覆盖
+      remaining.value = 0
+      limit.value = 3
     }
   },
 )
@@ -379,6 +402,20 @@ const title = computed(() =>
         </p>
       </div>
 
+      <!-- 👇 新增：非 VIP 额度用完时的升级引导 Banner -->
+      <div v-if="isFreeLimitReached" class="pet-chat__upgrade-banner">
+        <div class="upgrade-banner__content">
+          <van-icon name="gem-o" class="upgrade-banner__icon" />
+          <span>{{ t('pet_chat_free_limit_reached') }}</span>
+        </div>
+        <button 
+          class="btn btn--primary btn--sm upgrade-banner__btn"
+          @click="upgradeVipModalVisible = true"
+        >
+          {{ t('user_upgrade_vip') }}
+        </button>
+      </div>
+
       <!-- 输入区 -->
       <div class="pet-chat__footer">
         <textarea
@@ -404,15 +441,20 @@ const title = computed(() =>
         </button>
       </div>
     </div>
+
+    <!-- 👇 挂载 VIP 购买弹窗 -->
+    <UpgradeVipModal 
+      v-if="upgradeVipModalVisible" 
+      v-model="upgradeVipModalVisible" 
+    />
   </van-popup>
 </template>
 
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-// ============================================================
-// 弹窗整体
-// ============================================================
+/* 样式与原版保持一致，增加了升级 Banner 的样式 */
+
 .pet-chat {
   display: flex;
   flex-direction: column;
@@ -425,7 +467,6 @@ const title = computed(() =>
     max-height: none;
   }
 
-  // ---------- 头部 ----------
   &__header {
     flex-shrink: 0;
     padding: @sp-4 @sp-5 @sp-3;
@@ -453,7 +494,6 @@ const title = computed(() =>
     }
   }
 
-  // ---------- 消息区 ----------
   &__body {
     flex: 1;
     min-height: 0;
@@ -473,7 +513,6 @@ const title = computed(() =>
     font-size: @fs-sm;
   }
 
-  // ---------- 空状态 ----------
   &__empty {
     display: flex;
     flex-direction: column;
@@ -500,14 +539,12 @@ const title = computed(() =>
     color: @ink-3;
   }
 
-  // ---------- 消息列表 ----------
   &__list {
     display: flex;
     flex-direction: column;
     gap: @sp-3;
   }
 
-  // ---------- 错误 ----------
   &__error {
     margin: @sp-3 0 0;
     padding: @sp-2 @sp-3;
@@ -518,7 +555,42 @@ const title = computed(() =>
     text-align: center;
   }
 
-  // ---------- 输入区 ----------
+  // 👇 升级引导 Banner 样式
+  &__upgrade-banner {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: @sp-3 @sp-4;
+    background: @gold-soft;
+    border-top: 1px dashed @gold;
+    gap: @sp-3;
+
+    .upgrade-banner__content {
+      display: flex;
+      align-items: center;
+      gap: @sp-2;
+      font-size: @fs-xs;
+      color: darken(@gold, 20%);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .upgrade-banner__icon {
+      font-size: 18px;
+      color: darken(@gold, 10%);
+      flex-shrink: 0;
+    }
+
+    .upgrade-banner__btn {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #f1c40f 0%, #e5b769 100%);
+      border: none;
+      color: @ink-1;
+      font-weight: 600;
+    }
+  }
+
   &__footer {
     flex-shrink: 0;
     display: flex;
@@ -575,16 +647,12 @@ const title = computed(() =>
   }
 }
 
-// ============================================================
-// 单条消息气泡
-// ============================================================
 .chat-msg {
   display: flex;
   align-items: flex-end;
   gap: @sp-2;
   max-width: 100%;
 
-  // 宠物消息：靠左
   &--assistant {
     flex-direction: row;
     justify-content: flex-start;
@@ -596,7 +664,6 @@ const title = computed(() =>
     }
   }
 
-  // 用户消息：靠右
   &--user {
     flex-direction: row-reverse;
     justify-content: flex-start;
@@ -643,7 +710,6 @@ const title = computed(() =>
     user-select: none;
   }
 
-  // ---------- 打字中动画 ----------
   &__bubble--typing {
     display: inline-flex;
     align-items: center;

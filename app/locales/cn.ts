@@ -591,4 +591,6 @@ export default {
   contact_faq_2_a: '请在您的邮箱中搜索来自支付平台（Paddle 或 Dodo）的收据邮件。打开邮件，点击其中的 "Manage Subscription"（管理订阅）链接即可取消。',
   contact_faq_3_q: '为什么我无法留言？',
   contact_faq_3_a: '可能是您未登录，或者账号被限制。请检查登录状态。如果问题依然存在，请联系客服。',
+
+  pet_chat_free_limit_reached: '您与宠物的 3 次免费互动额度已用完，升级 VIP 即可继续畅聊。',
 }
