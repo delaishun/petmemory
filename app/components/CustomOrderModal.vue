@@ -5,6 +5,8 @@ import { useI18n } from '~/composables/useI18n'
 import { processPhoto } from '~/utils/image-process'
 import { uploadToOss, buildFilename } from '~/utils/upload'
 import type { AuthUser } from '~/types/auth'
+// 👇 1. 直接导入 npm 包中的 DodoPayments
+import { DodoPayments } from 'dodopayments-checkout'
 
 const { t } = useI18n()
 const { $api } = useNuxtApp()
@@ -25,25 +27,24 @@ const visible = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
-// 表单状态（已移除 shippingAddress）
+// 表单状态
 const images = ref<string[]>([])
 const requirements = ref('')
 const uploading = ref(false)
 const submitting = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
-// 👇 修正：全局对象名称改为 DodoPaymentsCheckout
+// 👇 2. 移除 DodoPaymentsCheckout 的 window 声明，仅保留 Paddle
 declare global {
   interface Window {
     Paddle: any
-    DodoPaymentsCheckout: any
   }
 }
 
 // ============================================================
-// 通用 SDK 加载等待（类型同步更新）
+// 通用 SDK 加载等待（仅用于 Paddle）
 // ============================================================
-function waitForSDK(sdkName: 'Paddle' | 'DodoPaymentsCheckout'): Promise<any> {
+function waitForSDK(sdkName: 'Paddle'): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0
     const maxAttempts = 50
@@ -98,7 +99,7 @@ async function handlePaddleOrder() {
 }
 
 // ============================================================
-// 👇 核心修改：Dodo Payments 相关逻辑
+// 👇 3. 核心修改：Dodo Payments 逻辑
 // ============================================================
 async function handleDodoOrder() {
   const res = await $api<{ checkout_url: string }>('/api/dodo/create-checkout', {
@@ -113,25 +114,20 @@ async function handleDodoOrder() {
     }
   })
 
-  // 获取正确的全局 SDK 对象
-  const DodoPaymentsCheckout = await waitForSDK('DodoPaymentsCheckout')
   if (!res.checkout_url) throw new Error('Failed to get checkout URL')
 
-  // 先初始化，再打开收银台
-  DodoPaymentsCheckout.Initialize({
+  // 保留 Initialize 作为兜底（如果 app.vue 中已经初始化，这里重复调用通常不会产生副作用）
+  DodoPayments.Initialize({
     mode: 'test', // 上线时改为 'live'
     displayType: 'overlay',
     onEvent: (event: any) => {
-      // 支付成功
       if (event.event_type === 'payment.succeeded') {
         console.log('Dodo portrait payment success', event)
         handleSuccess()
       }
-      // 用户主动关闭弹窗
       if (event.event_type === 'checkout.closed') {
         submitting.value = false
       }
-      // 支付发生错误
       if (event.event_type === 'checkout.error') {
         showToast(event.data?.message || '支付发生错误')
         submitting.value = false
@@ -139,7 +135,8 @@ async function handleDodoOrder() {
     }
   })
 
-  await DodoPaymentsCheckout.Checkout.open({
+  // 直接使用导入的 DodoPayments 对象打开收银台
+  await DodoPayments.Checkout.open({
     checkoutUrl: res.checkout_url,
   })
 }

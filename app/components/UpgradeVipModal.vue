@@ -3,6 +3,8 @@
 import { showToast } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import type { AuthUser } from "~/types/auth";
+// 👇 1. 直接导入 npm 包中的 DodoPayments
+import { DodoPayments } from 'dodopayments-checkout'
 
 const { t } = useI18n();
 const { $api } = useNuxtApp();
@@ -30,18 +32,17 @@ const visible = computed({
 
 const submitting = ref(false);
 
-// 👇 修正：全局对象名称改为 DodoPaymentsCheckout
+// 👇 2. 移除 DodoPaymentsCheckout 的 window 声明，仅保留 Paddle
 declare global {
   interface Window {
     Paddle: any;
-    DodoPaymentsCheckout: any;
   }
 }
 
 // ============================================================
-// 工具函数：等待第三方 SDK 加载完成（类型同步更新）
+// 工具函数：等待第三方 SDK 加载完成（仅用于 Paddle）
 // ============================================================
-function waitForSDK(sdkName: 'Paddle' | 'DodoPaymentsCheckout'): Promise<any> {
+function waitForSDK(sdkName: 'Paddle'): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0;
     const maxAttempts = 50;
@@ -100,7 +101,7 @@ async function handlePaddleSubscribe() {
 }
 
 // ============================================================
-// 👇 核心修改：Dodo Payments 相关逻辑
+// 👇 3. 核心修改：Dodo Payments 相关逻辑
 // ============================================================
 async function handleDodoSubscribe() {
   // 1. 请求后端创建 Checkout Session
@@ -112,39 +113,34 @@ async function handleDodoSubscribe() {
     }
   );
 
-  // 2. 获取正确的全局 SDK 对象
-  const DodoPaymentsCheckout = await waitForSDK('DodoPaymentsCheckout');
-  
-  if (res.checkout_url) {
-    // 3. 先初始化，再打开收银台
-    DodoPaymentsCheckout.Initialize({
-      mode: 'test', // 上线时改为 'live'
-      displayType: 'overlay',
-      onEvent: (event: any) => {
-        // 支付成功
-        if (event.event_type === 'payment.succeeded') {
-          console.log('Dodo payment success', event);
-          handleSuccess();
-        }
-        // 用户主动关闭弹窗
-        if (event.event_type === 'checkout.closed') {
-          submitting.value = false;
-        }
-        // 支付发生错误
-        if (event.event_type === 'checkout.error') {
-          showToast(event.data?.message || '支付发生错误');
-          submitting.value = false;
-        }
-      }
-    });
+  if (!res.checkout_url) throw new Error("Failed to get checkout URL");
 
-    // 打开 Overlay
-    await DodoPaymentsCheckout.Checkout.open({
-      checkoutUrl: res.checkout_url,
-    });
-  } else {
-    throw new Error("Failed to get checkout URL");
-  }
+  // 2. 初始化 Dodo 支付组件（保留一次兜底初始化）
+  DodoPayments.Initialize({
+    mode: 'test', // 上线时改为 'live'
+    displayType: 'overlay',
+    onEvent: (event: any) => {
+      // 支付成功
+      if (event.event_type === 'payment.succeeded') {
+        console.log('Dodo payment success', event);
+        handleSuccess();
+      }
+      // 用户主动关闭弹窗
+      if (event.event_type === 'checkout.closed') {
+        submitting.value = false;
+      }
+      // 支付发生错误
+      if (event.event_type === 'checkout.error') {
+        showToast(event.data?.message || '支付发生错误');
+        submitting.value = false;
+      }
+    }
+  });
+
+  // 3. 打开收银台 Overlay
+  await DodoPayments.Checkout.open({
+    checkoutUrl: res.checkout_url,
+  });
 }
 
 // ============================================================
