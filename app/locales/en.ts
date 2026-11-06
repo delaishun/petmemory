@@ -592,4 +592,9 @@ export default {
 
   pet_chat_free_limit_reached: "You've used your 3 free interactions with this pet. Upgrade to VIP for unlimited conversations.",
 
+    // Payment Success
+  payment_success_title: 'Payment Successful',
+  payment_success_desc: 'Thank you for your support. Your order has been placed and will be processed shortly.',
+  btn_go_orders: 'View My Orders',
+
 }

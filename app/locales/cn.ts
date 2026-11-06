@@ -593,4 +593,9 @@ export default {
   contact_faq_3_a: '可能是您未登录，或者账号被限制。请检查登录状态。如果问题依然存在，请联系客服。',
 
   pet_chat_free_limit_reached: '您与宠物的 3 次免费互动额度已用完，升级 VIP 即可继续畅聊。',
+
+    // 支付成功
+  payment_success_title: '支付成功',
+  payment_success_desc: '感谢您的支持。您的订单已生成，我们将会尽快为您处理。',
+  btn_go_orders: '查看我的订单',
 }
