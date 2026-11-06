@@ -47,7 +47,7 @@ export default {
   pet_send_gift: 'Send Gift',
   pet_edit_info: 'Edit Info',
   pet_upload_photo: 'Upload Photo',
-  pet_chat: 'Talk to them',
+  pet_chat: 'Talk to it',
   pet_hidden: 'Hidden',
   pet_no_bio: 'Owner hasn\'t filled in info yet',
 
@@ -591,5 +591,5 @@ export default {
   contact_faq_3_a: 'You may not be logged in, or your account might be restricted. Please check your login status. If the issue persists, contact support.',
 
   pet_chat_free_limit_reached: "You've used your 3 free interactions with this pet. Upgrade to VIP for unlimited conversations.",
-  
+
 }
