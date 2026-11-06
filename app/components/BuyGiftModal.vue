@@ -3,6 +3,8 @@
 import { showToast } from 'vant'
 import { useI18n } from '~/composables/useI18n'
 import type { AuthUser } from '~/types/auth'
+// 👇 1. 直接从 npm 包导入 DodoPayments 对象
+import { DodoPayments } from 'dodopayments-checkout'
 
 const { t } = useI18n()
 const { $api } = useNuxtApp()
@@ -59,11 +61,11 @@ const MIN_PURCHASE_PRICE = 500
 const EXCHANGE_COST = 1000
 const ALLOWED_EXCHANGE_CODES = ['bone', 'carrot', 'corn', 'biscuit']
 
-// 👇 修正：全局对象名称改为 DodoPaymentsCheckout
+// 👇 2. 移除 window.DodoPaymentsCheckout 声明，仅保留 Paddle 的全局声明
 declare global {
   interface Window {
     Paddle: any
-    DodoPaymentsCheckout: any
+    // DodoPaymentsCheckout 不再需要，已改为模块导入
   }
 }
 
@@ -184,9 +186,9 @@ function toggleExchange(code: string) {
 }
 
 // ============================================================
-// 通用 SDK 加载等待（参数类型同步更新）
+// 通用 SDK 加载等待（仅用于 Paddle）
 // ============================================================
-function waitForSDK(sdkName: 'Paddle' | 'DodoPaymentsCheckout'): Promise<any> {
+function waitForSDK(sdkName: 'Paddle'): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0
     const maxAttempts = 50
@@ -256,7 +258,7 @@ async function handlePaddlePurchase() {
 }
 
 // ============================================================
-// 👇 核心修改：Dodo Payments 支付逻辑
+// 👇 3. 核心修改：Dodo Payments 支付逻辑
 // ============================================================
 async function handleDodoPurchase() {
   const itemsToBuy = Object.entries(quantities.value)
@@ -277,13 +279,12 @@ async function handleDodoPurchase() {
     }
   })
 
-  // 👈 使用正确的全局对象名
-  const DodoPaymentsCheckout = await waitForSDK('DodoPaymentsCheckout')
   if (!res.checkout_url) throw new Error('Failed to get checkout URL')
 
-  // 👈 使用 Initialize 初始化，通过 onEvent 监听关闭和错误事件
-  DodoPaymentsCheckout.Initialize({
-    mode: 'test',        // 上线时改为 'live'
+  // 👈 直接使用导入的 DodoPayments 对象，不再依赖 window 和 waitForSDK
+  // 保留一次 Initialize 作为兜底（如果 app.vue 中未初始化）
+  DodoPayments.Initialize({
+    mode: 'test',          // 上线时请改为 'live'
     displayType: 'overlay',
     onEvent: (event: any) => {
       if (event.event_type === 'checkout.closed') {
@@ -296,8 +297,8 @@ async function handleDodoPurchase() {
     }
   })
 
-  // 👈 使用 Checkout.open 打开收银台
-  await DodoPaymentsCheckout.Checkout.open({
+  // 👈 打开收银台
+  await DodoPayments.Checkout.open({
     checkoutUrl: res.checkout_url,
   })
 }

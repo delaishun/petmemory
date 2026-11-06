@@ -12,6 +12,7 @@
   "dependencies": {
     "@nuxtjs/sitemap": "^9.1.0",
     "@vant/nuxt": "^1.0.7",
+    "dodopayments-checkout": "^2.1.0",
     "heic2any": "^0.0.4",
     "md-editor-v3": "^7.1.0",
     "nuxt": "^4.5.2",
