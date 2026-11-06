@@ -10,7 +10,7 @@ const me = useState<AuthUser | null>("auth:user", () => null);
 
 const config = useRuntimeConfig();
 const paddleClientToken = String(config.public.paddleClientToken || "");
-const paymentProvider = String(config.public.paymentProvider || "paddle"); // 👈 读取支付渠道开关
+const paymentProvider = String(config.public.paymentProvider || "paddle");
 
 interface Props {
   modelValue: boolean;
@@ -30,18 +30,18 @@ const visible = computed({
 
 const submitting = ref(false);
 
-// 声明全局对象
+// 👇 修正：全局对象名称改为 DodoPaymentsCheckout
 declare global {
   interface Window {
     Paddle: any;
-    DodoPayments: any; // 👈 声明 Dodo SDK
+    DodoPaymentsCheckout: any;
   }
 }
 
 // ============================================================
-// 工具函数：等待第三方 SDK 加载完成
+// 工具函数：等待第三方 SDK 加载完成（类型同步更新）
 // ============================================================
-function waitForSDK(sdkName: 'Paddle' | 'DodoPayments'): Promise<any> {
+function waitForSDK(sdkName: 'Paddle' | 'DodoPaymentsCheckout'): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0;
     const maxAttempts = 50;
@@ -100,7 +100,7 @@ async function handlePaddleSubscribe() {
 }
 
 // ============================================================
-// Dodo Payments 相关逻辑
+// 👇 核心修改：Dodo Payments 相关逻辑
 // ============================================================
 async function handleDodoSubscribe() {
   // 1. 请求后端创建 Checkout Session
@@ -112,21 +112,35 @@ async function handleDodoSubscribe() {
     }
   );
 
-  // 2. 等待 Dodo SDK 并唤起 Overlay
-  const dodo = await waitForSDK('DodoPayments');
+  // 2. 获取正确的全局 SDK 对象
+  const DodoPaymentsCheckout = await waitForSDK('DodoPaymentsCheckout');
   
   if (res.checkout_url) {
-    dodo.init({
-      url: res.checkout_url,
-      onSuccess: (data: any) => {
-        // Dodo 支付成功
-        console.log('Dodo payment success', data);
-        handleSuccess();
-      },
-      onClose: () => {
-        // 用户关闭了弹窗，重置 loading 状态
-        submitting.value = false;
+    // 3. 先初始化，再打开收银台
+    DodoPaymentsCheckout.Initialize({
+      mode: 'test', // 上线时改为 'live'
+      displayType: 'overlay',
+      onEvent: (event: any) => {
+        // 支付成功
+        if (event.event_type === 'payment.succeeded') {
+          console.log('Dodo payment success', event);
+          handleSuccess();
+        }
+        // 用户主动关闭弹窗
+        if (event.event_type === 'checkout.closed') {
+          submitting.value = false;
+        }
+        // 支付发生错误
+        if (event.event_type === 'checkout.error') {
+          showToast(event.data?.message || '支付发生错误');
+          submitting.value = false;
+        }
       }
+    });
+
+    // 打开 Overlay
+    await DodoPaymentsCheckout.Checkout.open({
+      checkoutUrl: res.checkout_url,
     });
   } else {
     throw new Error("Failed to get checkout URL");
@@ -165,8 +179,6 @@ async function handleSubscribe() {
     showToast(err?.data?.error || err.message || "发起支付失败，请重试");
     submitting.value = false;
   } finally {
-    // 如果是 Paddle 模式，唤起的是 Paddle 自己的 iframe，这里可以立刻恢复按钮。
-    // 如果是 Dodo，Overlay 可能是异步加载的，我们保留 loading 状态直到 onSuccess 或 onClose
     if (paymentProvider === "paddle") {
       submitting.value = false;
     }

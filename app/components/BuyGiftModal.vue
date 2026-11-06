@@ -10,7 +10,7 @@ const me = useState<AuthUser | null>('auth:user', () => null)
 
 const config = useRuntimeConfig()
 const paddleClientToken = String(config.public.paddleClientToken || '')
-const paymentProvider = String(config.public.paymentProvider || 'paddle') // 👈 读取支付渠道开关
+const paymentProvider = String(config.public.paymentProvider || 'paddle')
 
 // ============================================================
 // 类型
@@ -20,7 +20,7 @@ interface GiftPublic {
   code: string
   name: string
   imageUrl: string
-  price: number // 数据库价格（分），如 50 = $0.50
+  price: number
   moodValue: number
   expireSeconds: number
 }
@@ -33,7 +33,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
-  (e: 'success'): void // 支付或兑换成功回调
+  (e: 'success'): void
 }>()
 
 // ============================================================
@@ -52,21 +52,18 @@ const gifts = ref<GiftPublic[]>([])
 const loading = ref(false)
 const submitting = ref(false)
 
-// 购买数量记录 { [giftCode]: quantity }
 const quantities = ref<Record<string, number>>({})
-// 兑换数量记录（每次只能兑换 1 个）
 const exchangeSelections = ref<Record<string, number>>({})
 
-// 常量
-const MIN_PURCHASE_PRICE = 500 // $5.00
-const EXCHANGE_COST = 1000 // 1000 积分
+const MIN_PURCHASE_PRICE = 500
+const EXCHANGE_COST = 1000
 const ALLOWED_EXCHANGE_CODES = ['bone', 'carrot', 'corn', 'biscuit']
 
-// 声明全局 SDK
+// 👇 修正：全局对象名称改为 DodoPaymentsCheckout
 declare global {
   interface Window {
     Paddle: any
-    DodoPayments: any // 👈 声明 Dodo SDK
+    DodoPaymentsCheckout: any
   }
 }
 
@@ -75,7 +72,6 @@ declare global {
 // ============================================================
 const currentPoint = computed(() => me.value?.point ?? 0)
 
-// 计算购买总价（单位：分）
 const totalDbPrice = computed(() => {
   if (activeTab.value !== 'purchase') return 0
   return Object.entries(quantities.value).reduce((sum, [code, qty]) => {
@@ -86,16 +82,13 @@ const totalDbPrice = computed(() => {
 
 const totalDollarPrice = computed(() => (totalDbPrice.value / 100).toFixed(2))
 
-// 计算兑换总需积分
 const totalExchangePoints = computed(() => {
   if (activeTab.value !== 'exchange') return 0
   const count = Object.values(exchangeSelections.value).reduce((s, v) => s + v, 0)
   return count * EXCHANGE_COST
 })
 
-// 是否满足 $5 最低限制
 const isPurchaseValid = computed(() => totalDbPrice.value >= MIN_PURCHASE_PRICE)
-// 积分是否足够
 const isExchangeValid = computed(() => currentPoint.value >= totalExchangePoints.value && totalExchangePoints.value > 0)
 
 // ============================================================
@@ -137,7 +130,6 @@ async function loadGifts() {
   }
 }
 
-// 默认选中凑够 $5
 function initDefaultSelection() {
   quantities.value = {}
   exchangeSelections.value = {}
@@ -171,7 +163,7 @@ function initDefaultSelection() {
 }
 
 // ============================================================
-// 交互逻辑 👈 补上这部分丢失的代码
+// 交互逻辑
 // ============================================================
 function inc(code: string) {
   const cur = quantities.value[code] || 0
@@ -192,9 +184,9 @@ function toggleExchange(code: string) {
 }
 
 // ============================================================
-// 通用 SDK 加载等待
+// 通用 SDK 加载等待（参数类型同步更新）
 // ============================================================
-function waitForSDK(sdkName: 'Paddle' | 'DodoPayments'): Promise<any> {
+function waitForSDK(sdkName: 'Paddle' | 'DodoPaymentsCheckout'): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0
     const maxAttempts = 50
@@ -249,7 +241,6 @@ async function handlePaddlePurchase() {
       return { giftId: gift.id, quantity: qty }
     })
 
-  // 获取后端生成的 Paddle 参数
   const res = await $api<{ paddleItems: any[]; items: any[] }>('/api/paddle/checkout', {
     method: 'POST',
     body: { items: itemsToBuy }
@@ -265,7 +256,7 @@ async function handlePaddlePurchase() {
 }
 
 // ============================================================
-// Dodo Payments 支付逻辑
+// 👇 核心修改：Dodo Payments 支付逻辑
 // ============================================================
 async function handleDodoPurchase() {
   const itemsToBuy = Object.entries(quantities.value)
@@ -275,30 +266,39 @@ async function handleDodoPurchase() {
       return { giftId: gift.id, quantity: qty, code }
     })
 
-  // 调用后端创建 Dodo Checkout Session
   const res = await $api<{ checkout_url: string }>('/api/dodo/create-checkout', {
     method: 'POST',
     body: {
       type: 'gift',
       payload: {
-        totalAmount: totalDbPrice.value / 100, // 传美元金额，例如 5.50
-        giftDetails: itemsToBuy // 传给后端存 metadata，Webhook 回调时使用
+        totalAmount: totalDbPrice.value / 100,
+        giftDetails: itemsToBuy
       }
     }
   })
 
-  const dodo = await waitForSDK('DodoPayments')
+  // 👈 使用正确的全局对象名
+  const DodoPaymentsCheckout = await waitForSDK('DodoPaymentsCheckout')
   if (!res.checkout_url) throw new Error('Failed to get checkout URL')
 
-  dodo.init({
-    url: res.checkout_url,
-    onSuccess: (data: any) => {
-      console.log('Dodo payment success', data)
-      handleSuccess('支付成功！礼物已发放到仓库')
-    },
-    onClose: () => {
-      submitting.value = false
+  // 👈 使用 Initialize 初始化，通过 onEvent 监听关闭和错误事件
+  DodoPaymentsCheckout.Initialize({
+    mode: 'test',        // 上线时改为 'live'
+    displayType: 'overlay',
+    onEvent: (event: any) => {
+      if (event.event_type === 'checkout.closed') {
+        submitting.value = false
+      }
+      if (event.event_type === 'checkout.error') {
+        showToast(event.data?.message || '支付发生错误')
+        submitting.value = false
+      }
     }
+  })
+
+  // 👈 使用 Checkout.open 打开收银台
+  await DodoPaymentsCheckout.Checkout.open({
+    checkoutUrl: res.checkout_url,
   })
 }
 
@@ -332,8 +332,6 @@ async function handlePurchase() {
     showToast(err?.data?.error || err.message || '发起支付失败，请重试')
     submitting.value = false
   } finally {
-    // 如果是 Paddle，这里是同步调起收银台，立刻恢复 loading。
-    // 如果是 Dodo，让它在 onClose 或 onSuccess 时恢复。
     if (paymentProvider === 'paddle') {
       submitting.value = false
     }
@@ -368,7 +366,7 @@ async function handleExchange() {
 </script>
 
 <template>
-  <!-- 模板部分保持不变 -->
+  <!-- 模板部分完全不变，保持原样 -->
   <van-popup
     v-model:show="visible"
     round
@@ -378,7 +376,6 @@ async function handleExchange() {
     :close-on-click-overlay="!submitting"
   >
     <div class="buy-gift">
-      <!-- Header -->
       <header class="buy-gift__header">
         <h2 class="buy-gift__title">{{ t('gift_buy_title') }}</h2>
         <div class="buy-gift__points" v-if="me">
@@ -387,7 +384,6 @@ async function handleExchange() {
         </div>
       </header>
 
-      <!-- Tabs -->
       <div class="buy-gift__tabs">
         <div 
           class="buy-gift__tab" 
@@ -405,7 +401,6 @@ async function handleExchange() {
         </div>
       </div>
 
-      <!-- List -->
       <div class="buy-gift__list" v-if="!loading">
         <template v-if="activeTab === 'purchase'">
           <div v-for="gift in gifts" :key="gift.code" class="gift-row">
@@ -457,7 +452,6 @@ async function handleExchange() {
       </div>
       <div v-else class="buy-gift__loading">加载中...</div>
 
-      <!-- Footer -->
       <div class="buy-gift__footer">
         <template v-if="activeTab === 'purchase'">
           <div class="buy-gift__total">
@@ -498,7 +492,7 @@ async function handleExchange() {
 </template>
 
 <style scoped lang="less">
-/* 样式部分保持不变 */
+/* 样式部分完全不变 */
 @import "~/assets/css/common.less";
 
 .buy-gift {
