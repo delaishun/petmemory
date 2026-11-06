@@ -22,11 +22,11 @@ export default {
   home_about_title: '关于宠忆',
   home_about_desc: '在宠忆，为心爱的宠物留一片温暖的自留地。\n你可以随时来看看它、给它留言、与它谈心，或是送上一份小礼物。\n收到礼物的它，会偷偷开心很久哦。',
   home_drawing_title: '宠物手绘',
-  home_drawing_desc: '为您与爱宠定制专属手绘画像，留下美好回忆。\n每一幅画作皆为纯手工绘制，拒绝 AI 生成。\n绘画过程将录制简短视频，让您见证作品诞生。',
+  home_drawing_desc: '为您与爱宠定制专属手绘画像，留下美好回忆。\n每一幅画作皆由画师纯手工精心绘制。\n绘画过程将录制简短视频，让您见证作品诞生。',
   home_drawing_example_label: '手绘示例',
   home_drawing_artist_label: '画师',
   home_drawing_cta: '定制宠物手绘',
-  home_seo_desc: '「宠忆」是一个专为心爱宠物打造的纪念与陪伴平台。在这里，您可以免费建立宠物主页、上传相册、留言纪念，还能与宠物进行 AI 跨时空对话，留下最温暖的回忆。',
+  home_seo_desc: '「宠忆」是一个专为心爱宠物打造的纪念与陪伴平台。在这里，您可以免费建立宠物主页、上传相册、留言纪念，还能体验与宠物跨越时空的温馨互动，留下最温暖的回忆。',
 
   // 宠物列表页
   pets_title: '全部宠物',
@@ -57,7 +57,7 @@ export default {
   user_add_pet: '+ 添加宠物',
   user_logout: '退出登录',
   user_vip_title: 'VIP 专属特权',
-  user_vip_desc_1: '跨越时空，与心爱的 ta 尽情交谈',
+  user_vip_desc_1: '跨越时空，重温与心爱 ta 的温馨互动',
   user_vip_desc_2: '随节日更替的专属动态背景面板',
   user_vip_desc_3: '让每一次探望都充满温度的治愈背景音乐',
   user_vip_desc_4: '珍藏美好瞬间的无限相册空间',
@@ -74,7 +74,7 @@ export default {
   footer_weibo: '微博',
   footer_wechat: '微信公众号',
   footer_copyright: '© {year} {app_name} · 用心记录每一段陪伴',
-  footer_pricing: '价格说明', // 👈 新增
+  footer_pricing: '价格说明',
 
   // 通用
   gender_boy: '男孩',
@@ -118,8 +118,8 @@ export default {
   msg_please_login: '请先登录',
   vip_feature_title: 'VIP 专享功能',
   vip_feature_album_desc: '相册上传是 VIP 会员专享功能\n开通后即可为 ta 上传照片',
-  vip_feature_chat_desc: '和宠物对话是 VIP 会员专享功能\n开通后即可和 ta 说说话',
-  vip_feature_chat_owner_only: '只能和自己的宠物对话',
+  vip_feature_chat_desc: '与宠物互动是 VIP 会员专享功能\n开通后即可和 ta 进行互动',
+  vip_feature_chat_owner_only: '只能和自己的宠物互动',
   msg_operation_failed: '操作失败',
   dialog_delete_photo_title: '删除这张照片？',
   dialog_delete_photo_desc: '删除后将从相册中移除',
@@ -256,12 +256,12 @@ export default {
 
   pet_chat_modal_title: '和 {petName} 说说话',
   pet_chat_modal_title_no_name: '和 ta 说说话',
-  pet_chat_limit_reached: '今天的对话额度已经用完',
+  pet_chat_limit_reached: '今天的互动额度已经用完',
   pet_chat_remaining: '还可以说 {n} 句',
-  pet_chat_loading: '正在加载对话…',
+  pet_chat_loading: '正在加载互动…',
   pet_chat_empty_with_name: '和 {petName} 说第一句话吧',
   pet_chat_empty: '说第一句话吧',
-  pet_chat_load_failed: '加载对话失败',
+  pet_chat_load_failed: '加载互动失败',
   pet_chat_send_failed: '发送失败，请稍后重试',
   pet_chat_placeholder_limit: '今天的额度用完了，过一会儿再来吧',
   pet_chat_placeholder: '说点什么…',
@@ -303,7 +303,7 @@ export default {
   about_album_title: '时光相册',
   about_album_desc: '随时为 ta 上传照片，留住每一个美好瞬间。',
   about_interact_title: '温暖陪伴',
-  about_interact_desc: '随时来看看它、给它留言、与它谈心，或是送上一份小礼物。收到礼物的 ta 心情值会偷偷上涨，开心很久哦。',
+  about_interact_desc: '随时来看看它、给它留言、分享回忆，或是送上一份小礼物。收到礼物的 ta 心情值会偷偷上涨，开心很久哦。',
   about_drawing_title: '专属手绘',
   about_drawing_desc: '为您与爱宠定制纯手工画作，绘画过程将录制简短视频，见证这份温暖记忆的诞生。',
   about_vip_title: '会员尊享',
@@ -321,17 +321,17 @@ export default {
   privacy_last_updated: '最后更新日期',
   privacy_intro: '“宠忆”（Pet Memories，以下简称“我们”或“本平台”）深知个人信息对您的重要性，并会尽全力保护您的个人信息安全可靠。本隐私政策旨在向您说明，当您访问和使用我们的网站（https://www.petmemory.me）及相关服务时，我们如何收集、使用、共享、存储和保护您的个人信息。请在使用本服务前仔细阅读。',
   privacy_sec1_title: '1. 我们收集的信息',
-  privacy_sec1_desc: '为了向您提供完整服务，我们会收集以下类型的信息：\n\n- 账号与身份信息：当您使用邮箱注册时，我们会收集您的邮箱和密码（加密存储）。当您选择使用第三方服务（如 Google OAuth）登录时，我们会收集您授权提供的 Google 账号基本信息，包括：您的电子邮箱地址、公开姓名（昵称）以及头像 URL。\n- 宠物信息：您在平台创建的宠物档案，包括名字、物种、生日、简介以及宠物照片。\n- 互动信息：您在使用过程中留下的留言、赠送礼物的记录、积分变动记录。\n- AI 对话内容：您与宠物 AI 之间的对话文本，用于维持对话上下文和生成回复。',
+  privacy_sec1_desc: '为了向您提供完整服务，我们会收集以下类型的信息：\n\n- 账号与身份信息：当您使用邮箱注册时，我们会收集您的邮箱和密码（加密存储）。当您选择使用第三方服务（如 Google OAuth）登录时，我们会收集您授权提供的 Google 账号基本信息，包括：您的电子邮箱地址、公开姓名（昵称）以及头像 URL。\n- 宠物信息：您在平台创建的宠物档案，包括名字、物种、生日、简介以及宠物照片。\n- 互动信息：您在使用过程中留下的留言、赠送礼物的记录、积分变动记录。\n- 互动内容：您与虚拟伴侣功能之间的互动文本，用于维持上下文和生成回复。',
   privacy_sec2_title: '2. 我们如何使用您的信息',
-  privacy_sec2_desc: '我们将收集到的信息用于以下用途：\n\n- 身份验证与登录：使用 Google OAuth 返回的邮箱等信息来识别您的身份并保持登录状态。\n- 服务提供：展示您的主页、宠物档案、相册及留言。\n- AI 处理：为了生成宠物回复和专属卡通表情，我们需要将您的对话文本发送给第三方大语言模型（如 DeepSeek），将宠物照片发送给图像处理 API（如通义千问）。此过程仅用于实时生成结果。\n- 安全与风控：防止欺诈、滥用和保障平台安全。',
+  privacy_sec2_desc: '我们将收集到的信息用于以下用途：\n\n- 身份验证与登录：使用 Google OAuth 返回的邮箱等信息来识别您的身份并保持登录状态。\n- 服务提供：展示您的主页、宠物档案、相册及留言。\n- 虚拟伴侣处理：为了生成宠物回复和专属卡通表情，我们需要将您的输入文本发送给第三方处理服务，将宠物照片发送给图像处理 API。此过程仅用于实时生成结果。\n- 安全与风控：防止欺诈、滥用和保障平台安全。',
   privacy_sec3_title: '3. 信息的共享与披露',
-  privacy_sec3_desc: '我们绝不会将您的个人信息出售给任何第三方。仅在以下必要情况下，我们会共享数据：\n\n- 第三方登录服务：当您使用 Google 登录时，身份验证过程受 Google 隐私政策约束。\n- 云存储服务：我们使用阿里云 OSS 存储您的头像和照片。\n- 第三方 AI 服务：如上述，我们会将必要的文本和图片发送给第三方 AI 提供商以完成您请求的功能。\n- 法律强制要求：根据法律法规、法庭传票或政府部门的强制性要求，我们可能会披露您的信息。',
+  privacy_sec3_desc: '我们绝不会将您的个人信息出售给任何第三方。仅在以下必要情况下，我们会共享数据：\n\n- 第三方登录服务：当您使用 Google 登录时，身份验证过程受 Google 隐私政策约束。\n- 云存储服务：我们使用阿里云 OSS 存储您的头像和照片。\n- 第三方处理服务：如上述，我们会将必要的文本和图片发送给第三方提供商以完成您请求的功能。\n- 法律强制要求：根据法律法规、法庭传票或政府部门的强制性要求，我们可能会披露您的信息。',
   privacy_sec4_title: '4. Cookie 与同类技术',
   privacy_sec4_desc: '我们使用 Cookie（以及类似技术如 LocalStorage）来确保网站的正常运行。例如，我们会使用 Cookie 存储您的登录 Token（加密的凭证），以便您刷新页面时无需重复登录。您可以在浏览器设置中管理或清除 Cookie，但这可能会影响您使用部分功能。',
   privacy_sec5_title: '5. 数据安全与保留期限',
   privacy_sec5_desc: '我们采用行业标准的安全措施（如 HTTPS 加密传输、密码 bcrypt 加密存储）保护您的数据。我们仅在为您提供服务所必需的期限内保留您的个人信息，除非法律要求或允许更长的保留期。当您注销账号或要求删除时，我们会及时删除或匿名化处理您的数据。',
   privacy_sec6_title: '6. 您的权利（如何删除数据）',
-  privacy_sec6_desc: '您有权随时访问、更正您的信息（如修改昵称、上传新头像）。您也可以随时删除您上传的相册照片和留言。如果您希望彻底注销账号并删除所有相关联的数据（包括您的账号信息、宠物信息、AI 对话记录等），Users can request account and data deletion by sending an email to fczx1999@gmail.com（用户可通过发送邮件至 fczx1999@gmail.com 提出账号注销及数据删除请求）。我们会在收到请求后的 7 个工作日内为您处理。',
+  privacy_sec6_desc: '您有权随时访问、更正您的信息（如修改昵称、上传新头像）。您也可以随时删除您上传的相册照片和留言。如果您希望彻底注销账号并删除所有相关联的数据（包括您的账号信息、宠物信息、互动记录等），Users can request account and data deletion by sending an email to fczx1999@gmail.com（用户可通过发送邮件至 fczx1999@gmail.com 提出账号注销及数据删除请求）。我们会在收到请求后的 7 个工作日内为您处理。',
   privacy_sec7_title: '7. 未成年人保护',
   privacy_sec7_desc: '本平台不面向 14 周岁以下的儿童提供服务。我们不会有意收集儿童的个人信息。如果您是监护人并发现您的孩子向我们提供了个人信息，请联系我们，我们将予以删除。',
   privacy_sec8_title: '8. 政策更新与通知',
@@ -350,20 +350,20 @@ export default {
   terms_sec1_title: '1. 账号注册与安全',
   terms_sec1_desc: '为了使用部分功能，您需要注册一个账号。您可以通过提供邮箱密码，或使用第三方服务（如 Google 账号）进行授权登录。\n您承诺提供真实、准确的信息，并妥善保管您的账号凭证。您对您账号下发生的所有活动负全部责任。若发现任何未经授权使用您账号的情况，请立即通知我们。',
   terms_sec2_title: '2. 用户行为规范',
-  terms_sec2_desc: '您同意在使用本服务时遵守所有适用的法律法规，并且不进行以下行为：\n- 发布、上传或传播任何违法、有害、威胁、辱骂、骚扰、诽谤、粗俗、淫秽或其他令人反感的内容。\n- 侵犯他人的知识产权、隐私权或其他合法权益。\n- 试图未经授权访问网站、服务器、数据库或实施任何破坏网络安全的行为。\n- 利用本服务进行任何欺诈、非法活动或滥用平台资源。\n- 滥用 AI 对话功能，刻意生成违规、有害或敏感的内容。',
+  terms_sec2_desc: '您同意在使用本服务时遵守所有适用的法律法规，并且不进行以下行为：\n- 发布、上传或传播任何违法、有害、威胁、辱骂、骚扰、诽谤、粗俗、淫秽或其他令人反感的内容。\n- 侵犯他人的知识产权、隐私权或其他合法权益。\n- 试图未经授权访问网站、服务器、数据库或实施任何破坏网络安全的行为。\n- 利用本服务进行任何欺诈、非法活动或滥用平台资源。\n- 滥用虚拟伴侣功能，刻意生成违规、有害或敏感的内容。',
   terms_sec3_title: '3. 用户内容与知识产权',
   terms_sec3_desc: '您保留您上传到本平台的宠物照片、留言等原创内容的知识产权。但是，通过上传内容，您授予我们在全球范围内、非独占的、免版税的许可，允许我们在运营、提供和推广本平台服务的过程中展示、存储、处理和分发这些内容。\n本平台的设计、源代码、Logo、UI 界面及相关知识产权均归“宠忆”所有，未经书面许可，不得复制或使用。',
   terms_sec4_title: '4. 积分与 VIP 会员服务',
-  terms_sec4_desc: '平台内的积分（Point）和 VIP 会员服务属于虚拟商品。VIP 服务的具体权益（如相册上传、专属特效、AI 对话次数）和有效期以页面展示及购买时的约定为准。积分用于购买平台内的虚拟礼物，积分消耗后不可退还。请合理使用您的虚拟资产，我们不对因您个人操作失误（如错误赠送礼物）导致的积分损失负责。',
-  terms_sec5_title: '5. 免责声明（含 AI 服务）',
-  terms_sec5_desc: '本平台提供的 AI 对话及 AI 图像生成服务基于第三方大语言模型（如 DeepSeek、通义千问）。“宠忆”无法保证 AI 生成内容的绝对准确性、完整性或适用性，也不承担由此产生的任何法律责任。本平台旨在提供宠物纪念与情感寄托服务，不能替代专业的医疗、心理或法律建议。您需自行承担使用本服务（包括依赖 AI 生成内容）产生的风险。',
+  terms_sec4_desc: '平台内的积分（Point）和 VIP 会员服务属于虚拟商品。VIP 服务的具体权益（如相册上传、专属特效、虚拟伴侣次数）和有效期以页面展示及购买时的约定为准。积分用于购买平台内的虚拟礼物，积分消耗后不可退还。请合理使用您的虚拟资产，我们不对因您个人操作失误（如错误赠送礼物）导致的积分损失负责。',
+  terms_sec5_title: '5. 免责声明（含虚拟伴侣服务）',
+  terms_sec5_desc: '本平台提供的虚拟伴侣及图像生成服务基于第三方处理服务。“宠忆”无法保证生成内容的绝对准确性、完整性或适用性，也不承担由此产生的任何法律责任。本平台旨在提供宠物纪念与情感寄托服务，不能替代专业的医疗、心理或法律建议。您需自行承担使用本服务（包括依赖生成内容）产生的风险。',
   terms_sec6_title: '6. 第三方链接与服务',
   terms_sec6_desc: '本服务可能包含指向第三方网站或服务的链接（例如通过 Google OAuth 登录）。我们不控制且不对第三方的隐私政策、条款或行为负责。当您使用第三方服务时，您需遵守该第三方的政策。',
   terms_sec7_title: '7. 条款修改与终止',
   terms_sec7_desc: '我们保留随时修改或替换本服务条款的权利。修改后的条款将在本页面公布。如果您在条款变更后继续使用本服务，将被视为接受修改后的条款。\n如果您严重违反本条款，我们有权在不事先通知的情况下暂停或永久终止您的账号及访问权限。',
 
   terms_sec8_title: '8. 账号注销与数据删除',
-  terms_sec8_desc: '您有权随时终止使用本服务并注销您的账号。如果您希望彻底删除您的账号及所有相关数据，Users can request account and data deletion by sending an email to fczx1999@gmail.com（用户可通过发送邮件至 fczx1999@gmail.com 提出账号注销及数据删除请求）。为了保障账号安全，我们可能会在删除前核实您的身份。一旦注销，您的个人资料、宠物档案、上传的图片及对话记录将被永久删除且无法恢复。',
+  terms_sec8_desc: '您有权随时终止使用本服务并注销您的账号。如果您希望彻底删除您的账号及所有相关数据，Users can request account and data deletion by sending an email to fczx1999@gmail.com（用户可通过发送邮件至 fczx1999@gmail.com 提出账号注销及数据删除请求）。为了保障账号安全，我们可能会在删除前核实您的身份。一旦注销，您的个人资料、宠物档案、上传的图片及互动记录将被永久删除且无法恢复。',
 
   terms_sec9_title: '9. 适用法律与争议解决',
   terms_sec9_desc: '本条款的成立、生效、履行、解释及争议的解决，均适用中华人民共和国法律。若您与我们发生任何争议，应首先友好协商解决；协商不成的，您同意将争议提交至“宠忆”运营者所在地有管辖权的人民法院诉讼解决。',
@@ -386,7 +386,7 @@ export default {
   // 积分奖励提示
   gift_bonus_points: '赠送成功，获得 200 积分！',
   msg_bonus_earned: '留言成功，获得 50 积分奖励！',
-  chat_bonus_earned: '对话结束，获得 75 积分奖励！',
+  chat_bonus_earned: '互动结束，获得 75 积分奖励！',
 
   user_buy_gift: '购买礼物',
   user_my_inventory: '我的礼物仓库',
@@ -394,7 +394,7 @@ export default {
 
   year: '年',
   vip_album_privilege: '解锁宠物相册上传功能',
-  vip_terms_tip: '订阅即代表同意服务条款，可随时在 Paddle 取消续费。',
+  vip_terms_tip: '订阅即代表同意服务条款，可随时在支付平台取消续费。',
   user_upgrade_vip: '升级 VIP ($9.9/年)',
   user_renew_vip: '续费 VIP',
   vip_price_yearly: '$9.90 / 年',
@@ -407,19 +407,12 @@ export default {
   custom_order_title: '定制宠物手工绘画',
   custom_order_upload: '上传参考照片（可多张）',
   custom_order_requirements: '绘画要求（如：风格、背景颜色、是否加入文字等），画像尺寸为 8.27 × 11.69 英寸 (A4)',
-  custom_order_address: '收件地址',
-  custom_order_address_placeholder: '请输入详细收件信息（仅实物版需要）',
-
+  
   custom_order_plan_digital_title: '纯手工电子版',
   custom_order_plan_digital_desc: '为您绘制高清 PDF/PNG 画作。20天内发送至您的注册邮箱，留住美好瞬间。',
   custom_order_plan_digital_btn: '订购 $45',
 
-  custom_order_plan_physical_title: '实体装裱版',
-  custom_order_plan_physical_desc: '包含电子画作与实体装裱。20天内发邮箱，画作完成后为您包邮寄出。',
-  custom_order_plan_physical_btn: '订购 $60',
-
   custom_order_success: '支付成功！我们会尽快联系您确认细节。',
-  custom_order_err_address: '订购实物版请填写收件地址',
 
   // 订单相关
   user_my_orders: '我的订单',
@@ -441,7 +434,7 @@ export default {
   manage_sub_subtitle: '您的 VIP 会员正在自动续费中',
   manage_sub_desc: '如果您想取消自动续费，请按照以下步骤操作：',
   manage_sub_step_1: '前往您注册时使用的邮箱。',
-  manage_sub_step_2: '搜索来自 Paddle 的账单邮件（标题通常包含 "Your Paddle receipt"）。',
+  manage_sub_step_2: '搜索来自支付平台的账单邮件（标题通常包含 "receipt"）。',
   manage_sub_step_3: '打开邮件，点击里面的 "Manage Subscription" 或 "View Receipt" 链接。',
   manage_sub_step_4: '在打开的网页中，点击 "Cancel Subscription" 即可取消。',
   manage_sub_tips: '取消后，您的 VIP 权益将持续到当前计费周期结束，不会影响当下的使用。',
@@ -481,7 +474,7 @@ export default {
   // --- 留言禁言状态 ---
   message_muted_placeholder: '您目前无法留言',
 
-  custom_order_vip_bonus: '专属礼遇：订购任意绘画方案，即免费获赠 1 年 VIP 会员（价值 $9.9），解锁与爱宠的跨时空对话。',
+  custom_order_vip_bonus: '专属礼遇：订购任意绘画方案，即免费获赠 1 年 VIP 会员（价值 $9.9），解锁与爱宠的跨时空互动。',
 
   pet_share: '分享',
   pet_share_title: '分享 {name} 的主页',
@@ -496,7 +489,7 @@ export default {
   refund_intro: '感谢您选择「宠忆」(PetMemory)。我们致力于提供温馨、宁静且无缝的纪念空间，以纪念和缅怀您的爱宠。由于我们的服务涉及数字宠物纪念空间和虚拟纪念物品，本退款与取消政策旨在说明您在本平台购物时的权利以及我们的条款。',
 
   refund_sec1_title: '1. 支付处理',
-  refund_sec1_desc: '「宠忆」的所有支付均通过我们的记录商户（Merchant of Record）Paddle 进行安全处理。Paddle 代表我们处理所有支付交易、税务计算、账单查询以及拒付（Chargebacks）。',
+  refund_sec1_desc: '「宠忆」的所有支付均通过我们的支付合作伙伴进行安全处理。他们代表我们处理所有支付交易、税务计算、账单查询以及拒付（Chargebacks）。',
 
   refund_sec2_title: '2. 数字服务与虚拟商品',
   refund_sec2_desc_1: '我们的服务主要包括：',
@@ -525,9 +518,9 @@ export default {
   refund_sec5_desc: '如果您认为自己符合我们的退款条件，请在交易后的 14 天内联系我们：',
   refund_sec5_req_title: '所需提供的信息',
   refund_sec5_req1: '您在「宠忆」注册的电子邮箱地址。',
-  refund_sec5_req2: 'Paddle 的订单 ID 或收据编号。',
+  refund_sec5_req2: '订单 ID 或收据编号。',
   refund_sec5_req3: '关于问题或退款原因的简要说明。',
-  refund_sec5_footer: '我们的支持团队将审核您的请求，并在 1 到 3 个工作日内回复。一旦批准，退款将通过 Paddle 原路退回到您的原支付方式。根据您的银行或信用卡提供商的不同，资金可能需要 5-10 个工作日才能退回到您的账户中。',
+  refund_sec5_footer: '我们的支持团队将审核您的请求，并在 1 到 3 个工作日内回复。一旦批准，退款将通过支付合作伙伴原路退回到您的原支付方式。根据您的银行或信用卡提供商的不同，资金可能需要 5-10 个工作日才能退回到您的账户中。',
 
   refund_sec6_title: '6. 联系我们',
   refund_sec6_desc: '如果您对本退款政策有任何疑问或疑虑，请通过以下方式联系我们：',
@@ -536,7 +529,7 @@ export default {
   placeholder_leave_date: '选择离开日期（选填）',
   leave_date_picker_title: '选择离开日期',  
 
-  // --- 价格页面 (新增) ---
+  // --- 价格页面 ---
   pricing_title: '价格与纪念品',
   pricing_intro: '探索我们提供的纪念服务。从高级数字纪念空间、互动式纪念伴侣，到可触摸的定制宠物画像纪念品，找到最适合纪念您爱宠的方式。',
   pricing_vip_section: '高级数字纪念空间',
@@ -544,7 +537,7 @@ export default {
   pricing_vip_f1: '专属空间自定义背景主题',
   pricing_vip_f2: '轻柔专属背景音乐',
   pricing_vip_f3: '扩容相册，珍藏美好回忆',
-  pricing_vip_f4: '互动式宠物纪念伴侣', // 去掉了 AI 和 谈心
+  pricing_vip_f4: '互动式宠物纪念伴侣',
   pricing_vip_price: '9.9',
   pricing_vip_period: '/年',
   
@@ -565,10 +558,23 @@ export default {
   
   pricing_portraits_section: '定制宠物画像纪念品',
   pricing_portrait_1: '纯手工定制电子版画像',
-  pricing_portrait_2: '纯手工定制实体画像（含精美装裱）',
   
   pricing_btn_get_vip: '升级专属空间',
   pricing_vip_active: '已是 VIP 会员',
   pricing_refund_notice: '所有购买均受我们的 ',
   pricing_refund_suffix: ' 约束。',
+  
+  // Paddle 专属
+  manage_sub_paddle_desc: '您的 VIP 会员通过 Paddle 管理。如需取消自动续费：',
+  manage_sub_paddle_step_1: '前往您注册时使用的邮箱。',
+  manage_sub_paddle_step_2: '搜索来自 Paddle 的账单邮件（标题通常包含 "Your Paddle receipt"）。',
+  manage_sub_paddle_step_3: '打开邮件，点击里面的 "Manage Subscription" 链接。',
+  manage_sub_paddle_step_4: '在打开的网页中，点击 "Cancel Subscription" 即可取消。',
+
+  // Dodo 专属
+  manage_sub_dodo_desc: '您的 VIP 会员通过 Dodo Payments 管理。如需取消自动续费：',
+  manage_sub_dodo_step_1: '前往您注册时使用的邮箱。',
+  manage_sub_dodo_step_2: '搜索来自 Dodo Payments 的收据邮件。',
+  manage_sub_dodo_step_3: '打开邮件，点击里面的 "Customer Portal" 或 "Manage Subscription" 链接。',
+  manage_sub_dodo_step_4: '在打开的网页中，点击 "Cancel Subscription" 即可取消。',
 }

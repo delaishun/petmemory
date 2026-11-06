@@ -57,7 +57,8 @@ useHead({
         <!-- 2. 温暖陪伴 -->
         <section class="feature-card">
           <div class="feature-card__icon">
-            <van-icon name="chat-o" />
+            <!-- 👇 将 chat-o 替换为 smile-o，避免“聊天”暗示 -->
+            <van-icon name="smile-o" />
           </div>
           <div class="feature-card__content">
             <h2 class="feature-card__title">{{ t('about_interact_title') }}</h2>

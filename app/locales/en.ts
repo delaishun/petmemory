@@ -22,11 +22,11 @@ export default {
   home_about_title: 'About Pet Memory',
   home_about_desc: 'At Pet Memory, leave a warm place for your beloved pet.\nYou can visit them anytime, leave a message, have a chat, or send a little gift.\nThey will be secretly delighted to receive it.',
   home_drawing_title: 'Custom Hand-Drawn Portraits',
-  home_drawing_desc: 'Custom hand-drawn portraits for you and your beloved pet to cherish beautiful memories.\nEvery artwork is 100% hand-drawn, no AI involved.\nA short video of the drawing process will be recorded, allowing you to witness the artwork come to life.',
+  home_drawing_desc: 'Custom hand-drawn portraits for you and your beloved pet to cherish beautiful memories.\nEvery artwork is completely hand-drawn with care.\nA short video of the drawing process will be recorded, allowing you to witness the artwork come to life.',
   home_drawing_example_label: 'Example',
   home_drawing_artist_label: 'Artist',
   home_drawing_cta: 'Custom Pet Portrait',
-  home_seo_desc: 'Pet Memory is a dedicated platform for commemorating and accompanying your beloved pets. You can freely create pet profiles, upload photo albums, leave messages, and even have AI conversations with them across time and space.',
+  home_seo_desc: 'Pet Memory is a dedicated platform for commemorating and accompanying your beloved pets. You can freely create pet profiles, upload photo albums, leave messages, and experience heartwarming interactions with them across time and space.',
 
   // 宠物列表页
   pets_title: 'All Pets',
@@ -47,7 +47,7 @@ export default {
   pet_send_gift: 'Send Gift',
   pet_edit_info: 'Edit Info',
   pet_upload_photo: 'Upload Photo',
-  pet_chat: 'Chat',
+  pet_chat: 'Talk to them',
   pet_hidden: 'Hidden',
   pet_no_bio: 'Owner hasn\'t filled in info yet',
 
@@ -57,7 +57,7 @@ export default {
   user_add_pet: '+ Add Pet',
   user_logout: 'Logout',
   user_vip_title: 'VIP Privileges',
-  user_vip_desc_1: 'Chat with your beloved pets across time and space',
+  user_vip_desc_1: 'Relive heartwarming interactions with your beloved pets across time and space',
   user_vip_desc_2: 'Exclusive dynamic background panels that change with festivals',
   user_vip_desc_3: 'Soothing background music to warm every visit',
   user_vip_desc_4: 'A boundless album space to cherish beautiful memories',
@@ -74,7 +74,7 @@ export default {
   footer_weibo: 'Weibo',
   footer_wechat: 'WeChat',
   footer_copyright: '© {year} {app_name} · Record every companionship with heart',
-  footer_pricing: 'Pricing', // 👈 新增
+  footer_pricing: 'Pricing',
 
   // 通用
   gender_boy: 'Boy',
@@ -118,8 +118,8 @@ export default {
   msg_please_login: 'Please login first',
   vip_feature_title: 'VIP Feature',
   vip_feature_album_desc: 'Album upload is a VIP feature.\nSubscribe to upload photos.',
-  vip_feature_chat_desc: 'Chat with pets is a VIP feature.\nSubscribe to chat with them.',
-  vip_feature_chat_owner_only: 'You can only chat with your own pets',
+  vip_feature_chat_desc: 'Talking with pets is a VIP feature.\nSubscribe to interact with them.',
+  vip_feature_chat_owner_only: 'You can only talk with your own pets',
   msg_operation_failed: 'Operation failed',
   dialog_delete_photo_title: 'Delete this photo?',
   dialog_delete_photo_desc: 'It will be removed from the album.',
@@ -256,7 +256,7 @@ export default {
 
   pet_chat_modal_title: 'Talk to {petName}',
   pet_chat_modal_title_no_name: 'Talk to them',
-  pet_chat_limit_reached: 'Daily chat limit reached',
+  pet_chat_limit_reached: 'Daily limit reached',
   pet_chat_remaining: '{n} messages left',
   pet_chat_loading: 'Loading conversation...',
   pet_chat_empty_with_name: 'Say the first word to {petName}',
@@ -303,7 +303,7 @@ export default {
   about_album_title: 'Time Album',
   about_album_desc: 'Upload photos anytime to keep every beautiful moment of them.',
   about_interact_title: 'Warm Companionship',
-  about_interact_desc: 'Visit anytime to leave a message, share a conversation, or send a little gift. Every gift warms their heart and boosts their mood score!',
+  about_interact_desc: 'Visit anytime to leave a message, share a memory, or send a little gift. Every gift warms their heart and boosts their mood score!',
   about_drawing_title: 'Custom Hand-Drawn',
   about_drawing_desc: 'Commission a custom, 100% hand-drawn portrait. A short video of the drawing process will be recorded to witness the creation.',
   about_vip_title: 'VIP Privileges',
@@ -321,17 +321,17 @@ export default {
   privacy_last_updated: 'Last Updated',
   privacy_intro: 'Pet Memory ("we", "us", or "our") fully understands the importance of personal information to you and will do our utmost to protect the security and reliability of your personal information. This Privacy Policy is designed to explain how we collect, use, share, store, and protect your information when you visit and use our website (https://www.petmemory.me) and related services. Please read this carefully before using our services.',
   privacy_sec1_title: '1. Information We Collect',
-  privacy_sec1_desc: 'To provide you with complete services, we collect the following types of information:\n\n- Account & Identity Information: When you register with an email, we collect your email and password (encrypted). When you choose to log in using third-party services (like Google OAuth), we collect basic information authorized by your Google account, including: your email address, public name (nickname), and profile picture URL.\n- Pet Information: Pet profiles you create on the platform, including name, species, birthday, bio, and pet photos.\n- Interaction Information: Messages you leave, gift sending records, and point change records.\n- AI Chat Content: The text of your conversations with the pet AI, used to maintain context and generate replies.',
+  privacy_sec1_desc: 'To provide you with complete services, we collect the following types of information:\n\n- Account & Identity Information: When you register with an email, we collect your email and password (encrypted). When you choose to log in using third-party services (like Google OAuth), we collect basic information authorized by your Google account, including: your email address, public name (nickname), and profile picture URL.\n- Pet Information: Pet profiles you create on the platform, including name, species, birthday, bio, and pet photos.\n- Interaction Information: Messages you leave, gift sending records, and point change records.\n- Interaction Content: The text of your interactions with the Virtual Companion feature, used to maintain context and generate replies.',
   privacy_sec2_title: '2. How We Use Your Information',
-  privacy_sec2_desc: 'We use the collected information for the following purposes:\n\n- Authentication: Using the email and other info returned by Google OAuth to identify you and keep you logged in.\n- Service Provision: Displaying your profile, pet profiles, albums, and messages.\n- AI Processing: To generate pet replies and custom cartoon expressions, we send your chat text to third-party large language models (like DeepSeek) and pet photos to image processing APIs (like Qwen). This is only for real-time result generation.\n- Security & Risk Control: To prevent fraud, abuse, and ensure platform security.',
+  privacy_sec2_desc: 'We use the collected information for the following purposes:\n\n- Authentication: Using the email and other info returned by Google OAuth to identify you and keep you logged in.\n- Service Provision: Displaying your profile, pet profiles, albums, and messages.\n- Virtual Companion Processing: To generate pet replies and custom cartoon expressions, we send your input text and pet photos to third-party processing services. This is only for real-time result generation.\n- Security & Risk Control: To prevent fraud, abuse, and ensure platform security.',
   privacy_sec3_title: '3. Sharing and Disclosure of Information',
-  privacy_sec3_desc: 'We will never sell your personal information to any third party. We only share data under the following necessary circumstances:\n\n- Third-Party Login Services: When you log in with Google, the authentication process is governed by Google\'s Privacy Policy.\n- Cloud Storage: We use Alibaba Cloud OSS to store your avatars and photos.\n- Third-Party AI Services: As mentioned above, necessary text and images are sent to third-party AI providers to fulfill your requested features.\n- Legal Requirements: We may disclose your information in response to legal processes, court orders, or mandatory government requests.',
+  privacy_sec3_desc: 'We will never sell your personal information to any third party. We only share data under the following necessary circumstances:\n\n- Third-Party Login Services: When you log in with Google, the authentication process is governed by Google\'s Privacy Policy.\n- Cloud Storage: We use Alibaba Cloud OSS to store your avatars and photos.\n- Third-Party Processing Services: As mentioned above, necessary text and images are sent to third-party providers to fulfill your requested features.\n- Legal Requirements: We may disclose your information in response to legal processes, court orders, or mandatory government requests.',
   privacy_sec4_title: '4. Cookies and Similar Technologies',
   privacy_sec4_desc: 'We use cookies (and similar technologies like LocalStorage) to ensure the normal operation of the website. For example, we use cookies to store your login Token (encrypted credential) so you don\'t have to log in repeatedly when refreshing the page. You can manage or clear cookies in your browser settings, but this may affect some functionalities.',
   privacy_sec5_title: '5. Data Security and Retention',
   privacy_sec5_desc: 'We implement industry-standard security measures (such as HTTPS encrypted transmission, bcrypt password hashing) to protect your data. We retain your personal information only for as long as necessary to provide you with services, unless a longer retention period is required or permitted by law. When you delete your account or request deletion, we will promptly delete or anonymize your data.',
   privacy_sec6_title: '6. Your Rights (How to Delete Data)',
-  privacy_sec6_desc: 'You have the right to access and correct your information at any time (e.g., change nickname, upload new avatar). You can also delete your uploaded album photos and messages at any time. If you wish to completely delete your account and permanently erase all associated data (including account info, pet info, AI chat history, etc.), Users can request account and data deletion by sending an email to fczx1999@gmail.com. We will process your request within 7 business days of receipt.',
+  privacy_sec6_desc: 'You have the right to access and correct your information at any time (e.g., change nickname, upload new avatar). You can also delete your uploaded album photos and messages at any time. If you wish to completely delete your account and permanently erase all associated data (including account info, pet info, chat history, etc.), Users can request account and data deletion by sending an email to fczx1999@gmail.com. We will process your request within 7 business days of receipt.',
   privacy_sec7_title: '7. Children\'s Privacy',
   privacy_sec7_desc: 'This platform is not intended for children under the age of 14. We do not knowingly collect personal information from children. If you are a parent or guardian and discover that your child has provided us with personal information, please contact us, and we will delete it.',
   privacy_sec8_title: '8. Policy Updates and Notifications',
@@ -350,13 +350,13 @@ export default {
   terms_sec1_title: '1. Account Registration and Security',
   terms_sec1_desc: 'To use certain features, you need to register an account. You can register by providing an email and password, or by authorizing through third-party services (such as a Google account). \nYou agree to provide true, accurate information and to safeguard your account credentials. You are entirely responsible for all activities that occur under your account. If you notice any unauthorized use of your account, please notify us immediately.',
   terms_sec2_title: '2. User Conduct',
-  terms_sec2_desc: 'You agree to comply with all applicable laws and regulations when using our service, and not to: \n- Post, upload, or transmit any content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, or otherwise objectionable. \n- Infringe upon the intellectual property rights, privacy rights, or other legitimate rights of others. \n- Attempt to gain unauthorized access to the website, servers, databases, or engage in any activity that disrupts network security. \n- Use the service for any fraudulent, illegal activities, or abuse of platform resources. \n- Abuse the AI chat feature to deliberately generate inappropriate, harmful, or sensitive content.',
+  terms_sec2_desc: 'You agree to comply with all applicable laws and regulations when using our service, and not to: \n- Post, upload, or transmit any content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, or otherwise objectionable. \n- Infringe upon the intellectual property rights, privacy rights, or other legitimate rights of others. \n- Attempt to gain unauthorized access to the website, servers, databases, or engage in any activity that disrupts network security. \n- Use the service for any fraudulent, illegal activities, or abuse of platform resources. \n- Abuse the Virtual Companion feature to deliberately generate inappropriate, harmful, or sensitive content.',
   terms_sec3_title: '3. User Content and Intellectual Property',
   terms_sec3_desc: 'You retain the intellectual property rights to the original content, such as pet photos and messages, you upload to the platform. However, by uploading content, you grant us a worldwide, non-exclusive, royalty-free license to display, store, process, and distribute such content in the course of operating, providing, and promoting our platform services. \nThe design, source code, logo, UI, and related intellectual property of the platform belong to Pet Memory and may not be copied or used without written permission.',
   terms_sec4_title: '4. Points and VIP Services',
-  terms_sec4_desc: 'Points and VIP membership services on the platform are virtual goods. The specific benefits (e.g., album upload, exclusive effects, AI chat limits) and validity period of VIP services are subject to the display on the page and the agreement at the time of purchase. Points are used to purchase virtual gifts on the platform and are non-refundable once consumed. Please use your virtual assets reasonably; we are not responsible for point losses caused by your personal operational errors (such as sending gifts by mistake).',
-  terms_sec5_title: '5. Disclaimer (Including AI Services)',
-  terms_sec5_desc: 'The AI chat and AI image generation services provided by this platform are based on third-party large language models (like DeepSeek, Qwen). Pet Memories cannot guarantee the absolute accuracy, completeness, or applicability of the AI-generated content and assumes no legal liability arising therefrom. This platform is intended for pet memorial and emotional support and cannot replace professional medical, psychological, or legal advice. You assume the risks associated with using this service, including relying on AI-generated content.',
+  terms_sec4_desc: 'Points and VIP membership services on the platform are virtual goods. The specific benefits (e.g., album upload, exclusive effects, Virtual Companion limits) and validity period of VIP services are subject to the display on the page and the agreement at the time of purchase. Points are used to purchase virtual gifts on the platform and are non-refundable once consumed. Please use your virtual assets reasonably; we are not responsible for point losses caused by your personal operational errors (such as sending gifts by mistake).',
+  terms_sec5_title: '5. Disclaimer (Including Virtual Companion Services)',
+  terms_sec5_desc: 'The Virtual Companion and image generation services provided by this platform are based on third-party processing services. Pet Memories cannot guarantee the absolute accuracy, completeness, or applicability of the generated content and assumes no legal liability arising therefrom. This platform is intended for pet memorial and emotional support and cannot replace professional medical, psychological, or legal advice. You assume the risks associated with using this service, including relying on generated content.',
   terms_sec6_title: '6. Third-Party Links and Services',
   terms_sec6_desc: 'The service may contain links to third-party websites or services (e.g., logging in via Google OAuth). We do not control and are not responsible for the privacy policies, terms, or practices of third parties. When using third-party services, you must comply with their policies.',
   terms_sec7_title: '7. Modifications and Termination',
@@ -386,7 +386,7 @@ export default {
   // Points Bonus Prompts
   gift_bonus_points: 'Gift sent successfully! You earned 200 points.',
   msg_bonus_earned: 'Message sent! You earned 50 bonus points.',
-  chat_bonus_earned: 'Chat completed! You earned 75 bonus points.',
+  chat_bonus_earned: 'Interaction completed! You earned 75 bonus points.',
 
   user_buy_gift: 'Buy Gifts',
   user_my_inventory: 'My Gift Inventory',
@@ -394,7 +394,7 @@ export default {
 
   year: 'yr',
   vip_album_privilege: 'Unlock pet album uploads',
-  vip_terms_tip: 'By subscribing, you agree to our Terms of Service. Cancel anytime via Paddle.',
+  vip_terms_tip: 'By subscribing, you agree to our Terms of Service. Cancel anytime via the payment platform.',
   user_upgrade_vip: 'Upgrade to VIP ($9.9/yr)',
   user_renew_vip: 'Renew VIP',
   vip_price_yearly: '$9.90 / Year',
@@ -403,23 +403,16 @@ export default {
   vip_bonus_points_tip: 'Get 10,000 points with VIP',
   vip_subscribe_success: 'Subscription successful! VIP is active.',
 
-  // Custom Order
+  // Custom Order (Removed Physical Version)
   custom_order_title: 'Custom Hand-Drawn Portrait',
   custom_order_upload: 'Upload Reference Photos (Multiple allowed)',
   custom_order_requirements: 'Requirements (e.g., style, background, text). Size: 8.27 × 11.69 inches (A4)',
-  custom_order_address: 'Shipping Address',
-  custom_order_address_placeholder: 'Enter your address (Required for physical)',
-
+  
   custom_order_plan_digital_title: 'Digital Version',
   custom_order_plan_digital_desc: 'High-quality hand-drawn PDF/PNG delivered to your email within 20 days.',
   custom_order_plan_digital_btn: 'Order $45',
 
-  custom_order_plan_physical_title: 'Physical Version',
-  custom_order_plan_physical_desc: 'Includes digital drawing and framed physical artwork. Emailed within 20 days; physical item shipped after completion.',
-  custom_order_plan_physical_btn: 'Order $60',
-
   custom_order_success: 'Payment successful! We will contact you soon.',
-  custom_order_err_address: 'Please enter shipping address for physical order',
 
   // Orders
   user_my_orders: 'My Orders',
@@ -441,7 +434,7 @@ export default {
   manage_sub_subtitle: 'Your VIP membership is auto-renewing',
   manage_sub_desc: 'If you want to cancel the auto-renewal, please follow these steps:',
   manage_sub_step_1: 'Go to the email address you used to register.',
-  manage_sub_step_2: 'Search for the billing email from Paddle (the subject usually contains "Your Paddle receipt").',
+  manage_sub_step_2: 'Search for the billing email from the payment platform (the subject usually contains "receipt").',
   manage_sub_step_3: 'Open the email and click the "Manage Subscription" or "View Receipt" link.',
   manage_sub_step_4: 'On the opened web page, click "Cancel Subscription" to cancel.',
   manage_sub_tips: 'After cancellation, your VIP benefits will continue until the end of the current billing cycle and will not affect your current use.',
@@ -494,7 +487,7 @@ export default {
   refund_intro: 'Thank you for choosing PetMemory. We strive to provide a compassionate, peaceful, and seamless sanctuary to honor and remember your beloved pets. Because our services involve digital pet memorial spaces and virtual memorial items, this Refund & Cancellation Policy outlines your rights and our terms regarding purchases made on our platform.',
 
   refund_sec1_title: '1. Payment Processing',
-  refund_sec1_desc: 'All payments on PetMemory are processed securely through our Merchant of Record, Paddle. Paddle handles all payment transactions, tax calculations, billing inquiries, and chargebacks on our behalf.',
+  refund_sec1_desc: 'All payments on PetMemory are processed securely through our payment partners. They handle all payment transactions, tax calculations, billing inquiries, and chargebacks on our behalf.',
 
   refund_sec2_title: '2. Digital Services & Virtual Goods',
   refund_sec2_desc_1: 'Our services primarily consist of:',
@@ -523,9 +516,9 @@ export default {
   refund_sec5_desc: 'If you believe you qualify for a refund under our policy, please contact us within 14 days of the transaction:',
   refund_sec5_req_title: 'Required Information',
   refund_sec5_req1: 'Your registered email address on PetMemory.',
-  refund_sec5_req2: 'The Paddle Order ID or receipt number.',
+  refund_sec5_req2: 'The Order ID or receipt number.',
   refund_sec5_req3: 'A brief description of the issue or reason for the refund request.',
-  refund_sec5_footer: 'Our support team will review your request and respond within 1 to 3 business days. Once approved, refunds will be credited back to your original payment method via Paddle. Depending on your bank or credit card provider, it may take 5–10 business days for the funds to reflect in your account.',
+  refund_sec5_footer: 'Our support team will review your request and respond within 1 to 3 business days. Once approved, refunds will be credited back to your original payment method via our payment partners. Depending on your bank or credit card provider, it may take 5–10 business days for the funds to reflect in your account.',
 
   refund_sec6_title: '6. Contact Us',
   refund_sec6_desc: 'If you have any questions or concerns regarding our Refund Policy, please reach out to us at:',
@@ -534,8 +527,7 @@ export default {
   placeholder_leave_date: 'Select pass date (Optional)',
   leave_date_picker_title: 'Select Pass Date',
 
-  // --- Pricing Page (新增) ---
-    // --- Pricing Page (Updated) ---
+  // --- Pricing Page (Updated) ---
   pricing_title: 'Pricing & Keepsakes',
   pricing_intro: 'Explore our offerings to create a lasting tribute. From premium digital memorial spaces and interactive companions to tangible custom pet portrait keepsakes, find the perfect way to honor your beloved pet.',
   pricing_vip_section: 'Premium Digital Memorial Space',
@@ -543,7 +535,7 @@ export default {
   pricing_vip_f1: 'Custom background themes for your sanctuary',
   pricing_vip_f2: 'Exclusive soothing background music',
   pricing_vip_f3: 'Expanded photo albums to cherish memories',
-  pricing_vip_f4: 'Interactive Pet Memorial Companion', // 去掉了 AI 和 Chat
+  pricing_vip_f4: 'Interactive Pet Memorial Companion', // 去掉 AI 和 Chat
   pricing_vip_price: '9.9',
   pricing_vip_period: '/year',
   
@@ -563,11 +555,24 @@ export default {
   gift_crown: 'Crown',
   
   pricing_portraits_section: 'Custom Pet Portrait Keepsakes',
-  pricing_portrait_1: 'Digital Custom Pet Portrait', // 强调数字纪念品
-  pricing_portrait_2: 'Physical Custom Pet Portrait (Framed Keepsake)', // 强调物理纪念品
+  pricing_portrait_1: 'Digital Custom Pet Portrait', // 移除了 $60 实体版
   
   pricing_btn_get_vip: 'Upgrade Space',
   pricing_vip_active: 'VIP Active',
   pricing_refund_notice: 'All purchases are subject to our ',
   pricing_refund_suffix: '.',
+
+  // Paddle 专属
+  manage_sub_paddle_desc: 'Your VIP is managed via Paddle. To cancel auto-renewal:',
+  manage_sub_paddle_step_1: 'Go to the email address you used to register.',
+  manage_sub_paddle_step_2: 'Search for the billing email from Paddle (subject usually contains "Your Paddle receipt").',
+  manage_sub_paddle_step_3: 'Open the email and click the "Manage Subscription" link.',
+  manage_sub_paddle_step_4: 'Click "Cancel Subscription" on the web page.',
+  
+  // Dodo 专属
+  manage_sub_dodo_desc: 'Your VIP is managed via Dodo Payments. To cancel auto-renewal:',
+  manage_sub_dodo_step_1: 'Go to the email address you used to register.',
+  manage_sub_dodo_step_2: 'Search for the receipt email from Dodo Payments.',
+  manage_sub_dodo_step_3: 'Open the email and click the "Customer Portal" or "Manage Subscription" link.',
+  manage_sub_dodo_step_4: 'Click "Cancel Subscription" on the web page.',
 }

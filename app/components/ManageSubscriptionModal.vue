@@ -1,8 +1,13 @@
 <!-- app/components/ManageSubscriptionModal.vue -->
 <script setup lang="ts">
 import { useI18n } from '~/composables/useI18n'
+import type { AuthUser } from '~/types/auth'
 
 const { t } = useI18n()
+
+// 获取全局用户状态，判断是用什么渠道支付的
+const user = useState<AuthUser | null>('auth:user', () => null)
+const provider = computed(() => user.value?.payment_provider || 'paddle')
 
 interface Props {
   modelValue: boolean
@@ -16,6 +21,30 @@ const emit = defineEmits<{
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
+})
+
+// 动态计算当前应该显示的步骤文案
+const steps = computed(() => {
+  if (provider.value === 'dodo') {
+    return [
+      t('manage_sub_dodo_step_1'),
+      t('manage_sub_dodo_step_2'),
+      t('manage_sub_dodo_step_3'),
+      t('manage_sub_dodo_step_4'),
+    ]
+  }
+  return [
+    t('manage_sub_paddle_step_1'),
+    t('manage_sub_paddle_step_2'),
+    t('manage_sub_paddle_step_3'),
+    t('manage_sub_paddle_step_4'),
+  ]
+})
+
+const descText = computed(() => {
+  return provider.value === 'dodo' 
+    ? t('manage_sub_dodo_desc') 
+    : t('manage_sub_paddle_desc')
 })
 </script>
 
@@ -35,13 +64,10 @@ const visible = computed({
       </div>
 
       <div class="manage-modal__body">
-        <p class="manage-modal__desc">{{ t('manage_sub_desc') }}</p>
+        <p class="manage-modal__desc">{{ descText }}</p>
         
         <ol class="manage-modal__steps">
-          <li>{{ t('manage_sub_step_1') }}</li>
-          <li>{{ t('manage_sub_step_2') }}</li>
-          <li>{{ t('manage_sub_step_3') }}</li>
-          <li>{{ t('manage_sub_step_4') }}</li>
+          <li v-for="(step, idx) in steps" :key="idx">{{ step }}</li>
         </ol>
 
         <div class="manage-modal__tips">

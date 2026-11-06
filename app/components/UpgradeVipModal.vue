@@ -139,7 +139,7 @@ async function handleDodoSubscribe() {
 function handleSuccess() {
   showToast({
     type: "success",
-    message: t("vip_subscribe_success") || "订阅成功，VIP 特权已生效！",
+    message: t("vip_subscribe_success"),
   });
   visible.value = false;
   submitting.value = false;
@@ -187,9 +187,9 @@ async function handleSubscribe() {
       <!-- 顶部皇冠 -->
       <div class="vip-modal__header">
         <van-icon name="gem-o" class="vip-modal__icon" />
-        <h2 class="vip-modal__title">{{ t("user_upgrade_vip") || "升级 VIP 会员" }}</h2>
+        <h2 class="vip-modal__title">{{ t("user_upgrade_vip") }}</h2>
         <p class="vip-modal__subtitle">
-          {{ t("vip_auto_renew_tip") || "支持自动续费，随时可取消" }}
+          {{ t("vip_auto_renew_tip") }}
         </p>
       </div>
 
@@ -198,7 +198,7 @@ async function handleSubscribe() {
         <div class="vip-modal__price">
           <span class="symbol">$</span>
           <span class="amount">9.90</span>
-          <span class="period">/ {{ t("year") || "年" }}</span>
+          <span class="period">/ {{ t("year") }}</span>
         </div>
       </div>
 
@@ -206,11 +206,11 @@ async function handleSubscribe() {
       <ul class="vip-modal__features">
         <li class="vip-modal__feature-item">
           <van-icon name="success" class="check-icon" />
-          <span>{{ t("user_vip_desc_1") || "和自己的宠物进行跨时空对话" }}</span>
+          <span>{{ t("user_vip_desc_1") }}</span>
         </li>
         <li class="vip-modal__feature-item">
           <van-icon name="success" class="check-icon" />
-          <span>{{ t("user_vip_desc_2") || "宠物主页享受专属动态特效房间" }}</span>
+          <span>{{ t("user_vip_desc_2") }}</span>
         </li>
         <li class="vip-modal__feature-item">
           <van-icon name="success" class="check-icon" />
@@ -222,7 +222,7 @@ async function handleSubscribe() {
         </li>
         <li class="vip-modal__feature-item highlight">
           <van-icon name="gold-coin-o" class="check-icon" />
-          <span>{{ t("vip_bonus_points_tip") || "开通 VIP 即赠 10,000 积分" }}</span>
+          <span>{{ t("vip_bonus_points_tip") }}</span>
         </li>
       </ul>
 
@@ -245,24 +245,20 @@ async function handleSubscribe() {
           {{
             submitting
               ? t("btn_processing")
-              : t("vip_subscribe_btn") || "立即升级并开启自动续费"
+              : t("vip_subscribe_btn")
           }}
         </button>
       </div>
 
-      <!-- 小字提示（改为了更通用的描述，避免写死 Paddle） -->
+      <!-- 小字提示 -->
       <p class="vip-modal__terms">
-        {{
-          t("vip_terms_tip") ||
-          "订阅即代表同意服务条款，首年到期后将自动续费。可随时在支付平台取消。"
-        }}
+        {{ t("vip_terms_tip") }}
       </p>
     </div>
   </van-popup>
 </template>
 
 <style scoped lang="less">
-/* 样式保持不变 */
 @import "~/assets/css/common.less";
 
 .vip-modal {

@@ -63,7 +63,6 @@ interface HomeMessage {
   };
 }
 
-// 👇 新增：文章类型
 interface HomeArticle {
   id: number;
   slug: string;
@@ -84,8 +83,7 @@ const { t, locale } = useI18n();
 const { $api } = useNuxtApp();
 
 const HOME_LIMIT = 10;
-const ARTICLE_LIMIT = 4; // 首页显示 4 篇文章
-// const timestamp = Date.now();
+const ARTICLE_LIMIT = 4;
 
 const { data: recentPets, pending: petsPending } = await useAsyncData<HomePet[]>(
   "home:pets",
@@ -101,7 +99,6 @@ const { data: recentMessages, pending: messagesPending } = await useAsyncData<
   HomeMessage[]
 >("home:messages", () => $api<HomeMessage[]>(`/api/home/messages?limit=${HOME_LIMIT}`));
 
-// 👇 新增：获取最近的文章
 const { data: recentArticles, pending: articlesPending } = await useAsyncData<{
   items: HomeArticle[];
   total: number;
@@ -133,7 +130,6 @@ const defaultUserAvatar =
      </svg>`
   );
 
-// 👇 新增：文章封面兜底图
 const defaultArticleCover =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
@@ -205,7 +201,6 @@ function formatFullTime(iso: string): string {
   return `${y}-${m}-${dd} ${hh}:${mm}`;
 }
 
-// 文章日期格式化
 function formatDate(iso: string) {
   const d = new Date(iso);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -214,46 +209,24 @@ function formatDate(iso: string) {
 }
 
 // ============================================================
-// 标题 & SEO
+// SEO（改为响应式，支持中英双语）
 // ============================================================
-
-// useHead(() => ({
-//   title: `${t('app_name')} · ${t('home_slogan')}`,
-//   meta: [
-//     {
-//       name: 'description',
-//       content: t('home_seo_desc'),
-//     },
-//   ],
-// }));
-// ============================================================
-// SEO
-// ============================================================
-
 useSeoMeta({
-  // 交给 nuxt.config.ts 的 titleTemplate 拼成完整首页标题：
-  // 'PetMemory' → 'PetMemory - Pet Memorial | Virtual Pet Sanctuary'
-  title: "PetMemory",
-
-  description:
-    "Create a lasting memorial page for your beloved pet. Share photos, leave messages, exchange gifts, and keep their memory alive in a peaceful virtual sanctuary.",
-
-  // Open Graph（社交分享）
-  ogTitle: "PetMemory - Virtual Pet Memorial & Sanctuary",
-  ogDescription:
-    "Create a lasting memorial page for your beloved pet. Share photos, leave messages, and keep their memory alive.",
+  title: () => `${t('app_name')} - Pet Memorial | Virtual Pet Sanctuary`,
+  description: () => t('home_seo_desc'),
+  ogTitle: () => `${t('app_name')} - Virtual Pet Memorial & Sanctuary`,
+  ogDescription: () => t('home_seo_desc'),
   ogImage: "https://music.petmemory.me/og-cover.jpg",
   ogImageWidth: 1200,
   ogImageHeight: 600,
   ogType: "website",
   ogUrl: "https://www.petmemory.me/",
-
-  // Twitter / X
   twitterCard: "summary_large_image",
-  twitterTitle: "PetMemory - Virtual Pet Memorial & Sanctuary",
-  twitterDescription: "Create a lasting memorial page for your beloved pet.",
+  twitterTitle: () => `${t('app_name')} - Virtual Pet Memorial & Sanctuary`,
+  twitterDescription: () => t('home_seo_desc'),
   twitterImage: "https://music.petmemory.me/og-cover.jpg",
 });
+
 useHead({
   link: [
     { rel: 'canonical', href: 'https://www.petmemory.me/' }
@@ -993,9 +966,6 @@ useHead({
 // ============================================================
 // 4. 关于宠忆
 // ============================================================
-// ============================================================
-// 4. 关于宠忆
-// ============================================================
 .home-about {
   padding: @sp-6 @sp-5;
   background: @surface;
@@ -1003,13 +973,11 @@ useHead({
   border-radius: @radius-lg;
   box-shadow: @shadow-1;
   
-  // 👇 改为 Flex 横向布局
   display: flex;
   align-items: center;
   justify-content: center;
   gap: @sp-5;
 
-  // 👇 移动端改为垂直排列
   @media (max-width: @bp-sm) {
     flex-direction: column;
     gap: @sp-3;
@@ -1134,7 +1102,7 @@ useHead({
 }
 
 // ============================================================
-// 6. 宠物文章 (新增样式)
+// 6. 宠物文章
 // ============================================================
 .article-grid-home {
   display: grid;
@@ -1346,4 +1314,4 @@ useHead({
     width: 100%;
   }
 }
-</style>
+</style>  

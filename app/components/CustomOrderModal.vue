@@ -12,6 +12,7 @@ const me = useState<AuthUser | null>('auth:user', () => null)
 
 const config = useRuntimeConfig()
 const paddleClientToken = String(config.public.paddleClientToken || '')
+const paymentProvider = String(config.public.paymentProvider || 'paddle') // 👈 读取支付渠道开关
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{
@@ -24,67 +25,134 @@ const visible = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
-// 表单状态
+// 表单状态（已移除 shippingAddress）
 const images = ref<string[]>([])
 const requirements = ref('')
-const shippingAddress = ref('')
 const uploading = ref(false)
 const submitting = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
-// Paddle SDK 声明与加载
+// 声明全局 SDK
 declare global {
   interface Window {
     Paddle: any
+    DodoPayments: any
   }
 }
 
-function waitForPaddle(): Promise<any> {
+// ============================================================
+// 通用 SDK 加载等待
+// ============================================================
+function waitForSDK(sdkName: 'Paddle' | 'DodoPayments'): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0
+    const maxAttempts = 50
     const check = () => {
-      if (window.Paddle) resolve(window.Paddle)
-      else if (attempts >= 50) reject(new Error('Paddle timeout'))
+      if (window[sdkName]) resolve(window[sdkName])
+      else if (attempts >= maxAttempts) reject(new Error(`${sdkName} SDK load timeout`))
       else { attempts++; setTimeout(check, 100) }
     }
     check()
   })
 }
 
+// ============================================================
+// Paddle 相关逻辑
+// ============================================================
 let paddleInitialized = false
 async function initPaddle() {
   if (paddleInitialized || !paddleClientToken) return
   try {
-    const paddle = await waitForPaddle()
+    const paddle = await waitForSDK('Paddle')
     if (paddleClientToken.startsWith('test_')) paddle.Environment.set('sandbox')
     
     paddle.Initialize({
       token: paddleClientToken,
       eventCallback: (event: any) => {
         if (event.name === 'checkout.completed') {
-          if (window.Paddle) window.Paddle.Checkout.close()
-          showToast({ type: 'success', message: t('custom_order_success') })
-          visible.value = false
-          emit('success')
+          handleSuccess()
         }
       }
     })
     paddleInitialized = true
   } catch (err) {
-    console.error(err)
+    console.error('Paddle Init Failed:', err)
   }
 }
 
+async function handlePaddleOrder() {
+  const paddle = await waitForSDK('Paddle')
+  const res = await $api<{ priceId: string; userId: number; customData: any }>('/api/paddle/checkout-order', {
+    method: 'POST',
+    body: {
+      planType: 'digital', // 固定为 digital
+      images: images.value,
+      requirements: requirements.value.trim(),
+    }
+  })
+
+  paddle.Checkout.open({
+    items: [{ priceId: res.priceId, quantity: 1 }],
+    customData: res.customData
+  })
+}
+
+// ============================================================
+// Dodo Payments 相关逻辑
+// ============================================================
+async function handleDodoOrder() {
+  const res = await $api<{ checkout_url: string }>('/api/dodo/create-checkout', {
+    method: 'POST',
+    body: {
+      type: 'portrait',
+      payload: {
+        planType: 'digital',
+        images: images.value,
+        requirements: requirements.value.trim(),
+      }
+    }
+  })
+
+  const dodo = await waitForSDK('DodoPayments')
+  if (!res.checkout_url) throw new Error('Failed to get checkout URL')
+
+  dodo.init({
+    url: res.checkout_url,
+    onSuccess: (data: any) => {
+      console.log('Dodo portrait payment success', data)
+      handleSuccess()
+    },
+    onClose: () => {
+      submitting.value = false
+    }
+  })
+}
+
+// ============================================================
+// 统一入口与状态处理
+// ============================================================
+function handleSuccess() {
+  if (paymentProvider === 'paddle' && window.Paddle) {
+    window.Paddle.Checkout.close()
+  }
+  showToast({ type: 'success', message: t('custom_order_success') })
+  visible.value = false
+  submitting.value = false
+  emit('success')
+}
+
+// 监听弹窗打开
 watch(visible, (open) => {
   if (open) {
-    initPaddle()
+    if (paymentProvider === 'paddle') {
+      initPaddle()
+    }
     images.value = []
     requirements.value = ''
-    shippingAddress.value = ''
   }
 })
 
-// 图片上传逻辑（复用相册逻辑）
+// 图片上传逻辑
 async function triggerFileInput() {
   if (uploading.value) return
   fileInputRef.value?.click()
@@ -99,10 +167,8 @@ async function onFileChange(e: Event) {
   try {
     for (const file of files) {
       if (!file.type.startsWith('image/')) continue
-      // 预处理：限制大小/等比缩放/WebP
       const processed = await processPhoto(file)
       const filename = buildFilename(processed.ext)
-      // 上传到 OSS 的 pet_orders 目录
       const { url } = await uploadToOss(processed.blob, filename, { fdir: 'pet_orders' })
       images.value.push(url)
     }
@@ -114,40 +180,27 @@ async function onFileChange(e: Event) {
   }
 }
 
-// 发起支付
-async function handleOrder(planType: 'digital' | 'physical') {
+// 发起支付入口
+async function handleOrder() {
   if (!images.value.length) {
     showToast('请至少上传一张参考照片')
-    return
-  }
-  if (planType === 'physical' && !shippingAddress.value.trim()) {
-    showToast(t('custom_order_err_address'))
     return
   }
 
   submitting.value = true
   try {
-    const paddle = await waitForPaddle()
-    
-    // 获取后端参数
-    const res = await $api<{ priceId: string; userId: number; customData: any }>('/api/paddle/checkout-order', {
-      method: 'POST',
-      body: {
-        planType,
-        images: images.value,
-        requirements: requirements.value.trim(),
-        shippingAddress: planType === 'physical' ? shippingAddress.value.trim() : '',
-      }
-    })
-
-    paddle.Checkout.open({
-      items: [{ priceId: res.priceId, quantity: 1 }],
-      customData: res.customData
-    })
+    if (paymentProvider === 'dodo') {
+      await handleDodoOrder()
+    } else {
+      await handlePaddleOrder()
+    }
   } catch (err: any) {
-    showToast(err?.data?.error || '发起支付失败')
-  } finally {
+    showToast(err?.data?.error || err.message || '发起支付失败')
     submitting.value = false
+  } finally {
+    if (paymentProvider === 'paddle') {
+      submitting.value = false
+    }
   }
 }
 </script>
@@ -189,35 +242,19 @@ async function handleOrder(planType: 'digital' | 'physical') {
           <textarea v-model="requirements" class="textarea" placeholder="Tell us what you want..." maxlength="1000" />
         </div>
 
-        <!-- 邮寄地址 (选填，但如果点实物版购买会校验) -->
-        <div class="field">
-          <label class="field__label">{{ t('custom_order_address') }}</label>
-          <input v-model="shippingAddress" type="text" class="input" :placeholder="t('custom_order_address_placeholder')" />
-        </div>
-
-        <!-- 👇 新增：VIP 赠送提示 -->
+        <!-- VIP 赠送提示 -->
         <div class="vip-bonus-banner">
           <van-icon name="gem-o" class="vip-icon" />
           <span>{{ t('custom_order_vip_bonus') }}</span>
         </div>
 
-        <!-- 购买选项卡片 -->
+        <!-- 购买选项卡片 (仅保留电子版) -->
         <div class="plan-cards">
-          <!-- 电子版 -->
-          <div class="plan-card">
+          <div class="plan-card plan-card--highlight">
             <h3 class="plan-card__title">{{ t('custom_order_plan_digital_title') }}</h3>
             <p class="plan-card__desc">{{ t('custom_order_plan_digital_desc') }}</p>
-            <button class="btn btn--primary btn--block plan-card__btn" :disabled="submitting" @click="handleOrder('digital')">
-              {{ t('custom_order_plan_digital_btn') }}
-            </button>
-          </div>
-
-          <!-- 实物版 -->
-          <div class="plan-card plan-card--highlight">
-            <h3 class="plan-card__title">{{ t('custom_order_plan_physical_title') }}</h3>
-            <p class="plan-card__desc">{{ t('custom_order_plan_physical_desc') }}</p>
-            <button class="btn btn--primary btn--block plan-card__btn" :disabled="submitting" @click="handleOrder('physical')">
-              {{ t('custom_order_plan_physical_btn') }}
+            <button class="btn btn--primary btn--block plan-card__btn" :disabled="submitting" @click="handleOrder">
+              {{ submitting ? t('btn_processing') : t('custom_order_plan_digital_btn') }}
             </button>
           </div>
         </div>
@@ -302,7 +339,6 @@ async function handleOrder(planType: 'digital' | 'physical') {
   }
 }
 
-/* 👇 新增：VIP 赠送提示样式 */
 .vip-bonus-banner {
   display: flex;
   align-items: center;
@@ -329,10 +365,6 @@ async function handleOrder(planType: 'digital' | 'physical') {
   display: flex;
   gap: @sp-3;
   margin-top: @sp-4;
-
-  @media (max-width: @bp-sm) {
-    flex-direction: column;
-  }
 }
 
 .plan-card {

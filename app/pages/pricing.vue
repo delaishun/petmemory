@@ -70,9 +70,9 @@ const gifts: { key: I18nKey; price: number }[] = [
   { key: 'gift_crown', price: 5.00 },
 ]
 
+// 👇 移除了 $60 的实物画册，仅保留 $45 电子版
 const portraits: { key: I18nKey; price: number }[] = [
   { key: 'pricing_portrait_1', price: 45 },
-  { key: 'pricing_portrait_2', price: 60 },
 ]
 </script>
 
@@ -88,7 +88,7 @@ const portraits: { key: I18nKey; price: number }[] = [
         </p>
       </header>
 
-      <!-- 👇 调整顺序：优先展示定制画像纪念品 -->
+      <!-- 调整顺序：优先展示定制画像纪念品 -->
       <section class="pricing-section">
         <h2 class="pricing-section__title">{{ t('pricing_portraits_section') }}</h2>
         <div class="portrait-grid">
@@ -114,7 +114,7 @@ const portraits: { key: I18nKey; price: number }[] = [
               <li><van-icon name="success" /> {{ t('pricing_vip_f1') }}</li>
               <li><van-icon name="success" /> {{ t('pricing_vip_f2') }}</li>
               <li><van-icon name="success" /> {{ t('pricing_vip_f3') }}</li>
-              <!-- 修改后的第4点：互动式伴侣 -->
+              <!-- 这里的词条已在语言包中改为“互动式纪念伴侣” -->
               <li><van-icon name="success" /> {{ t('pricing_vip_f4') }}</li>
             </ul>
           </div>
@@ -180,7 +180,6 @@ const portraits: { key: I18nKey; price: number }[] = [
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-/* 这里的样式保持不变 */
 .pricing-page {
   max-width: 800px;
   margin: 0 auto;
