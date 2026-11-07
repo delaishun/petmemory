@@ -63,7 +63,7 @@ interface ArticleComment {
 }
 
 // ============================================================
-// 数据获取（走 ISR，SSR 阶段生成 HTML）
+// 数据获取
 // ============================================================
 const { data: article, pending, error } = await useAsyncData<ArticleDetail>(
   () => `article:${articleSlug.value}`,
@@ -97,7 +97,7 @@ async function handleLike() {
 }
 
 // ============================================================
-// 评论逻辑（走 CSR，客户端异步拉取）
+// 评论逻辑
 // ============================================================
 const comments = ref<ArticleComment[]>([])
 const commentTotal = ref(0)
@@ -111,7 +111,6 @@ const hasMoreComments = computed(
 )
 
 const isMuted = computed(() => {
-  // @ts-ignore 假设 AuthUser 类型中没有明确写出 muteUntil，使用 any 兜底
   const muteUntil = (me.value as any)?.muteUntil
   if (!muteUntil) return false
   return new Date(muteUntil) > new Date()
@@ -126,7 +125,6 @@ async function loadComments(reset = false) {
   commentLoading.value = true
   try {
     const offset = reset ? 0 : comments.value.length
-    // 加上 &t=${Date.now()} 彻底杜绝任何层面的缓存
     const res = await $api<{ items: ArticleComment[]; total: number }>(
       `/api/articles/${articleSlug.value}/comments?limit=${COMMENT_PAGE_SIZE}&offset=${offset}&t=${Date.now()}`
     )
@@ -143,23 +141,38 @@ async function loadComments(reset = false) {
   }
 }
 
-// 关键修改：在客户端挂载时执行评论拉取和本地状态恢复
-onMounted(() => {
+// 👇 核心修改：在客户端挂载时，主动拉取最新点赞数和评论
+onMounted(async () => {
   if (import.meta.client && articleSlug.value) {
-    // 1. 恢复点赞状态
+    // 1. 恢复本地点赞状态
     const liked = localStorage.getItem(`liked_article_${articleSlug.value}`)
     if (liked === 'true') {
       hasLiked.value = true
     }
+    
     // 2. 拉取评论列表
     loadComments(true)
+
+    // 3. 拉取最新点赞数（绕过 CDN 缓存）
+    try {
+      const res = await $api<ArticleDetail>(`/api/articles/${articleSlug.value}?t=${Date.now()}`)
+      if (article.value) {
+        article.value.likeCount = res.likeCount
+      }
+    } catch (err) {
+      console.warn('获取最新点赞数失败', err)
+    }
   }
 })
 
-// 监听路由变化重新加载评论
+// 监听路由变化重新加载数据
 watch(articleSlug, () => {
   if (import.meta.client) {
     loadComments(true)
+    // 路由切换时也刷新点赞数
+    $api<ArticleDetail>(`/api/articles/${articleSlug.value}?t=${Date.now()}`).then(res => {
+      if (article.value) article.value.likeCount = res.likeCount
+    }).catch(() => {})
   }
 })
 
@@ -173,7 +186,6 @@ async function submitComment() {
       `/api/articles/${articleSlug.value}/comments`,
       { method: 'POST', body: { content: text } }
     )
-    // 追加到列表末尾 (因为是从老到新显示)
     comments.value.push(res)
     commentTotal.value++
     commentInput.value = ''
@@ -487,7 +499,7 @@ async function copyShareLink() {
                 </NuxtLink>
                 <span class="comment-item__time">{{ new Date(comment.createdAt).toLocaleString() }}</span>
                 
-                <!-- 👇 修改点：作者本人或管理员可以删除 -->
+                <!-- 作者本人或管理员可以删除 -->
                 <button 
                   v-if="me?.id === comment.author.id || me?.isAdmin" 
                   class="comment-item__remove" 
