@@ -1,9 +1,10 @@
 <!-- app/pages/articles/[title].vue -->
 <script setup lang="ts">
 import { useI18n } from '~/composables/useI18n'
-// 👇 引入 Markdown 预览组件和样式
+import { showToast } from 'vant'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
+import type { AuthUser } from '~/types/auth' // 👈 引入用户类型
 
 // ============================================================
 // 初始化与路由参数
@@ -12,8 +13,30 @@ const { t } = useI18n()
 const route = useRoute()
 const { $api } = useNuxtApp()
 
-// 获取路由参数，这里对应的是 slug（如 my_love_dog）
 const articleSlug = computed(() => String(route.params.title || ''))
+
+// ============================================================
+// 用户状态与弹窗控制
+// ============================================================
+const me = useState<AuthUser | null>('auth:user', () => null)
+const loginModalVisible = ref(false)
+const addPetModalVisible = ref(false)
+
+function handleAddPet() {
+  if (!me.value) {
+    loginModalVisible.value = true
+  } else {
+    addPetModalVisible.value = true
+  }
+}
+
+// 登录成功后的回调：关闭登录框，直接拉起添加宠物框
+function onLoginSuccess() {
+  loginModalVisible.value = false
+  if (me.value) {
+    addPetModalVisible.value = true
+  }
+}
 
 // ============================================================
 // 类型
@@ -29,16 +52,16 @@ interface ArticleDetail {
 }
 
 // ============================================================
-// 数据获取（await 确保 SSR 阶段 meta 能拿到真实数据）
+// 数据获取
 // ============================================================
-const { data: article, pending, error } = await useAsyncData<ArticleDetail>(
+const { data: article, pending, error, refresh: refreshArticle } = await useAsyncData<ArticleDetail>(
   () => `article:${articleSlug.value}`,
   () => $api<ArticleDetail>(`/api/articles/${articleSlug.value}`),
   { watch: [articleSlug] },
 )
 
 // ============================================================
-// 页面底部展示用的标签（仅 UI 展示，不参与 meta）
+// 页面底部展示用的标签
 // ============================================================
 const seoTags = computed(() => [
   t('seo_tag_memorial'),
@@ -49,22 +72,20 @@ const seoTags = computed(() => [
 ])
 
 // ============================================================
-// SEO
+// SEO 配置
 // ============================================================
-
-// 从 Markdown 提取纯文本作为 meta description（剥离代码块/图片/链接语法等）
 function stripMarkdown(md: string): string {
   if (!md) return ''
   return md
-    .replace(/```[\s\S]*?```/g, '') // 代码块
-    .replace(/`[^`]*`/g, '') // 行内代码
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // 图片
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // 链接保留文字
-    .replace(/^#{1,6}\s+/gm, '') // 标题符号
-    .replace(/[*_~>]/g, '') // 强调 / 删除线 / 引用
-    .replace(/^\s*[-+*]\s+/gm, '') // 无序列表
-    .replace(/^\s*\d+\.\s+/gm, '') // 有序列表
-    .replace(/^\s*[-*_]{3,}\s*$/gm, '') // 分隔线
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]*`/g, '')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[*_~>]/g, '')
+    .replace(/^\s*[-+*]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -72,48 +93,34 @@ function stripMarkdown(md: string): string {
 const plainText = computed(() => stripMarkdown(article.value?.content || ''))
 
 useSeoMeta({
-  // 交给 nuxt.config.ts 的 titleTemplate 拼成 "xxx - Pet Memorial | PetMemory"
   title: () => article.value?.title || t('article_not_found'),
-
   description: () =>
     plainText.value.slice(0, 160) ||
     (article.value
       ? `${article.value.title} - PetMemory`
       : 'Read pet memorial articles on PetMemory.'),
-
-  // Open Graph
   ogTitle: () =>
     article.value ? `${article.value.title} - PetMemory` : 'Article - PetMemory',
   ogDescription: () =>
-    plainText.value.slice(0, 200) ||
-    'Read pet memorial articles on PetMemory.',
-  // 优先用文章自己的封面图，回退到默认分享图
+    plainText.value.slice(0, 200) || 'Read pet memorial articles on PetMemory.',
   ogImage: () =>
     article.value?.imageUrl || 'https://music.petmemory.me/og-cover.jpg',
   ogImageWidth: 1200,
   ogImageHeight: 600,
   ogType: 'article',
   ogUrl: () => `https://www.petmemory.me/articles/${articleSlug.value}`,
-
-  // 文章专属时效标签，帮助搜索引擎理解内容新鲜度
   articlePublishedTime: () => article.value?.createdAt,
   articleModifiedTime: () => article.value?.updatedAt,
-
-  // Twitter / X
   twitterCard: 'summary_large_image',
   twitterTitle: () =>
     article.value ? `${article.value.title} - PetMemory` : 'Article - PetMemory',
   twitterDescription: () =>
-    plainText.value.slice(0, 200) ||
-    'Read pet memorial articles on PetMemory.',
+    plainText.value.slice(0, 200) || 'Read pet memorial articles on PetMemory.',
   twitterImage: () =>
     article.value?.imageUrl || 'https://music.petmemory.me/og-cover.jpg',
-
-  // 文章不存在时不让搜索引擎索引（避免被收录成错误页）
   robots: () => (article.value ? 'index, follow' : 'noindex, nofollow'),
 })
 
-// 统一 canonical（useSeoMeta 没有 canonical 字段，需要走 useHead）
 useHead(() => ({
   link: [
     {
@@ -132,6 +139,92 @@ function formatDate(iso: string) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
     d.getDate(),
   ).padStart(2, '0')}`
+}
+
+// ============================================================
+// 分享功能
+// ============================================================
+const shareModalVisible = ref(false)
+
+const shareUrl = computed(() => {
+  if (!articleSlug.value) return ''
+  return `https://www.petmemory.me/articles/${articleSlug.value}`
+})
+
+const shareText = computed(() => {
+  if (!article.value) return ''
+  return `Read "${article.value.title}" on PetMemory`
+})
+
+function handleShare() {
+  shareModalVisible.value = true
+}
+
+function shareToX() {
+  const url = encodeURIComponent(shareUrl.value)
+  const text = encodeURIComponent(shareText.value)
+  window.open(`https://x.com/intent/tweet?url=${url}&text=${text}`, '_blank')
+  shareModalVisible.value = false
+}
+
+function shareToFacebook() {
+  const url = encodeURIComponent(shareUrl.value)
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
+  shareModalVisible.value = false
+}
+
+function shareToReddit() {
+  const url = encodeURIComponent(shareUrl.value)
+  const title = encodeURIComponent(shareText.value)
+  window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, '_blank')
+  shareModalVisible.value = false
+}
+
+function shareToPinterest() {
+  const url = encodeURIComponent(shareUrl.value)
+  const media = encodeURIComponent(article.value?.imageUrl || '')
+  const description = encodeURIComponent(shareText.value)
+  window.open(
+    `https://www.pinterest.com/pin/create/button/?url=${url}&media=${media}&description=${description}`,
+    '_blank'
+  )
+  shareModalVisible.value = false
+}
+
+function shareToTelegram() {
+  const url = encodeURIComponent(shareUrl.value)
+  const text = encodeURIComponent(shareText.value)
+  window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank')
+  shareModalVisible.value = false
+}
+
+async function copyShareLink() {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(shareUrl.value)
+      showToast({
+        type: 'success',
+        message: t('share_link_copied') || 'Link copied to clipboard',
+      })
+      return
+    }
+  } catch {
+    /* 降级 */
+  }
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = shareUrl.value
+    ta.style.position = 'fixed'
+    ta.style.top = '-9999px'
+    document.body.appendChild(ta)
+    ta.focus()
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    showToast(ok ? 'Link copied' : 'Copy failed')
+  } catch {
+    showToast('Copy failed')
+  }
 }
 </script>
 
@@ -169,12 +262,12 @@ function formatDate(iso: string) {
         <img :src="article.imageUrl" :alt="article.title" />
       </div>
 
-      <!-- 正文内容区 (改为 Markdown 渲染) -->
+      <!-- 正文内容区 -->
       <div class="article-body">
         <MdPreview :modelValue="article.content" :editorId="'preview-' + article.slug" />
       </div>
 
-      <!-- 底部 SEO 标签与情感文字 -->
+      <!-- 底部 SEO 标签与操作区 -->
       <footer class="article-footer">
         <div class="article-divider">
           <span>{{ t('article_divider_text') }}</span>
@@ -186,13 +279,102 @@ function formatDate(iso: string) {
           </span>
         </div>
 
-        <div class="article-back">
+        <!-- 👇 按钮并排布局 (新增了 Add My Pet) -->
+        <div class="article-actions">
           <NuxtLink to="/articles" class="btn btn--lg">
             {{ t('article_read_more') }}
           </NuxtLink>
+          
+          <!-- 新增：Add My Pet 按钮 -->
+          <button 
+            type="button" 
+            class="btn btn--primary btn--lg article-add-pet-btn" 
+            @click="handleAddPet"
+          >
+            <van-icon name="plus" />
+            <span>{{ t('add_my_pet') || 'Add My Pet' }}</span>
+          </button>
+
+          <button type="button" class="btn btn--lg article-share-btn" @click="handleShare">
+            <van-icon name="share-o" />
+            <span>{{ t('pet_share') || 'Share' }}</span>
+          </button>
         </div>
       </footer>
     </article>
+
+    <!-- 分享弹窗 -->
+    <van-popup
+      v-model:show="shareModalVisible"
+      round
+      :style="{ width: 'min(360px, 90%)' }"
+      teleport="body"
+    >
+      <div class="share-popup">
+        <h3 class="share-popup__title">
+          {{ t('article_share_title') || 'Share this article' }}
+        </h3>
+        <p class="share-popup__subtitle">
+          {{ t('pet_share_subtitle') || 'Help more people discover this story' }}
+        </p>
+
+        <div class="share-popup__icons">
+          <button class="share-popup__icon-btn" type="button" aria-label="Share to X" @click="shareToX">
+            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/x-50.png" alt="X" loading="lazy" />
+          </button>
+          <button class="share-popup__icon-btn" type="button" aria-label="Share to Facebook" @click="shareToFacebook">
+            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/facebook-50.png" alt="Facebook" loading="lazy" />
+          </button>
+          <button class="share-popup__icon-btn" type="button" aria-label="Share to Reddit" @click="shareToReddit">
+            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/reddit-50.png" alt="Reddit" loading="lazy" />
+          </button>
+          <button class="share-popup__icon-btn" type="button" aria-label="Share to Pinterest" @click="shareToPinterest">
+            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/pinterest-50.png" alt="Pinterest" loading="lazy" />
+          </button>
+          <button class="share-popup__icon-btn" type="button" aria-label="Share to Telegram" @click="shareToTelegram">
+            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/telegram-50.png" alt="Telegram" loading="lazy" />
+          </button>
+        </div>
+
+        <div class="share-popup__divider" />
+
+        <p class="share-popup__link-label">
+          {{ t('pet_share_copy_label') || 'Or copy this link' }}
+        </p>
+        <div class="share-popup__link">
+          <input
+            class="share-popup__input"
+            :value="shareUrl"
+            readonly
+            @focus="($event.target as HTMLInputElement).select()"
+          />
+          <button type="button" class="btn btn--sm" @click="copyShareLink">
+            {{ t('btn_copy') || 'Copy' }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--primary share-popup__close"
+          @click="shareModalVisible = false"
+        >
+          {{ t('btn_close') || 'Close' }}
+        </button>
+      </div>
+    </van-popup>
+
+    <!-- 登录弹窗 -->
+    <LoginModal 
+      v-if="loginModalVisible" 
+      v-model="loginModalVisible" 
+      @success="onLoginSuccess" 
+    />
+
+    <!-- 添加宠物弹窗 -->
+    <AddPetModal 
+      v-if="addPetModalVisible" 
+      v-model="addPetModalVisible" 
+    />
   </div>
 </template>
 
@@ -289,11 +471,7 @@ function formatDate(iso: string) {
   }
 }
 
-// ============================================================
-// 正文样式 (让 MdPreview 融入全局设计)
-// ============================================================
 .article-body {
-  /* 覆盖 MdPreview 默认的样式，让它融入你的设计 */
   :deep(.md-editor-preview-wrapper) {
     padding: 0; 
   }
@@ -307,10 +485,7 @@ function formatDate(iso: string) {
     background: transparent;
   }
 
-  :deep(p) {
-    margin-bottom: 1.5em;
-  }
-
+  :deep(p) { margin-bottom: 1.5em; }
   :deep(h2) {
     font-family: @font-serif;
     font-size: 24px;
@@ -320,7 +495,6 @@ function formatDate(iso: string) {
     padding-bottom: 0.3em;
     border-bottom: 1px solid @border;
   }
-
   :deep(h3) {
     font-family: @font-serif;
     font-size: 20px;
@@ -328,7 +502,6 @@ function formatDate(iso: string) {
     color: @ink-1;
     margin: 1.5em 0 0.8em;
   }
-
   :deep(img) {
     max-width: 100%;
     height: auto;
@@ -337,7 +510,6 @@ function formatDate(iso: string) {
     display: block;
     box-shadow: @shadow-1;
   }
-
   :deep(blockquote) {
     margin: 1.5em 0;
     padding: 1em 1.5em;
@@ -347,16 +519,11 @@ function formatDate(iso: string) {
     color: @ink-2;
     font-style: italic;
   }
-
   :deep(ul), :deep(ol) {
     margin-bottom: 1.5em;
     padding-left: 1.5em;
   }
-
-  :deep(li) {
-    margin-bottom: 0.5em;
-  }
-
+  :deep(li) { margin-bottom: 0.5em; }
   :deep(a) {
     color: @accent;
     text-decoration: underline;
@@ -421,12 +588,142 @@ function formatDate(iso: string) {
   }
 }
 
-.article-back {
-  text-align: center;
-  
+/* 👇 并排按钮样式 */
+.article-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: @sp-3;
+  flex-wrap: wrap;
+
   .btn {
-    min-width: 200px;
+    min-width: 140px; /* 因为有3个按钮，稍微调小一点最小宽度防止溢出 */
     border-radius: @radius-pill;
+  }
+
+  .article-add-pet-btn,
+  .article-share-btn {
+    gap: @sp-1;
+    :deep(.van-icon) {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: @bp-sm) {
+    flex-direction: column;
+    width: 100%;
+    .btn {
+      width: 100%; /* 手机端变成垂直排列，充满宽度 */
+    }
+  }
+}
+
+/* 👇 分享弹窗样式 */
+.share-popup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: @sp-6 @sp-5 @sp-5;
+  text-align: center;
+
+  &__title {
+    margin: 0 0 @sp-2;
+    font-family: @font-serif;
+    font-size: @fs-lg;
+    font-weight: 700;
+    color: @ink-1;
+    .line-1();
+    max-width: 100%;
+  }
+
+  &__subtitle {
+    margin: 0 0 @sp-5;
+    font-size: @fs-sm;
+    color: @ink-3;
+  }
+
+  &__icons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: @sp-3;
+    margin-bottom: @sp-5;
+  }
+
+  &__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    padding: 10px;
+    background: @surface-2;
+    border: 1px solid @border;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform @dur-fast ease, border-color @dur-fast ease,
+      box-shadow @dur-fast ease;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    &:hover {
+      border-color: @accent;
+      box-shadow: @shadow-1;
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0) scale(0.95);
+    }
+  }
+
+  &__divider {
+    width: 100%;
+    height: 1px;
+    background: @border;
+    margin: 0 0 @sp-4;
+  }
+
+  &__link-label {
+    margin: 0 0 @sp-2;
+    font-size: @fs-xs;
+    color: @ink-3;
+    letter-spacing: 0.05em;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: @sp-2;
+    width: 100%;
+    margin-bottom: @sp-5;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: @fs-sm;
+    font-family: @font-mono;
+    color: @ink-2;
+    background: @surface-2;
+    border: 1px solid @border;
+    border-radius: @radius-sm;
+    outline: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: @accent;
+    }
+  }
+
+  &__close {
+    width: 100%;
   }
 }
 </style>

@@ -445,7 +445,7 @@ export default {
   article_not_found: 'Article not found or hidden',
   article_back_to_list: 'Back to Articles',
   article_divider_text: 'Companionship is the longest confession',
-  article_read_more: 'Read More Articles',
+  article_read_more: 'Read More',
   seo_tag_memorial: 'Pet Memorial',
   seo_tag_past: 'Pet Memories',
   seo_tag_memory: 'Pet Remembrance',
@@ -596,5 +596,8 @@ export default {
   payment_success_title: 'Payment Successful',
   payment_success_desc: 'Thank you for your support. Your order has been placed and will be processed shortly.',
   btn_go_orders: 'View My Orders',
+
+  article_share_title: 'Share this article',
+  add_my_pet: 'Add My Pet',
 
 }

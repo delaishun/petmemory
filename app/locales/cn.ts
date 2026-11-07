@@ -54,7 +54,7 @@ export default {
   // 用户页
   user_my_pets: '我的宠物',
   user_pets: 'ta 的宠物',
-  user_add_pet: '+ 添加宠物',
+  user_add_pet: '+ 宠物入住',
   user_logout: '退出登录',
   user_vip_title: 'VIP 专属特权',
   user_vip_desc_1: '跨越时空，重温与心爱 ta 的温馨互动',
@@ -445,7 +445,7 @@ export default {
   article_not_found: '文章不存在或已被隐藏',
   article_back_to_list: '返回文章列表',
   article_divider_text: '陪伴是最长情的告白',
-  article_read_more: '阅读更多文章',
+  article_read_more: '阅读更多',
   seo_tag_memorial: '宠物纪念',
   seo_tag_past: '宠物往事',
   seo_tag_memory: '宠物回忆',
@@ -598,4 +598,7 @@ export default {
   payment_success_title: '支付成功',
   payment_success_desc: '感谢您的支持。您的订单已生成，我们将会尽快为您处理。',
   btn_go_orders: '查看我的订单',
+
+  article_share_title: '分享这篇文章',
+  add_my_pet: '宠物入住',
 }
