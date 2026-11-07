@@ -63,9 +63,9 @@ interface ArticleComment {
 }
 
 // ============================================================
-// 数据获取
+// 数据获取（走 ISR，SSR 阶段生成 HTML）
 // ============================================================
-const { data: article, pending, error, refresh: refreshArticle } = await useAsyncData<ArticleDetail>(
+const { data: article, pending, error } = await useAsyncData<ArticleDetail>(
   () => `article:${articleSlug.value}`,
   () => $api<ArticleDetail>(`/api/articles/${articleSlug.value}`),
   { watch: [articleSlug] },
@@ -76,15 +76,6 @@ const { data: article, pending, error, refresh: refreshArticle } = await useAsyn
 // ============================================================
 const hasLiked = ref(false)
 const isLiking = ref(false)
-
-onMounted(() => {
-  if (import.meta.client && articleSlug.value) {
-    const liked = localStorage.getItem(`liked_article_${articleSlug.value}`)
-    if (liked === 'true') {
-      hasLiked.value = true
-    }
-  }
-})
 
 async function handleLike() {
   if (hasLiked.value || isLiking.value || !article.value) return
@@ -106,7 +97,7 @@ async function handleLike() {
 }
 
 // ============================================================
-// 评论逻辑
+// 评论逻辑（走 CSR，客户端异步拉取）
 // ============================================================
 const comments = ref<ArticleComment[]>([])
 const commentTotal = ref(0)
@@ -135,8 +126,9 @@ async function loadComments(reset = false) {
   commentLoading.value = true
   try {
     const offset = reset ? 0 : comments.value.length
+    // 👇 核心修改：加上 &t=${Date.now()} 彻底杜绝任何层面的缓存
     const res = await $api<{ items: ArticleComment[]; total: number }>(
-      `/api/articles/${articleSlug.value}/comments?limit=${COMMENT_PAGE_SIZE}&offset=${offset}`
+      `/api/articles/${articleSlug.value}/comments?limit=${COMMENT_PAGE_SIZE}&offset=${offset}&t=${Date.now()}`
     )
     if (reset) {
       comments.value = res.items
@@ -151,9 +143,24 @@ async function loadComments(reset = false) {
   }
 }
 
-// 监听 article 改变时，重新拉取评论
-watch(article, (val) => {
-  if (val) loadComments(true)
+// 👇 关键修改：在客户端挂载时执行评论拉取和本地状态恢复
+onMounted(() => {
+  if (import.meta.client && articleSlug.value) {
+    // 1. 恢复点赞状态
+    const liked = localStorage.getItem(`liked_article_${articleSlug.value}`)
+    if (liked === 'true') {
+      hasLiked.value = true
+    }
+    // 2. 拉取评论列表
+    loadComments(true)
+  }
+})
+
+// 监听路由变化重新加载评论
+watch(articleSlug, () => {
+  if (import.meta.client) {
+    loadComments(true)
+  }
 })
 
 async function submitComment() {
@@ -915,7 +922,7 @@ async function copyShareLink() {
   }
 }
 
-/* 👇 新增：评论模块样式 */
+/* 评论模块样式 */
 .article-comments {
   margin-top: @sp-8;
   padding-top: @sp-6;
@@ -1090,7 +1097,7 @@ async function copyShareLink() {
   }
 }
 
-/* 👇 分享弹窗样式 */
+/* 分享弹窗样式 */
 .share-popup {
   display: flex;
   flex-direction: column;
