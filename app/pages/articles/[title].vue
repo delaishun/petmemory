@@ -126,7 +126,7 @@ async function loadComments(reset = false) {
   commentLoading.value = true
   try {
     const offset = reset ? 0 : comments.value.length
-    // 👇 核心修改：加上 &t=${Date.now()} 彻底杜绝任何层面的缓存
+    // 加上 &t=${Date.now()} 彻底杜绝任何层面的缓存
     const res = await $api<{ items: ArticleComment[]; total: number }>(
       `/api/articles/${articleSlug.value}/comments?limit=${COMMENT_PAGE_SIZE}&offset=${offset}&t=${Date.now()}`
     )
@@ -143,7 +143,7 @@ async function loadComments(reset = false) {
   }
 }
 
-// 👇 关键修改：在客户端挂载时执行评论拉取和本地状态恢复
+// 关键修改：在客户端挂载时执行评论拉取和本地状态恢复
 onMounted(() => {
   if (import.meta.client && articleSlug.value) {
     // 1. 恢复点赞状态
@@ -486,8 +486,13 @@ async function copyShareLink() {
                   {{ comment.author.nickname }}
                 </NuxtLink>
                 <span class="comment-item__time">{{ new Date(comment.createdAt).toLocaleString() }}</span>
-                <!-- 只有作者本人可以删除 -->
-                <button v-if="me?.id === comment.author.id" class="comment-item__remove" @click="deleteComment(comment)">
+                
+                <!-- 👇 修改点：作者本人或管理员可以删除 -->
+                <button 
+                  v-if="me?.id === comment.author.id || me?.isAdmin" 
+                  class="comment-item__remove" 
+                  @click="deleteComment(comment)"
+                >
                   <van-icon name="cross" />
                 </button>
               </div>
