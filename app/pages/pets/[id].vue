@@ -32,7 +32,7 @@ interface PetDetail {
   breed: string;
   gender: number;
   birthday: string | null;
-  leaveDate: string | null; // 👈 新增
+  leaveDate: string | null;
   hometown: string;
   avatarUrl: string;
   bio: string;
@@ -44,6 +44,7 @@ interface PetDetail {
   moodScore: number;
   currentExpressionUrl: string | null;
   isGenerating?: boolean;
+  likeCount: number; // 👈 新增：点赞数
 }
 
 interface PetPublic {
@@ -54,7 +55,7 @@ interface PetPublic {
   breed: string;
   gender: number;
   birthday: string | null;
-  leaveDate: string | null; // 👈 新增
+  leaveDate: string | null;
   hometown: string;
   avatarUrl: string;
   bio: string;
@@ -217,6 +218,45 @@ const isVipPet = computed(() => {
 });
 
 const myPoint = computed<number | undefined>(() => me.value?.point);
+
+// ============================================================
+// 👇 新增：点赞逻辑
+// ============================================================
+const hasLiked = ref(false)
+const isLiking = ref(false)
+
+onMounted(() => {
+  if (import.meta.client && slug.value) {
+    const liked = localStorage.getItem(`liked_pet_${slug.value}`)
+    if (liked === 'true') {
+      hasLiked.value = true
+    }
+  }
+})
+
+async function handleLike() {
+  if (hasLiked.value || isLiking.value || !pet.value) return
+
+  isLiking.value = true
+  try {
+    // 调用后端点赞接口
+    const res = await $api<{ likeCount: number }>(
+      `/api/pets/${slug.value}/like`,
+      { method: 'POST' }
+    )
+    
+    // 更新显示数量
+    pet.value.likeCount = res.likeCount
+    hasLiked.value = true
+    
+    // 保存本地状态
+    localStorage.setItem(`liked_pet_${slug.value}`, 'true')
+  } catch (err: any) {
+    showToast(err?.data?.error || '点赞失败，请稍后重试')
+  } finally {
+    isLiking.value = false
+  }
+}
 
 // ============================================================
 // 背景音乐逻辑 (全交互触发)
@@ -1074,6 +1114,20 @@ useHead(() => ({
                 class="pet-hero__owner-vip-icon"
                 @click="vipModalVisible = true"
               />
+            </div>
+
+            <!-- 👇 新增：点赞按钮区 -->
+            <div class="pet-hero__like-wrap">
+              <button 
+                type="button" 
+                class="pet-like-btn"
+                :class="{ 'is-liked': hasLiked }"
+                :disabled="isLiking"
+                @click="handleLike"
+              >
+                <span class="heart-icon">❤️</span>
+                <span class="like-count">{{ pet.likeCount || 0 }}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1984,6 +2038,13 @@ useHead(() => ({
     }
   }
 
+  // 👇 新增：点赞按钮包裹层
+  &__like-wrap {
+    margin-top: @sp-4;
+    display: flex;
+    justify-content: center;
+  }
+
   &--skeleton {
     gap: @sp-4;
   }
@@ -2002,6 +2063,70 @@ useHead(() => ({
     height: 20px;
     border-radius: @radius-sm;
   }
+}
+
+// 👇 新增：宠物点赞按钮
+.pet-like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: fade(@surface, 80%);
+  border: 1px solid @border;
+  border-radius: @radius-pill;
+  cursor: pointer;
+  box-shadow: @shadow-1;
+  transition: all @dur-fast ease;
+  user-select: none;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: @shadow-2;
+    border-color: @accent-soft;
+    background: @surface;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.96);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  .heart-icon {
+    font-size: 20px;
+    line-height: 1;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    filter: grayscale(1) opacity(0.5); // 默认灰度
+  }
+
+  .like-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: @ink-2;
+    font-family: @font-mono;
+  }
+
+  // 已点赞状态
+  &.is-liked {
+    border-color: fade(#e74c3c, 30%);
+    background: fade(#e74c3c, 5%);
+
+    .heart-icon {
+      filter: none; // 恢复鲜艳
+      animation: heart-beat 0.5s ease;
+    }
+    .like-count {
+      color: #e74c3c; // 数字变红
+    }
+  }
+}
+
+@keyframes heart-beat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 // ============================================================

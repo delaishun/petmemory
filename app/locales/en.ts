@@ -600,4 +600,16 @@ export default {
   article_share_title: 'Share this article',
   add_my_pet: 'Add My Pet',
 
+  article_comments_title: 'Comments',
+  article_comment_placeholder: 'Leave a comment... (Max 600 chars)',
+  article_comment_submit: 'Post Comment',
+  article_comment_login_tip: 'Please log in to comment.',
+  article_comment_empty: 'No comments yet. Be the first!',
+  article_comment_muted: 'You are currently muted and cannot comment.',
+  article_comment_success: 'Comment posted!',
+  article_comment_delete_confirm: 'Delete this comment?',
+  article_comment_load_more: 'Load more comments',
+  article_comment_no_more: 'No more comments',
+  article_comment_char_count: '{n}/600',
+
 }

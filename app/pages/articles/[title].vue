@@ -1,10 +1,10 @@
 <!-- app/pages/articles/[title].vue -->
 <script setup lang="ts">
 import { useI18n } from '~/composables/useI18n'
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
-import type { AuthUser } from '~/types/auth' // 👈 引入用户类型
+import type { AuthUser } from '~/types/auth'
 
 // ============================================================
 // 初始化与路由参数
@@ -30,7 +30,6 @@ function handleAddPet() {
   }
 }
 
-// 登录成功后的回调：关闭登录框，直接拉起添加宠物框
 function onLoginSuccess() {
   loginModalVisible.value = false
   if (me.value) {
@@ -49,6 +48,18 @@ interface ArticleDetail {
   content: string
   createdAt: string
   updatedAt: string
+  likeCount: number
+}
+
+interface ArticleComment {
+  id: number
+  content: string
+  createdAt: string
+  author: {
+    id: number
+    nickname: string
+    avatarUrl: string | null
+  }
 }
 
 // ============================================================
@@ -59,6 +70,137 @@ const { data: article, pending, error, refresh: refreshArticle } = await useAsyn
   () => $api<ArticleDetail>(`/api/articles/${articleSlug.value}`),
   { watch: [articleSlug] },
 )
+
+// ============================================================
+// 点赞逻辑
+// ============================================================
+const hasLiked = ref(false)
+const isLiking = ref(false)
+
+onMounted(() => {
+  if (import.meta.client && articleSlug.value) {
+    const liked = localStorage.getItem(`liked_article_${articleSlug.value}`)
+    if (liked === 'true') {
+      hasLiked.value = true
+    }
+  }
+})
+
+async function handleLike() {
+  if (hasLiked.value || isLiking.value || !article.value) return
+
+  isLiking.value = true
+  try {
+    const res = await $api<{ likeCount: number }>(
+      `/api/articles/${articleSlug.value}/like`,
+      { method: 'POST' }
+    )
+    article.value.likeCount = res.likeCount
+    hasLiked.value = true
+    localStorage.setItem(`liked_article_${articleSlug.value}`, 'true')
+  } catch (err: any) {
+    showToast(err?.data?.error || '点赞失败，请稍后重试')
+  } finally {
+    isLiking.value = false
+  }
+}
+
+// ============================================================
+// 评论逻辑
+// ============================================================
+const comments = ref<ArticleComment[]>([])
+const commentTotal = ref(0)
+const commentLoading = ref(false)
+const commentInput = ref('')
+const commentSubmitting = ref(false)
+const COMMENT_PAGE_SIZE = 10
+
+const hasMoreComments = computed(
+  () => comments.value.length < commentTotal.value
+)
+
+const isMuted = computed(() => {
+  // @ts-ignore 假设 AuthUser 类型中没有明确写出 muteUntil，使用 any 兜底
+  const muteUntil = (me.value as any)?.muteUntil
+  if (!muteUntil) return false
+  return new Date(muteUntil) > new Date()
+})
+
+async function loadComments(reset = false) {
+  if (!article.value || commentLoading.value) return
+  if (reset) {
+    comments.value = []
+    commentTotal.value = 0
+  }
+  commentLoading.value = true
+  try {
+    const offset = reset ? 0 : comments.value.length
+    const res = await $api<{ items: ArticleComment[]; total: number }>(
+      `/api/articles/${articleSlug.value}/comments?limit=${COMMENT_PAGE_SIZE}&offset=${offset}`
+    )
+    if (reset) {
+      comments.value = res.items
+    } else {
+      comments.value.push(...res.items)
+    }
+    commentTotal.value = res.total
+  } catch (err) {
+    showToast('加载评论失败')
+  } finally {
+    commentLoading.value = false
+  }
+}
+
+// 监听 article 改变时，重新拉取评论
+watch(article, (val) => {
+  if (val) loadComments(true)
+})
+
+async function submitComment() {
+  const text = commentInput.value.trim()
+  if (!text) return
+
+  commentSubmitting.value = true
+  try {
+    const res = await $api<ArticleComment>(
+      `/api/articles/${articleSlug.value}/comments`,
+      { method: 'POST', body: { content: text } }
+    )
+    // 追加到列表末尾 (因为是从老到新显示)
+    comments.value.push(res)
+    commentTotal.value++
+    commentInput.value = ''
+    showToast({ type: 'success', message: t('article_comment_success') || '评论成功' })
+  } catch (err: any) {
+    showToast(err?.data?.error || '评论失败')
+  } finally {
+    commentSubmitting.value = false
+  }
+}
+
+async function deleteComment(comment: ArticleComment) {
+  try {
+    await showConfirmDialog({
+      title: t('article_comment_delete_confirm') || '确定要删除这条评论吗？',
+      confirmButtonText: t('btn_delete') || '删除',
+      cancelButtonText: t('btn_cancel') || '取消',
+      confirmButtonColor: '#C25A5A',
+    })
+  } catch {
+    return
+  }
+
+  try {
+    await $api(`/api/articles/${articleSlug.value}/comments/${comment.id}`, {
+      method: 'DELETE',
+    })
+    comments.value = comments.value.filter((c) => c.id !== comment.id)
+    commentTotal.value--
+    showToast({ type: 'success', message: t('msg_deleted') || '已删除' })
+  } catch (err: any) {
+    showToast(err?.data?.error || '删除失败')
+  }
+}
 
 // ============================================================
 // 页面底部展示用的标签
@@ -247,13 +389,28 @@ async function copyShareLink() {
 
     <!-- 文章内容 -->
     <article v-else class="article-content">
-      <!-- 头部：标题与时间 -->
+      <!-- 头部：标题与时间 + 点赞 -->
       <header class="article-header">
         <h1 class="article-title">{{ article.title }}</h1>
+        
         <div class="article-meta">
-          <time>{{ formatDate(article.createdAt) }}</time>
-          <span class="dot">·</span>
-          <span>{{ t('seo_tag_memorial') }}</span>
+          <div class="article-meta__left">
+            <time>{{ formatDate(article.createdAt) }}</time>
+            <span class="dot">·</span>
+            <span>{{ t('seo_tag_memorial') }}</span>
+          </div>
+          
+          <!-- 点赞按钮 -->
+          <button 
+            type="button" 
+            class="article-like-btn"
+            :class="{ 'is-liked': hasLiked }"
+            :disabled="isLiking"
+            @click="handleLike"
+          >
+            <span class="heart-icon">❤️</span>
+            <span class="like-count">{{ article.likeCount || 0 }}</span>
+          </button>
         </div>
       </header>
 
@@ -279,13 +436,12 @@ async function copyShareLink() {
           </span>
         </div>
 
-        <!-- 👇 按钮并排布局 (新增了 Add My Pet) -->
+        <!-- 按钮并排布局 -->
         <div class="article-actions">
           <NuxtLink to="/articles" class="btn btn--lg">
             {{ t('article_read_more') }}
           </NuxtLink>
           
-          <!-- 新增：Add My Pet 按钮 -->
           <button 
             type="button" 
             class="btn btn--primary btn--lg article-add-pet-btn" 
@@ -301,6 +457,85 @@ async function copyShareLink() {
           </button>
         </div>
       </footer>
+
+      <!-- ============================================ -->
+      <!-- 文章评论模块                                 -->
+      <!-- ============================================ -->
+      <section class="article-comments">
+        <div class="article-comments__header">
+          <h3 class="article-comments__title">{{ t('article_comments_title') || 'Comments' }}</h3>
+          <span class="article-comments__count">{{ commentTotal }}</span>
+        </div>
+
+        <!-- 评论列表 -->
+        <div v-if="comments.length" class="comment-list">
+          <div v-for="comment in comments" :key="comment.id" class="comment-item">
+            <NuxtLink :to="`/users/${comment.author.id}`" class="comment-item__avatar-link">
+              <img class="comment-item__avatar" :src="comment.author.avatarUrl || 'https://music.petmemory.me/default-avatar.png'" alt="avatar" />
+            </NuxtLink>
+            <div class="comment-item__main">
+              <div class="comment-item__head">
+                <NuxtLink :to="`/users/${comment.author.id}`" class="comment-item__name">
+                  {{ comment.author.nickname }}
+                </NuxtLink>
+                <span class="comment-item__time">{{ new Date(comment.createdAt).toLocaleString() }}</span>
+                <!-- 只有作者本人可以删除 -->
+                <button v-if="me?.id === comment.author.id" class="comment-item__remove" @click="deleteComment(comment)">
+                  <van-icon name="cross" />
+                </button>
+              </div>
+              <p class="comment-item__text">{{ comment.content }}</p>
+            </div>
+          </div>
+
+          <!-- 加载更多 -->
+          <div v-if="hasMoreComments" class="comment-load-more">
+            <button class="btn btn--sm" :disabled="commentLoading" @click="loadComments(false)">
+              {{ commentLoading ? '...' : (t('article_comment_load_more') || 'Load more comments') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 空状态 -->
+        <div v-else class="comment-empty">
+          <p>{{ t('article_comment_empty') || 'No comments yet. Be the first!' }}</p>
+        </div>
+
+        <!-- 发表评论输入区 -->
+        <div class="comment-editor">
+          <!-- 未登录 -->
+          <div v-if="!me" class="comment-editor__login-tip">
+            <a href="javascript:;" @click.prevent="loginModalVisible = true" class="comment-editor__login-link">
+              {{ t('article_comment_login_tip') || 'Please log in to comment.' }}
+            </a>
+          </div>
+          
+          <!-- 被禁言 -->
+          <div v-else-if="isMuted" class="comment-editor__muted">
+            {{ t('article_comment_muted') || 'You are currently muted and cannot comment.' }}
+          </div>
+
+          <!-- 正常输入区 -->
+          <template v-else>
+            <textarea 
+              v-model="commentInput" 
+              class="comment-editor__input" 
+              :placeholder="t('article_comment_placeholder') || 'Leave a comment... (Max 600 chars)'"
+              maxlength="600"
+            />
+            <div class="comment-editor__footer">
+              <span class="comment-editor__count">{{ commentInput.length }}/600</span>
+              <button 
+                class="btn btn--primary btn--sm" 
+                :disabled="!commentInput.trim() || commentSubmitting"
+                @click="submitComment"
+              >
+                {{ commentSubmitting ? (t('btn_processing') || 'Posting...') : (t('article_comment_submit') || 'Post Comment') }}
+              </button>
+            </div>
+          </template>
+        </div>
+      </section>
     </article>
 
     <!-- 分享弹窗 -->
@@ -445,15 +680,78 @@ async function copyShareLink() {
 .article-meta {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: @sp-2;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
   font-size: @fs-sm;
   color: @ink-3;
   font-family: @font-mono;
 
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: @sp-2;
+  }
+
   .dot {
     color: @border-strong;
   }
+}
+
+.article-like-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: @radius-pill;
+  transition: background @dur-fast ease;
+  user-select: none;
+
+  &:hover:not(:disabled) {
+    background: @surface-2;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  .heart-icon {
+    font-size: 18px;
+    line-height: 1;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    filter: grayscale(1) opacity(0.4);
+  }
+
+  .like-count {
+    font-size: 12px;
+    color: @ink-3;
+    font-family: @font-mono;
+  }
+
+  &.is-liked {
+    .heart-icon {
+      filter: none;
+      animation: heart-beat 0.5s ease;
+    }
+    .like-count {
+      color: @ink-2;
+    }
+  }
+}
+
+@keyframes heart-beat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 .article-cover {
@@ -588,7 +886,6 @@ async function copyShareLink() {
   }
 }
 
-/* 👇 并排按钮样式 */
 .article-actions {
   display: flex;
   justify-content: center;
@@ -597,7 +894,7 @@ async function copyShareLink() {
   flex-wrap: wrap;
 
   .btn {
-    min-width: 140px; /* 因为有3个按钮，稍微调小一点最小宽度防止溢出 */
+    min-width: 140px;
     border-radius: @radius-pill;
   }
 
@@ -613,8 +910,183 @@ async function copyShareLink() {
     flex-direction: column;
     width: 100%;
     .btn {
-      width: 100%; /* 手机端变成垂直排列，充满宽度 */
+      width: 100%;
     }
+  }
+}
+
+/* 👇 新增：评论模块样式 */
+.article-comments {
+  margin-top: @sp-8;
+  padding-top: @sp-6;
+  border-top: 1px solid @border;
+}
+
+.article-comments__header {
+  display: flex;
+  align-items: center;
+  gap: @sp-2;
+  margin-bottom: @sp-4;
+}
+
+.article-comments__title {
+  font-family: @font-serif;
+  font-size: @fs-lg;
+  font-weight: 700;
+  color: @ink-1;
+  margin: 0;
+}
+
+.article-comments__count {
+  font-size: @fs-sm;
+  color: @ink-3;
+  background: @surface-2;
+  padding: 2px 8px;
+  border-radius: @radius-pill;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: @sp-3;
+  margin-bottom: @sp-5;
+}
+
+.comment-item {
+  display: flex;
+  gap: @sp-3;
+  padding-bottom: @sp-3;
+  border-bottom: 1px dashed @border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.comment-item__avatar-link {
+  flex-shrink: 0;
+}
+
+.comment-item__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: @surface-2;
+  border: 1px solid @border;
+}
+
+.comment-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-item__head {
+  display: flex;
+  align-items: center;
+  gap: @sp-2;
+  margin-bottom: 4px;
+}
+
+.comment-item__name {
+  font-size: @fs-sm;
+  font-weight: 600;
+  color: @ink-1;
+  text-decoration: none;
+
+  &:hover {
+    color: @accent;
+  }
+}
+
+.comment-item__time {
+  font-size: 11px;
+  color: @ink-3;
+  font-family: @font-mono;
+}
+
+.comment-item__remove {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: @ink-3;
+  cursor: pointer;
+  padding: 2px;
+
+  &:hover {
+    color: @danger;
+  }
+}
+
+.comment-item__text {
+  margin: 0;
+  font-size: @fs-sm;
+  color: @ink-2;
+  line-height: @lh-base;
+  word-break: break-word;
+}
+
+.comment-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: @sp-3;
+}
+
+.comment-empty {
+  text-align: center;
+  padding: @sp-6 0;
+  color: @ink-3;
+  font-size: @fs-sm;
+}
+
+.comment-editor {
+  background: @surface-2;
+  padding: @sp-4;
+  border-radius: @radius-lg;
+  border: 1px solid @border;
+
+  &__login-tip,
+  &__muted {
+    text-align: center;
+    font-size: @fs-sm;
+    color: @ink-3;
+    padding: @sp-3 0;
+  }
+
+  &__login-link {
+    color: @accent;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  &__input {
+    width: 100%;
+    min-height: 80px;
+    padding: @sp-3;
+    font-family: inherit;
+    font-size: @fs-sm;
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+    resize: vertical;
+    outline: none;
+
+    &:focus {
+      border-color: @accent;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: @sp-2;
+  }
+
+  &__count {
+    font-size: @fs-xs;
+    color: @ink-3;
+    font-family: @font-mono;
   }
 }
 

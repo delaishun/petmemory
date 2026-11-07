@@ -601,4 +601,16 @@ export default {
 
   article_share_title: '分享这篇文章',
   add_my_pet: '宠物入住',
+
+  article_comments_title: '评论',
+  article_comment_placeholder: '留下你的评论… (最多 600 字)',
+  article_comment_submit: '发表评论',
+  article_comment_login_tip: '请登录后再发表评论。',
+  article_comment_empty: '还没有评论，快来抢沙发吧！',
+  article_comment_muted: '您目前处于禁言状态，无法发表评论。',
+  article_comment_success: '评论成功！',
+  article_comment_delete_confirm: '确定要删除这条评论吗？',
+  article_comment_load_more: '加载更多评论',
+  article_comment_no_more: '没有更多评论了',
+  article_comment_char_count: '{n}/600',
 }
