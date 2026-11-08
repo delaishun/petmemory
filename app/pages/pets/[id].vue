@@ -3725,10 +3725,10 @@ useHead(() => ({
 
   /* 👇 新增：宠物个性框样式 */
   .ex-personality {
-    font-size: 14px;
+    font-size: 12px;
     color: #C25A5A;
     background: #FEF8F5;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 8px;
     border: 1px dashed #FCE4D8;
     margin: 0 auto;
