@@ -1843,9 +1843,9 @@ useHead(() => ({
             {{ pet.name }}<span v-for="(part, i) in introParts" :key="i">{{ i === 0 ? " " : "，" }}{{ part }}</span>。
           </p>
           <!-- 👇 修改：将原本的心情值框替换为宠物个性展示 -->
-          <div class="ex-personality" v-if="pet.personality">
+          <!-- <div class="ex-personality" v-if="pet.personality">
             {{ pet.personality }}
-          </div>
+          </div> -->
         </div>
 
         <!-- 2. 相片 (最多 3 张) -->
@@ -3724,18 +3724,18 @@ useHead(() => ({
   }
 
   /* 👇 新增：宠物个性框样式 */
-  .ex-personality {
-    font-size: 12px;
-    color: #C25A5A;
-    background: #FEF8F5;
-    padding: 6px 12px;
-    border-radius: 8px;
-    border: 1px dashed #FCE4D8;
-    margin: 0 auto;
-    max-width: 90%;
-    line-height: 1.5;
-    text-align: left;
-  }
+  // .ex-personality {
+  //   font-size: 12px;
+  //   color: #C25A5A;
+  //   background: #FEF8F5;
+  //   padding: 6px 12px;
+  //   border-radius: 8px;
+  //   border: 1px dashed #FCE4D8;
+  //   margin: 0 auto;
+  //   max-width: 90%;
+  //   line-height: 1.5;
+  //   text-align: left;
+  // }
 }
 
 .ex-section {
