@@ -163,7 +163,10 @@ const displayPoint = computed<number | undefined>(() => {
 });
 
 // ---------- VIP 权益说明弹窗 ----------
-const vipModalVisible = ref(false);
+// const vipModalVisible = ref(false);
+
+const lifetimeVipModalVisible = ref(false) // 终身 VIP 弹窗
+const subVipModalVisible = ref(false)      // 订阅 VIP 弹窗
 
 // ---------- VIP 升级 / 续费 ----------
 const upgradeVipModalVisible = ref(false);
@@ -306,10 +309,45 @@ function formatDate(iso: string) {
 }
 
 // 监听加载
-onMounted(() => {
+onMounted(async () => {
   if (isSelf.value) {
     loadInventoryAndGifts();
     loadOrders();
+    
+        // 静默检查并领取每月 VIP 礼物
+    try {
+      const res = await $api<{ claimed: boolean; gifts: { name: string; imageUrl: string }[] }>(
+        '/api/users/me/claim-vip-gift',
+        { method: 'POST' }
+      )
+      
+      if (res.claimed && res.gifts.length > 0) {
+        // 领到了，刷新仓库列表
+        await loadInventoryAndGifts()
+        
+        // 弹窗提示（改为双语）
+        let msgHtml = `<div style="text-align:center;font-size:14px;">${t('vip_monthly_gift_desc')}</div>`
+        msgHtml += '<div style="display:flex; justify-content:center; gap:16px; margin-top:16px;">'
+        res.gifts.forEach(g => {
+          msgHtml += `
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <img src="${g.imageUrl}" style="width:48px;height:48px;" />
+              <span style="font-size:12px;color:#666;">${g.name.split('/')[0]}</span>
+            </div>
+          `
+        })
+        msgHtml += '</div>'
+
+        showDialog({
+          title: t('vip_monthly_gift_title'),
+          message: msgHtml,
+          allowHtml: true, // 允许渲染 HTML
+          confirmButtonText: t('vip_monthly_gift_accept'),
+        })
+      }
+    } catch (err) {
+      // 如果是非 VIP 或已经领过，接口会返回 200 或 403，这里直接静默忽略即可
+    }
   }
 });
 watch(isSelf, (val) => {
@@ -398,20 +436,26 @@ useSeoMeta({
 
             <!-- 👇 双图标展示区 -->
             <div v-if="user.isLifetimeVip || isSubVip" class="user-hero__vip-icons">
-              <van-icon
+              <!-- 💎 终身 VIP -->
+              <span
                 v-if="user.isLifetimeVip"
-                name="diamond-o"
                 class="user-hero__vip-icon is-lifetime"
                 title="终身 VIP"
-                @click="vipModalVisible = true"
-              />
-              <van-icon
+                @click="lifetimeVipModalVisible = true"
+                style="font-size: 22px; cursor: pointer;"
+              >
+                💎
+              </span>
+              <!-- 🌈 订阅 VIP -->
+              <span
                 v-if="isSubVip"
-                name="gem-o"
                 class="user-hero__vip-icon is-sub"
                 title="订阅 VIP"
-                @click="vipModalVisible = true"
-              />
+                @click="subVipModalVisible = true"
+                style="font-size: 22px; cursor: pointer;"
+              >
+                🌈
+              </span>
             </div>
 
             <button
@@ -600,42 +644,84 @@ useSeoMeta({
     <!-- 管理订阅弹窗 -->
     <ManageSubscriptionModal v-model="manageSubModalVisible" />
 
-    <!-- VIP 权益说明弹窗 -->
+        <!-- 💎 终身 VIP 权益说明弹窗 -->
     <van-popup
-      v-model:show="vipModalVisible"
+      v-model:show="lifetimeVipModalVisible"
       round
       :style="{ width: 'min(340px, 85%)' }"
       teleport="body"
     >
       <div class="vip-popup">
         <div class="vip-popup__header">
-          <van-icon name="gem-o" class="vip-popup__icon" />
-          <h3 class="vip-popup__title">{{ t("user_vip_title") }}</h3>
+          <span class="vip-popup__icon" style="font-size: 44px;">💎</span>
+          <h3 class="vip-popup__title">{{ t('vip_lifetime_title') || '终身 VIP 权益' }}</h3>
         </div>
 
         <ul class="vip-popup__list">
           <li class="vip-popup__item">
-            <van-icon name="chat-o" class="vip-popup__item-icon" />
-            <span>{{ t("user_vip_desc_1") }}</span>
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f1') || '相册照片数量永久提升至 20 张' }}</span>
           </li>
           <li class="vip-popup__item">
-            <van-icon name="photo-o" class="vip-popup__item-icon" />
-            <span>{{ t("user_vip_desc_2") }}</span>
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f2') || '永久解锁精美背景、节日特效与专属音乐' }}</span>
           </li>
           <li class="vip-popup__item">
-            <van-icon name="music-o" class="vip-popup__item-icon" />
-            <span>{{ t("user_vip_desc_3") }}</span>
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f3') || '支持一键导出 HTML 离线网页' }}</span>
           </li>
           <li class="vip-popup__item">
-            <van-icon name="album-o" class="vip-popup__item-icon" />
-            <span>{{ t("user_vip_desc_4") }}</span>
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f4') || '赠送 10000 积分' }}</span>
           </li>
         </ul>
 
         <button
           type="button"
           class="btn btn--primary vip-popup__close"
-          @click="vipModalVisible = false"
+          @click="lifetimeVipModalVisible = false"
+        >
+          {{ t("btn_i_know") }}
+        </button>
+      </div>
+    </van-popup>
+
+    <!-- 🌈 订阅 VIP 权益说明弹窗 -->
+    <van-popup
+      v-model:show="subVipModalVisible"
+      round
+      :style="{ width: 'min(340px, 85%)' }"
+      teleport="body"
+    >
+      <div class="vip-popup">
+        <div class="vip-popup__header">
+          <span class="vip-popup__icon" style="font-size: 44px;">🌈</span>
+          <h3 class="vip-popup__title">{{ t('vip_sub_title') || '尊享订阅 VIP 权益' }}</h3>
+        </div>
+
+        <ul class="vip-popup__list">
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f1') || '使用 AI 模拟与宠物跨时空对话' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f2') || '每月登录获赠随机礼物' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f3') || '每周生成专属回忆录并支持导出 PDF' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f4') || '赠送 10000 积分' }}</span>
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          class="btn btn--primary vip-popup__close"
+          @click="subVipModalVisible = false"
         >
           {{ t("btn_i_know") }}
         </button>

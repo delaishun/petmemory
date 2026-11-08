@@ -641,4 +641,24 @@ export default {
   export_success: '生成成功，正在下载',
   export_failed: '生成失败，请重试',
   vip_feature_html_desc: '导出网页是终身 VIP 专享功能',
+
+  vip_monthly_gift_title: '🎁 每月尊享礼物',
+  vip_monthly_gift_desc: '恭喜获得本月专属礼物：',
+  vip_monthly_gift_accept: '收下啦',
+
+  generate_memoir: '专属回忆录',
+  memoir_generating: '正在翻阅回忆...',
+  memoir_export: '保存为 PDF',  
+
+  vip_lifetime_title: '终身 VIP 权益',
+  vip_lifetime_f1: '相册照片数量永久提升至 20 张',
+  vip_lifetime_f2: '永久解锁精美背景、节日特效与专属音乐',
+  vip_lifetime_f3: '支持一键导出 HTML 离线网页',
+  vip_lifetime_f4: '赠送 10000 积分',
+
+  vip_sub_title: '尊享订阅 VIP 权益',
+  vip_sub_f1: '使用 AI 模拟与宠物跨时空对话',
+  vip_sub_f2: '每月登录获赠随机礼物',
+  vip_sub_f3: '每周生成专属回忆录并支持导出 PDF',
+  vip_sub_f4: '赠送 10000 积分',
 }

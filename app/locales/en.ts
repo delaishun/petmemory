@@ -639,4 +639,24 @@ export default {
   export_success: 'Success! Downloading...',
   export_failed: 'Failed to generate. Please try again.',
   vip_feature_html_desc: 'Exporting HTML is a Lifetime VIP exclusive feature',
+
+  vip_monthly_gift_title: '🎁 Monthly VIP Gift',
+  vip_monthly_gift_desc: 'Congratulations! You received this month\'s exclusive gifts:',
+  vip_monthly_gift_accept: 'Accept',
+
+  generate_memoir: 'Memoir',
+  memoir_generating: 'Reading memories...',
+  memoir_export: 'Save as PDF',
+
+  vip_lifetime_title: 'Lifetime VIP Privileges',
+  vip_lifetime_f1: 'Permanently increase album limit to 20 photos',
+  vip_lifetime_f2: 'Permanently unlock premium backgrounds, effects & music',
+  vip_lifetime_f3: 'Export offline HTML webpage with one click',
+  vip_lifetime_f4: 'Get 10,000 bonus points',
+
+  vip_sub_title: 'Subscription VIP Privileges',
+  vip_sub_f1: 'Use AI to chat with your pet across time and space',
+  vip_sub_f2: 'Receive random gifts every month upon login',
+  vip_sub_f3: 'Generate exclusive memoirs weekly and export as PDF',
+  vip_sub_f4: 'Get 10,000 bonus points',
 }

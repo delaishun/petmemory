@@ -229,6 +229,8 @@ const myPoint = computed<number | undefined>(() => me.value?.point);
 const hasLiked = ref(false);
 const isLiking = ref(false);
 
+const memoirModalVisible = ref(false)
+
 onMounted(() => {
   if (import.meta.client && slug.value) {
     const liked = localStorage.getItem(`liked_pet_${slug.value}`);
@@ -1823,6 +1825,17 @@ useHead(() => ({
               <van-icon name="description" />
               <span>{{ t("export_html_btn") }}</span>
             </button>
+
+            <!-- 👇 新增：生成回忆录按钮，只有订阅 VIP 才能看到 -->
+            <button
+              v-if="isOwner && me?.isVip && (!me?.isLifetimeVip || (me?.vipExpiresAt && new Date(me.vipExpiresAt) > new Date()))"
+              type="button"
+              class="btn btn--lg"
+              @click="memoirModalVisible = true"
+            >
+              <van-icon name="bookmark-o" />
+              <span>{{ t('generate_memoir') || '专属回忆录' }}</span>
+            </button>
           </div>
         </div>
       </template>
@@ -1990,6 +2003,13 @@ useHead(() => ({
       :slug="pet.slug"
       :pet-name="pet.name"
       :pet-avatar-url="pet.avatarUrl"
+    />
+
+    <PetMemoirModal
+      v-if="pet"
+      v-model="memoirModalVisible"
+      :pet-name="pet.name"
+      :slug="pet.slug"
     />
 
     <!-- 礼物明细弹窗 -->
