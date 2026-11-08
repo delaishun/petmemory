@@ -10,6 +10,8 @@ interface Props {
     name: string
     species: string
     breed: string
+    birthday?: string | null
+    leaveDate?: string | null
     avatarUrl: string
     owner?: {
       isVip?: boolean
@@ -39,6 +41,79 @@ function petBrief(p: any): string {
   else if (p.breed) parts.push(p.breed)
   return parts.join('')
 }
+
+// ============================================================
+// 生日 / 忌日 卡片内特效
+// ============================================================
+type FestivalParticle = {
+  id: number
+  emoji: string
+  left: number     // %
+  top: number      // %
+  size: number     // px
+  delay: number    // s
+  duration: number // s
+}
+
+const festivalType = ref<'birthday' | 'memorial' | null>(null)
+const festivalParticles = ref<FestivalParticle[]>([])
+
+function buildFestivalParticles(emoji: string, count: number): FestivalParticle[] {
+  const list: FestivalParticle[] = []
+  for (let i = 0; i < count; i++) {
+    list.push({
+      id: i,
+      emoji,
+      left: 6 + Math.random() * 84,       // 6% ~ 90%
+      top: 6 + Math.random() * 80,        // 6% ~ 86%
+      size: 20 + Math.random() * 16,      // 20 ~ 36px
+      delay: Math.random() * 3,           // 0 ~ 3s
+      duration: 2.5 + Math.random() * 2,  // 2.5 ~ 4.5s
+    })
+  }
+  return list
+}
+
+function matchMonthDay(dateStr: string | null | undefined): boolean {
+  if (!dateStr) return false
+  const parts = dateStr.split('-')
+  if (parts.length < 3) return false
+  const now = new Date()
+  return Number(parts[1]) === now.getMonth() + 1 && Number(parts[2]) === now.getDate()
+}
+
+function initFestivalEffect() {
+  if (import.meta.server) return
+  if (!props.pet.owner?.isVip) {
+    festivalType.value = null
+    festivalParticles.value = []
+    return
+  }
+
+  // 生日优先
+  if (matchMonthDay(props.pet.birthday)) {
+    festivalType.value = 'birthday'
+    festivalParticles.value = buildFestivalParticles('🎂', 5)
+    return
+  }
+  if (matchMonthDay(props.pet.leaveDate)) {
+    festivalType.value = 'memorial'
+    festivalParticles.value = buildFestivalParticles('🌸', 6)
+    return
+  }
+
+  festivalType.value = null
+  festivalParticles.value = []
+}
+
+onMounted(() => {
+  initFestivalEffect()
+})
+
+watch(
+  () => [props.pet.birthday, props.pet.leaveDate, props.pet.owner?.isVip] as const,
+  () => initFestivalEffect()
+)
 </script>
 
 <template>
@@ -48,6 +123,26 @@ function petBrief(p: any): string {
     :class="{ 'is-vip-panel': pet.owner?.isVip }"
     :style="getEffectStyle(pet.owner?.isVip)"
   >
+    <!-- 👇 生日 / 忌日 特效层（卡片内绝对定位，由卡片 overflow: hidden 裁剪） -->
+    <div
+      v-if="festivalType && festivalParticles.length"
+      class="pet-card__festival"
+      aria-hidden="true"
+    >
+      <span
+        v-for="p in festivalParticles"
+        :key="p.id"
+        class="pet-card__festival-particle"
+        :style="{
+          left: p.left + '%',
+          top: p.top + '%',
+          fontSize: p.size + 'px',
+          animationDelay: p.delay + 's',
+          animationDuration: p.duration + 's',
+        }"
+      >{{ p.emoji }}</span>
+    </div>
+
     <!-- 头像带特效边框 (引入全局 avatar-effect) -->
     <div class="pet-card__avatar-wrap avatar-effect" :class="getEffectClass(pet.owner?.isVip)">
       <img
@@ -109,6 +204,27 @@ function petBrief(p: any): string {
     background-position: center;
     background-repeat: no-repeat;
     border: none;
+  }
+
+  // ---------- 生日 / 忌日 特效层 ----------
+  &__festival {
+    position: absolute;
+    inset: 0;
+    z-index: 0;              // 在头像和文字之下、卡片背景之上
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  &__festival-particle {
+    position: absolute;
+    line-height: 1;
+    user-select: none;
+    opacity: 0;
+    will-change: transform, opacity;
+    animation-name: pet-card-festival-pop;
+    animation-timing-function: ease-out;
+    animation-iteration-count: infinite;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.1));
   }
 
   // 头像外层包裹
@@ -174,6 +290,25 @@ function petBrief(p: any): string {
     font-size: @fs-sm;
     color: @ink-3;
     .line-1();
+  }
+}
+
+@keyframes pet-card-festival-pop {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.3) rotate(8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8) rotate(0deg);
+    opacity: 0;
   }
 }
 </style>

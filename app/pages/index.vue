@@ -15,6 +15,7 @@ interface HomePet {
   species: string;
   breed: string;
   birthday: string | null;
+  leaveDate: string | null;
   avatarUrl: string;
   updatedAt: string;
   owner: {

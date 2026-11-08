@@ -25,6 +25,7 @@ interface PetListItem {
   species: string
   breed: string
   birthday: string | null
+  leaveDate: string | null   // 👈 新增：传给 PetCard 用于忌日特效
   avatarUrl: string
   updatedAt: string
   owner: OwnerBrief
