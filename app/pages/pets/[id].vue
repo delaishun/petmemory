@@ -44,7 +44,7 @@ interface PetDetail {
   moodScore: number;
   currentExpressionUrl: string | null;
   isGenerating?: boolean;
-  likeCount: number; // 👈 新增：点赞数
+  likeCount: number;
 }
 
 interface PetPublic {
@@ -259,6 +259,84 @@ async function handleLike() {
 }
 
 // ============================================================
+// 👇 新增：生日 / 忌日 节日特效（全屏覆盖，仅客户端生效）
+// ============================================================
+// 判断规则：
+//   1) 主人必须是 VIP
+//   2) 浏览器本地日期的「月 + 日」等于宠物 birthday 或 leaveDate 的月 + 日
+//   3) 生日优先于忌日（同一天只显示生日特效）
+type FestivalParticle = {
+  id: number;
+  emoji: string;
+  left: number;     // 百分比
+  top: number;      // 百分比
+  size: number;     // px
+  delay: number;    // 秒
+  duration: number; // 秒
+};
+
+const festivalType = ref<"birthday" | "memorial" | null>(null);
+const festivalParticles = ref<FestivalParticle[]>([]);
+
+function buildFestivalParticles(emoji: string, count: number): FestivalParticle[] {
+  const list: FestivalParticle[] = [];
+  for (let i = 0; i < count; i++) {
+    list.push({
+      id: i,
+      emoji,
+      left: 5 + Math.random() * 90,       // 5% ~ 95%
+      top: 8 + Math.random() * 80,        // 8% ~ 88%
+      size: 28 + Math.random() * 32,      // 28 ~ 60px
+      delay: Math.random() * 4,           // 0 ~ 4s
+      duration: 3 + Math.random() * 2.5,  // 3 ~ 5.5s
+    });
+  }
+  return list;
+}
+
+function matchMonthDay(dateStr: string | null | undefined): boolean {
+  if (!dateStr) return false;
+  const parts = dateStr.split("-");
+  if (parts.length < 3) return false;
+  const now = new Date();
+  return Number(parts[1]) === now.getMonth() + 1 && Number(parts[2]) === now.getDate();
+}
+
+function initFestivalEffect() {
+  if (import.meta.server) return;
+  if (!pet.value || !isVipPet.value) {
+    festivalType.value = null;
+    festivalParticles.value = [];
+    return;
+  }
+
+  // 生日优先
+  if (matchMonthDay(pet.value.birthday)) {
+    festivalType.value = "birthday";
+    festivalParticles.value = buildFestivalParticles("🎂", 14);
+    return;
+  }
+
+  if (matchMonthDay(pet.value.leaveDate)) {
+    festivalType.value = "memorial";
+    festivalParticles.value = buildFestivalParticles("🌸", 16);
+    return;
+  }
+
+  festivalType.value = null;
+  festivalParticles.value = [];
+}
+
+onMounted(() => {
+  initFestivalEffect();
+});
+
+watch(
+  () => [pet.value?.birthday, pet.value?.leaveDate, isVipPet.value] as const,
+  () => initFestivalEffect()
+);
+
+// ============================================================
 // 背景音乐逻辑 (全交互触发)
 // ============================================================
 const audio = ref<HTMLAudioElement | null>(null);
@@ -465,7 +543,7 @@ const editablePet = computed<EditablePet | null>(() => {
     personality: pet.value.personality,
     soundEffect: pet.value.soundEffect,
     birthday: pet.value.birthday,
-    leaveDate: pet.value.leaveDate, // 👈 新增
+    leaveDate: pet.value.leaveDate,
     status: pet.value.status ?? 1,
   };
 });
@@ -1010,6 +1088,26 @@ useHead(() => ({
 
 <template>
   <div class="page">
+    <!-- 👇 新增：生日 / 忌日 节日特效（全屏覆盖层） -->
+    <div
+      v-if="festivalType && festivalParticles.length"
+      class="festival-layer"
+      aria-hidden="true"
+    >
+      <span
+        v-for="p in festivalParticles"
+        :key="p.id"
+        class="festival-particle"
+        :style="{
+          left: p.left + '%',
+          top: p.top + '%',
+          fontSize: p.size + 'px',
+          animationDelay: p.delay + 's',
+          animationDuration: p.duration + 's',
+        }"
+      >{{ p.emoji }}</span>
+    </div>
+
     <!-- 悬浮音乐开关 -->
     <button
       v-if="isVipPet && audio"
@@ -1790,6 +1888,49 @@ useHead(() => ({
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+// ============================================================
+// 👇 新增：生日 / 忌日 节日特效（全屏覆盖层）
+// ============================================================
+.festival-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;              // 低于 .music-toggle(100)，高于内容
+  pointer-events: none;     // 不拦截任何点击
+  overflow: hidden;
+}
+
+.festival-particle {
+  position: absolute;
+  line-height: 1;
+  user-select: none;
+  opacity: 0;
+  transform: scale(0.3);
+  will-change: transform, opacity;
+  animation-name: festival-pop;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12));
+}
+
+@keyframes festival-pop {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.4) rotate(8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2) rotate(0deg);
+    opacity: 0;
   }
 }
 
