@@ -613,4 +613,6 @@ export default {
   article_comment_load_more: '加载更多评论',
   article_comment_no_more: '没有更多评论了',
   article_comment_char_count: '{n}/600',
+
+  article_contribute_text: '若您也有关于爱宠的回忆故事，欢迎投稿至 fczx1999@gmail.com，我们将在收到后第一时间为您发布。',
 }

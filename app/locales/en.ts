@@ -612,4 +612,6 @@ export default {
   article_comment_no_more: 'No more comments',
   article_comment_char_count: '{n}/600',
 
+  article_contribute_text: 'If you have a pet memorial story to share, please email us at fczx1999@gmail.com. We will publish it as soon as we receive it.',
+
 }

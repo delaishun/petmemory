@@ -477,6 +477,11 @@ async function copyShareLink() {
         </div>
       </footer>
 
+      <!-- 👇 新增：投稿邀请 -->
+      <div class="article-contribute">
+        <p>{{ t('article_contribute_text') }}</p>
+      </div>
+
       <!-- ============================================ -->
       <!-- 文章评论模块                                 -->
       <!-- ============================================ -->
@@ -936,6 +941,23 @@ async function copyShareLink() {
     .btn {
       width: 100%;
     }
+  }
+}
+
+// 👇 新增：投稿邀请样式
+.article-contribute {
+  margin-top: @sp-7;
+  padding: @sp-4 @sp-5;
+  background: @accent-soft;
+  border-radius: @radius-lg;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: @fs-sm;
+    color: @ink-2;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
   }
 }
 
