@@ -1,139 +1,153 @@
 <!-- app/pages/users/[id].vue -->
 <script setup lang="ts">
-import { showConfirmDialog, showToast, showImagePreview } from 'vant'
-import type { AuthUser, MeResponse } from '~/types/auth'
-import { useI18n } from '~/composables/useI18n'
-import ManageSubscriptionModal from '~/components/ManageSubscriptionModal.vue'
+import { showConfirmDialog, showToast, showImagePreview } from "vant";
+import type { AuthUser, MeResponse } from "~/types/auth";
+import { useI18n } from "~/composables/useI18n";
+import ManageSubscriptionModal from "~/components/ManageSubscriptionModal.vue";
 
 // ============================================================
 // 国际化
 // ============================================================
-const { t } = useI18n()
+const { t } = useI18n();
 
 // 当前登录用户
-const me = useState<AuthUser | null>('auth:user', () => null)
+const me = useState<AuthUser | null>("auth:user", () => null);
 
 // 路由参数
-const route = useRoute()
-const userId = computed(() => Number(route.params.id))
+const route = useRoute();
+const userId = computed(() => Number(route.params.id));
 
 // 是否本人
-const isSelf = computed(
-  () => !!me.value && me.value.id === userId.value,
-)
+const isSelf = computed(() => !!me.value && me.value.id === userId.value);
 
 // ---------- 类型 ----------
 interface PublicUser {
-  id: number
-  nickname: string
-  avatarUrl: string | null
-  avatarUpdatedAt: string | null
-  email: string
-  vipExpiresAt: string | null
-  isVip: boolean
-  createdAt: string
-  bio: string | null
-  point?: number
+  id: number;
+  nickname: string;
+  avatarUrl: string | null;
+  avatarUpdatedAt: string | null;
+  email: string;
+  vipExpiresAt: string | null;
+  isVip: boolean;
+  isLifetimeVip: boolean; // 👈 新增
+  createdAt: string;
+  bio: string | null;
+  point?: number;
 }
 
 interface PetSummary {
-  id: number
-  slug: string
-  name: string
-  avatarUrl: string
+  id: number;
+  slug: string;
+  name: string;
+  avatarUrl: string;
 }
 
 interface GiftPublic {
-  id: number
-  name: string
-  imageUrl: string
+  id: number;
+  name: string;
+  imageUrl: string;
 }
 
 interface InventoryItem {
-  giftId: number
-  quantity: number
+  giftId: number;
+  quantity: number;
 }
 
 interface UserOrder {
-  id: number
-  orderNo: string
-  planType: 'digital' | 'physical'
-  amount: number
-  status: number // 0=待发货 1=已发货 2=已取消
-  images: string[]
-  requirements: string
-  shippingAddress: string
-  createdAt: string
+  id: number;
+  orderNo: string;
+  planType: "digital" | "physical";
+  amount: number;
+  status: number; // 0=待发货 1=已发货 2=已取消
+  images: string[];
+  requirements: string;
+  shippingAddress: string;
+  createdAt: string;
 }
 
 // ---------- 数据 ----------
-const { $api } = useNuxtApp()
+const { $api } = useNuxtApp();
 
-const { data: user, pending, error, refresh: refreshUser } = await useAsyncData<PublicUser>(
+const {
+  data: user,
+  pending,
+  error,
+  refresh: refreshUser,
+} = await useAsyncData<PublicUser>(
   () => `user:${userId.value}`,
-  () => $api<PublicUser>(`/api/users/${userId.value}`),
-)
+  () => $api<PublicUser>(`/api/users/${userId.value}`)
+);
 
 const { data: pets, refresh: refreshPets } = await useAsyncData<PetSummary[]>(
   () => `user:${userId.value}:pets`,
-  () => $api<PetSummary[]>(`/api/users/${userId.value}/pets`),
-)
+  () => $api<PetSummary[]>(`/api/users/${userId.value}/pets`)
+);
+
+// 👇 计算当前是否拥有“订阅 VIP”（未过期）
+const isSubVip = computed(() => {
+  if (!user.value?.vipExpiresAt) return false;
+  return new Date(user.value.vipExpiresAt) > new Date();
+});
+
+const isSubActive = computed(() => {
+  return !!user.value?.vipExpiresAt && new Date(user.value.vipExpiresAt) > new Date();
+});
 
 // ---------- 兜底头像 ----------
 const defaultAvatar =
-  'data:image/svg+xml;utf8,' +
+  "data:image/svg+xml;utf8," +
   encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
        <rect width="120" height="120" fill="#F5EEE4"/>
        <circle cx="60" cy="48" r="20" fill="#DCD0BF"/>
        <path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF"/>
      </svg>`
-  )
+  );
 
 // ---------- 头像编辑 ----------
-const AVATAR_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
+const AVATAR_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
 const canEditAvatar = computed(() => {
-  if (!isSelf.value) return false
-  if (!user.value) return false
-  if (!user.value.avatarUpdatedAt) return true
+  if (!isSelf.value) return false;
+  if (!user.value) return false;
+  if (!user.value.avatarUpdatedAt) return true;
 
-  const last = new Date(user.value.avatarUpdatedAt).getTime()
-  return Date.now() - last >= AVATAR_COOLDOWN_MS
-})
+  const last = new Date(user.value.avatarUpdatedAt).getTime();
+  return Date.now() - last >= AVATAR_COOLDOWN_MS;
+});
 
-const avatarModalVisible = ref(false)
+const avatarModalVisible = ref(false);
 
 function handleAvatarClick() {
-  if (!canEditAvatar.value) return
-  avatarModalVisible.value = true
+  if (!canEditAvatar.value) return;
+  avatarModalVisible.value = true;
 }
 
 function onAvatarUpdated(updated: PublicUser) {
-  if (!user.value) return
-  user.value = { ...user.value, ...updated }
+  if (!user.value) return;
+  user.value = { ...user.value, ...updated };
   if (me.value && me.value.id === updated.id) {
     me.value = {
       ...me.value,
       avatarUrl: updated.avatarUrl,
       avatarUpdatedAt: updated.avatarUpdatedAt,
       ...(updated.point !== undefined ? { point: updated.point } : {}),
-    }
+    };
   }
 }
 
 // ---------- 昵称编辑 ----------
-const editNicknameModalVisible = ref(false)
+const editNicknameModalVisible = ref(false);
 
 function handleEditNickname() {
-  editNicknameModalVisible.value = true
+  editNicknameModalVisible.value = true;
 }
 
 function onNicknameUpdated(updated: PublicUser) {
-  if (!user.value) return
-  user.value = { ...user.value, nickname: updated.nickname }
+  if (!user.value) return;
+  user.value = { ...user.value, nickname: updated.nickname };
   if (me.value && me.value.id === updated.id) {
-    me.value = { ...me.value, nickname: updated.nickname }
+    me.value = { ...me.value, nickname: updated.nickname };
   }
 }
 
@@ -142,90 +156,90 @@ function onNicknameUpdated(updated: PublicUser) {
 // ============================================================
 const displayPoint = computed<number | undefined>(() => {
   if (me.value) {
-    if (me.value.id !== userId.value) return undefined
-    return me.value.point ?? user.value?.point
+    if (me.value.id !== userId.value) return undefined;
+    return me.value.point ?? user.value?.point;
   }
-  return user.value?.point
-})
+  return user.value?.point;
+});
 
 // ---------- VIP 权益说明弹窗 ----------
-const vipModalVisible = ref(false)
+const vipModalVisible = ref(false);
 
 // ---------- VIP 升级 / 续费 ----------
-const upgradeVipModalVisible = ref(false)
-const manageSubModalVisible = ref(false) 
+const upgradeVipModalVisible = ref(false);
+const manageSubModalVisible = ref(false);
 
 async function onUpgradeVipSuccess() {
   showToast({
-    type: 'success',
-    message: t('vip_subscribe_success') || '支付成功！正在同步 VIP 状态...',
-    duration: 3000
-  })
+    type: "success",
+    message: t("vip_subscribe_success") || "支付成功！正在同步 VIP 状态...",
+    duration: 3000,
+  });
 
-  // 因为 Paddle 的 Webhook 是异步到达服务器的，
+  // 因为 Paddle / Dodo 的 Webhook 是异步到达服务器的，
   // 我们采用轮询机制，每隔 2 秒查询一次，最多查 15 次（30秒）
-  let attempts = 0
-  const maxAttempts = 15 
-  
+  let attempts = 0;
+  const maxAttempts = 15;
+
   const timer = setInterval(async () => {
-    attempts++
+    attempts++;
     try {
-      const res = await $api<MeResponse>('/api/auth/me')
+      const res = await $api<MeResponse>("/api/auth/me");
       if (res?.user) {
-        me.value = res.user
-        
+        me.value = res.user;
+
         // 👇 如果拿到了 isVip === true，说明后端 Webhook 处理完毕了
         if (res.user.isVip) {
-          clearInterval(timer)
-          await refreshUser() // 顺便刷新页面上的用户数据
-          showToast({ type: 'success', message: 'VIP 特权已生效！' })
+          clearInterval(timer);
+          await refreshUser(); // 顺便刷新页面上的用户数据
+          showToast({ type: "success", message: "VIP 特权已生效！" });
         }
       }
     } catch (e) {
       // 网络波动等错误忽略，继续下一次轮询
     }
-    
+
     // 如果到了最大尝试次数，还没成功，就清除定时器并强制刷新一次（兜底）
     if (attempts >= maxAttempts) {
-      clearInterval(timer)
-      await Promise.all([refreshMe(), refreshUser()])
+      clearInterval(timer);
+      await Promise.all([refreshMe(), refreshUser()]);
     }
-  }, 2000)
+  }, 2000);
 }
 
 // ---------- 添加宠物 ----------
-const addPetModalVisible = ref(false)
+const addPetModalVisible = ref(false);
 
 function handleAddPet() {
-  addPetModalVisible.value = true
+  addPetModalVisible.value = true;
 }
 
 function onPetCreated() {
-  refreshPets()
+  refreshPets();
 }
 
 // ============================================================
 // 购买礼物 & 礼物仓库
 // ============================================================
-const buyGiftModalVisible = ref(false)
+const buyGiftModalVisible = ref(false);
 
 function handleBuyGift() {
-  buyGiftModalVisible.value = true
+  buyGiftModalVisible.value = true;
 }
 
 // 仓库数据
-const allGifts = ref<GiftPublic[]>([])
-const inventory = ref<InventoryItem[]>([])
+const allGifts = ref<GiftPublic[]>([]);
+const inventory = ref<InventoryItem[]>([]);
 
 async function loadInventoryAndGifts() {
-  if (!isSelf.value) return
+  if (!isSelf.value) return;
   try {
     const [inv, gifts] = await Promise.all([
-      $api<InventoryItem[]>('/api/users/me/inventory'),
-      $api<GiftPublic[]>('/api/gifts')
-    ])
-    inventory.value = inv
-    allGifts.value = gifts
+      $api<InventoryItem[]>("/api/users/me/inventory"),
+      $api<GiftPublic[]>("/api/gifts"),
+    ]);
+    inventory.value = inv;
+    allGifts.value = gifts;
   } catch (e) {
     // 静默失败
   }
@@ -233,112 +247,115 @@ async function loadInventoryAndGifts() {
 
 const mergedInventory = computed(() => {
   return inventory.value
-    .map(inv => {
-      const gift = allGifts.value.find(g => g.id === inv.giftId)
-      return { ...inv, gift }
+    .map((inv) => {
+      const gift = allGifts.value.find((g) => g.id === inv.giftId);
+      return { ...inv, gift };
     })
-    .filter(item => item.gift && item.quantity > 0)
-})
+    .filter((item) => item.gift && item.quantity > 0);
+});
 
 async function onBuyGiftSuccess() {
-  showToast({ 
-    type: 'success', 
-    message: t('msg_buy_success_refresh'),
-    duration: 3000
-  })
+  showToast({
+    type: "success",
+    message: t("msg_buy_success_refresh"),
+    duration: 3000,
+  });
   setTimeout(async () => {
-    await refreshMe()
-    await loadInventoryAndGifts()
-  }, 2500)
+    await refreshMe();
+    await loadInventoryAndGifts();
+  }, 2500);
 }
 
 // ============================================================
 // 我的订单
 // ============================================================
-const orders = ref<UserOrder[]>([])
-const ordersLoading = ref(false)
+const orders = ref<UserOrder[]>([]);
+const ordersLoading = ref(false);
 
 async function loadOrders() {
-  if (!isSelf.value) return
-  ordersLoading.value = true
+  if (!isSelf.value) return;
+  ordersLoading.value = true;
   try {
-    orders.value = await $api<UserOrder[]>('/api/users/me/orders')
+    orders.value = await $api<UserOrder[]>("/api/users/me/orders");
   } catch (e) {
     // 静默失败
   } finally {
-    ordersLoading.value = false
+    ordersLoading.value = false;
   }
 }
 
 function getOrderStatusText(status: number) {
-  if (status === 0) return t('order_status_pending') || '待发货'
-  if (status === 1) return t('order_status_shipped') || '已发货'
-  return t('order_status_canceled') || '已取消'
+  if (status === 0) return t("order_status_pending") || "待发货";
+  if (status === 1) return t("order_status_shipped") || "已发货";
+  return t("order_status_canceled") || "已取消";
 }
 
 function getOrderStatusClass(status: number) {
-  if (status === 0) return 'is-pending'
-  if (status === 1) return 'is-shipped'
-  return 'is-canceled'
+  if (status === 0) return "is-pending";
+  if (status === 1) return "is-shipped";
+  return "is-canceled";
 }
 
 function formatDate(iso: string) {
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes()
+  ).padStart(2, "0")}`;
 }
 
 // 监听加载
 onMounted(() => {
   if (isSelf.value) {
-    loadInventoryAndGifts()
-    loadOrders()
+    loadInventoryAndGifts();
+    loadOrders();
   }
-})
+});
 watch(isSelf, (val) => {
   if (val) {
-    loadInventoryAndGifts()
-    loadOrders()
+    loadInventoryAndGifts();
+    loadOrders();
   } else {
-    inventory.value = []
-    orders.value = []
+    inventory.value = [];
+    orders.value = [];
   }
-})
+});
 
 async function refreshMe() {
   try {
-    const res = await $api<MeResponse>('/api/auth/me')
-    if (res?.user) me.value = res.user
+    const res = await $api<MeResponse>("/api/auth/me");
+    if (res?.user) me.value = res.user;
   } catch {}
 }
 
 // ---------- 退出登录 ----------
-const token = useCookie<string | null>('token')
+const token = useCookie<string | null>("token");
 
 async function handleLogout() {
   try {
     await showConfirmDialog({
-      title: t('user_logout_confirm_title'),
-      message: t('user_logout_confirm_desc'),
-      confirmButtonText: t('btn_logout'),
-      cancelButtonText: t('btn_cancel'),
-    })
+      title: t("user_logout_confirm_title"),
+      message: t("user_logout_confirm_desc"),
+      confirmButtonText: t("btn_logout"),
+      cancelButtonText: t("btn_cancel"),
+    });
   } catch {
-    return
+    return;
   }
 
-  token.value = null
-  me.value = null
-  await navigateTo('/')
+  token.value = null;
+  me.value = null;
+  await navigateTo("/");
 }
 
-// useHead(() => ({
-//   title: user.value ? `${user.value.nickname} · ${t('app_name')}` : `${t('user_profile')} · ${t('app_name')}`,
-// }))
 useSeoMeta({
-  title: user.value ? `${user.value.nickname} · ${t('app_name')}` : `${t('user_profile')} · ${t('app_name')}`,
-  description: 'View memorials for pets remembered by this user on PetMemory.',
-  robots: 'noindex, follow',
-})
+  title: user.value
+    ? `${user.value.nickname} · ${t("app_name")}`
+    : `${t("user_profile")} · ${t("app_name")}`,
+  description: "View memorials for pets remembered by this user on PetMemory.",
+  robots: "noindex, follow",
+});
 </script>
 
 <template>
@@ -352,9 +369,9 @@ useSeoMeta({
 
       <!-- 加载失败 -->
       <div v-else-if="error || !user" class="empty">
-        <p class="empty__title">{{ t('user_not_found') }}</p>
-        <p class="empty__desc">{{ t('user_not_found_desc') }}</p>
-        <NuxtLink to="/" class="btn btn--primary mt-4">{{ t('btn_back_home') }}</NuxtLink>
+        <p class="empty__title">{{ t("user_not_found") }}</p>
+        <p class="empty__desc">{{ t("user_not_found_desc") }}</p>
+        <NuxtLink to="/" class="btn btn--primary mt-4">{{ t("btn_back_home") }}</NuxtLink>
       </div>
 
       <template v-else>
@@ -378,12 +395,25 @@ useSeoMeta({
 
           <div class="user-hero__title-wrap">
             <h1 class="user-hero__name">{{ user.nickname }}</h1>
-            <van-icon
-              v-if="user.isVip"
-              name="gem-o"
-              class="user-hero__vip-icon"
-              @click="vipModalVisible = true"
-            />
+
+            <!-- 👇 双图标展示区 -->
+            <div v-if="user.isLifetimeVip || isSubVip" class="user-hero__vip-icons">
+              <van-icon
+                v-if="user.isLifetimeVip"
+                name="diamond-o"
+                class="user-hero__vip-icon is-lifetime"
+                title="终身 VIP"
+                @click="vipModalVisible = true"
+              />
+              <van-icon
+                v-if="isSubVip"
+                name="gem-o"
+                class="user-hero__vip-icon is-sub"
+                title="订阅 VIP"
+                @click="vipModalVisible = true"
+              />
+            </div>
+
             <button
               v-if="isSelf"
               type="button"
@@ -397,7 +427,7 @@ useSeoMeta({
 
           <div v-if="displayPoint !== undefined" class="user-hero__points">
             <van-icon name="gold-coin-o" />
-            <span>{{ t('user_points') }}: {{ displayPoint }}</span>
+            <span>{{ t("user_points") }}: {{ displayPoint }}</span>
           </div>
 
           <p v-if="user.bio" class="user-hero__bio">{{ user.bio }}</p>
@@ -406,7 +436,7 @@ useSeoMeta({
         <!-- 宠物列表 -->
         <section v-if="pets && pets.length > 0" class="pets-section">
           <h2 class="pets-section__title">
-            {{ isSelf ? t('user_my_pets') : t('user_pets') }}
+            {{ isSelf ? t("user_my_pets") : t("user_pets") }}
           </h2>
           <div class="pet-grid">
             <NuxtLink
@@ -429,12 +459,12 @@ useSeoMeta({
         <!-- 我的礼物仓库 (仅本人可见) -->
         <section v-if="isSelf && mergedInventory.length > 0" class="inventory-section">
           <h2 class="inventory-section__title">
-            {{ t('user_my_inventory') }}
+            {{ t("user_my_inventory") }}
           </h2>
           <div class="inventory-grid">
-            <div 
-              v-for="item in mergedInventory" 
-              :key="item.giftId" 
+            <div
+              v-for="item in mergedInventory"
+              :key="item.giftId"
               class="inventory-item"
               :title="`${item.gift!.name} x ${item.quantity}`"
             >
@@ -442,45 +472,63 @@ useSeoMeta({
                 <img :src="item.gift!.imageUrl" :alt="item.gift!.name" />
                 <span class="inventory-item__count">x{{ item.quantity }}</span>
               </div>
-              <span class="inventory-item__name">{{ item.gift!.name.split('/')[0] }}</span>
+              <span
+                class="inventory-item__name"
+                >{{ item.gift!.name.split('/')[0] }}</span
+              >
             </div>
           </div>
         </section>
 
         <!-- 我的订单 (仅本人可见) -->
         <section v-if="isSelf && orders.length > 0" class="orders-section">
-          <h2 class="orders-section__title">{{ t('user_my_orders') || '我的订单' }}</h2>
+          <h2 class="orders-section__title">{{ t("user_my_orders") || "我的订单" }}</h2>
           <div class="order-list">
             <div v-for="order in orders" :key="order.id" class="order-card">
               <div class="order-card__header">
                 <span class="order-card__time">{{ formatDate(order.createdAt) }}</span>
-                <span class="order-card__status" :class="getOrderStatusClass(order.status)">
+                <span
+                  class="order-card__status"
+                  :class="getOrderStatusClass(order.status)"
+                >
                   {{ getOrderStatusText(order.status) }}
                 </span>
               </div>
-              
+
               <div class="order-card__body">
                 <div class="order-card__info">
                   <div class="order-card__row">
                     <span class="order-card__plan">
-                      {{ order.planType === 'digital' ? (t('order_plan_digital') || '电子版绘画') : (t('order_plan_physical') || '实物版绘画') }}
+                      {{
+                        order.planType === "digital"
+                          ? t("order_plan_digital") || "电子版绘画"
+                          : t("order_plan_physical") || "实物版绘画"
+                      }}
                     </span>
                     <span class="order-card__amount">${{ order.amount }}</span>
                   </div>
                   <p v-if="order.requirements" class="order-card__req">
-                    <strong>{{ t('order_requirements_label') || '要求：' }}</strong>{{ order.requirements }}
+                    <strong>{{ t("order_requirements_label") || "要求：" }}</strong
+                    >{{ order.requirements }}
                   </p>
-                  <p v-if="order.planType === 'physical' && order.shippingAddress" class="order-card__address">
-                    <strong>{{ t('order_address_label') || '邮寄地址：' }}</strong>{{ order.shippingAddress }}
+                  <p
+                    v-if="order.planType === 'physical' && order.shippingAddress"
+                    class="order-card__address"
+                  >
+                    <strong>{{ t("order_address_label") || "邮寄地址：" }}</strong
+                    >{{ order.shippingAddress }}
                   </p>
                 </div>
-                
-                <div v-if="order.images && order.images.length" class="order-card__images">
-                  <img 
-                    v-for="(img, i) in order.images" 
-                    :key="i" 
-                    :src="img" 
-                    class="order-card__img" 
+
+                <div
+                  v-if="order.images && order.images.length"
+                  class="order-card__images"
+                >
+                  <img
+                    v-for="(img, i) in order.images"
+                    :key="i"
+                    :src="img"
+                    class="order-card__img"
                     @click="showImagePreview({ images: order.images, startPosition: i })"
                   />
                 </div>
@@ -491,62 +539,45 @@ useSeoMeta({
 
         <!-- 本人操作区 -->
         <div v-if="isSelf" class="user-actions">
-          <button
-            type="button"
-            class="btn btn--primary btn--lg"
-            @click="handleAddPet"
-          >
-            {{ t('user_add_pet') }}
-          </button>
-          
-          <button
-            type="button"
-            class="btn btn--gold btn--lg"
-            @click="handleBuyGift"
-          >
-            {{ t('user_buy_gift') }}
+          <button type="button" class="btn btn--primary btn--lg" @click="handleAddPet">
+            {{ t("user_add_pet") }}
           </button>
 
-          <!-- VIP 按钮逻辑 -->
+          <button type="button" class="btn btn--gold btn--lg" @click="handleBuyGift">
+            {{ t("user_buy_gift") }}
+          </button>
+
+          <!-- VIP 按钮逻辑（暂不做细分，终身VIP且订阅过期后，仍可点击升级订阅） -->
           <button
-            v-if="!user.isVip"
+            v-if="!user.isLifetimeVip || !isSubActive"
             type="button"
             class="btn btn--gold btn--lg"
             @click="upgradeVipModalVisible = true"
           >
-            {{ t('user_upgrade_vip') }}
+            {{ t("user_upgrade_vip") }}
           </button>
+
           <button
-            v-else
+            v-if="isSubActive"
             type="button"
             class="btn btn--gold btn--lg"
             @click="manageSubModalVisible = true"
           >
-            {{ t('manage_sub_btn') }}
+            {{ t("manage_sub_btn") }}
           </button>
 
-          <button
-            type="button"
-            class="btn btn--lg"
-            @click="handleLogout"
-          >
-            {{ t('user_logout') }}
+          <button type="button" class="btn btn--lg" @click="handleLogout">
+            {{ t("user_logout") }}
           </button>
         </div>
       </template>
     </div>
 
     <!-- 添加宠物弹窗 -->
-    <AddPetModal
-      v-model="addPetModalVisible"
-      @success="onPetCreated"
-    />
+    <AddPetModal v-model="addPetModalVisible" @success="onPetCreated" />
 
     <!-- 头像上传弹窗 -->
-    <AvatarUploadModal
-      v-model="avatarModalVisible"
-      @success="onAvatarUpdated"
-    />
+    <AvatarUploadModal v-model="avatarModalVisible" @success="onAvatarUpdated" />
 
     <!-- 修改昵称弹窗 -->
     <EditNicknameModal
@@ -557,21 +588,17 @@ useSeoMeta({
     />
 
     <!-- 购买礼物弹窗 -->
-    <BuyGiftModal
-      v-model="buyGiftModalVisible"
-      @success="onBuyGiftSuccess"
-    />
+    <BuyGiftModal v-model="buyGiftModalVisible" @success="onBuyGiftSuccess" />
 
     <!-- 升级 VIP 弹窗 -->
     <UpgradeVipModal
       v-model="upgradeVipModalVisible"
+      :user="user"
       @success="onUpgradeVipSuccess"
     />
 
     <!-- 管理订阅弹窗 -->
-    <ManageSubscriptionModal
-      v-model="manageSubModalVisible"
-    />
+    <ManageSubscriptionModal v-model="manageSubModalVisible" />
 
     <!-- VIP 权益说明弹窗 -->
     <van-popup
@@ -583,27 +610,25 @@ useSeoMeta({
       <div class="vip-popup">
         <div class="vip-popup__header">
           <van-icon name="gem-o" class="vip-popup__icon" />
-          <h3 class="vip-popup__title">{{ t('user_vip_title') }}</h3>
+          <h3 class="vip-popup__title">{{ t("user_vip_title") }}</h3>
         </div>
-        
+
         <ul class="vip-popup__list">
           <li class="vip-popup__item">
             <van-icon name="chat-o" class="vip-popup__item-icon" />
-            <span>{{ t('user_vip_desc_1') }}</span>
+            <span>{{ t("user_vip_desc_1") }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="photo-o" class="vip-popup__item-icon" />
-            <span>{{ t('user_vip_desc_2') }}</span>
+            <span>{{ t("user_vip_desc_2") }}</span>
           </li>
-          <!-- 👇 新增：背景音乐 -->
           <li class="vip-popup__item">
             <van-icon name="music-o" class="vip-popup__item-icon" />
-            <span>{{ t('user_vip_desc_3') }}</span>
+            <span>{{ t("user_vip_desc_3") }}</span>
           </li>
-          <!-- 👇 新增：相册权益 -->
           <li class="vip-popup__item">
             <van-icon name="album-o" class="vip-popup__item-icon" />
-            <span>{{ t('user_vip_desc_4') }}</span>
+            <span>{{ t("user_vip_desc_4") }}</span>
           </li>
         </ul>
 
@@ -612,7 +637,7 @@ useSeoMeta({
           class="btn btn--primary vip-popup__close"
           @click="vipModalVisible = false"
         >
-          {{ t('btn_i_know') }}
+          {{ t("btn_i_know") }}
         </button>
       </div>
     </van-popup>
@@ -663,10 +688,8 @@ useSeoMeta({
     border-radius: 50%;
     object-fit: cover;
     background: @surface-2;
-    box-shadow:
-      0 0 0 4px @surface,
-      0 0 0 5px @accent-soft,
-      0 8px 24px rgba(93, 71, 55, .12);
+    box-shadow: 0 0 0 4px @surface, 0 0 0 5px @accent-soft,
+      0 8px 24px rgba(93, 71, 55, 0.12);
   }
 
   &__avatar-edit {
@@ -696,7 +719,7 @@ useSeoMeta({
     }
 
     &:active {
-      transform: scale(.96);
+      transform: scale(0.96);
     }
   }
 
@@ -709,7 +732,7 @@ useSeoMeta({
   }
 
   &__name {
-    margin: 0; 
+    margin: 0;
     font-family: @font-serif;
     font-size: @fs-2xl;
     font-weight: 700;
@@ -717,19 +740,36 @@ useSeoMeta({
     line-height: 1.2;
   }
 
+  // 👇 双图标排列容器
+  &__vip-icons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
   &__vip-icon {
     font-size: 26px;
-    color: #f1c40f;
     cursor: pointer;
-    filter: drop-shadow(0 2px 4px rgba(241, 196, 15, 0.4));
     transition: transform @dur-fast ease;
 
     &:hover {
       transform: scale(1.1) rotate(5deg);
     }
-    
+
     &:active {
       transform: scale(0.95);
+    }
+
+    // 💎 终身 VIP（蓝钻/星光质感）
+    &.is-lifetime {
+      color: #00bfff;
+      filter: drop-shadow(0 2px 4px rgba(0, 191, 255, 0.4));
+    }
+
+    // 🌈 订阅 VIP（金色/彩虹质感）
+    &.is-sub {
+      color: #f1c40f;
+      filter: drop-shadow(0 2px 4px rgba(241, 196, 15, 0.4));
     }
   }
 
@@ -754,7 +794,7 @@ useSeoMeta({
     }
 
     &:active {
-      transform: scale(.92);
+      transform: scale(0.92);
     }
   }
 
@@ -841,10 +881,7 @@ useSeoMeta({
     transform: translateY(-2px);
 
     .pet-item__avatar {
-      box-shadow:
-        0 0 0 4px @surface,
-        0 0 0 5px @accent,
-        0 8px 20px rgba(93, 71, 55, .18);
+      box-shadow: 0 0 0 4px @surface, 0 0 0 5px @accent, 0 8px 20px rgba(93, 71, 55, 0.18);
     }
   }
 
@@ -854,10 +891,8 @@ useSeoMeta({
     border-radius: 50%;
     object-fit: cover;
     background: @surface-2;
-    box-shadow:
-      0 0 0 4px @surface,
-      0 0 0 5px @accent-soft,
-      0 8px 24px rgba(93, 71, 55, .10);
+    box-shadow: 0 0 0 4px @surface, 0 0 0 5px @accent-soft,
+      0 8px 24px rgba(93, 71, 55, 0.1);
     transition: box-shadow @dur-fast ease;
   }
 
@@ -1100,7 +1135,7 @@ useSeoMeta({
     grid-template-columns: repeat(2, 1fr);
     gap: @sp-2;
 
-    .btn { 
+    .btn {
       width: 100%;
       padding-left: @sp-1;
       padding-right: @sp-1;

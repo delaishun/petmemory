@@ -3,19 +3,20 @@
 import { showToast } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import type { AuthUser } from "~/types/auth";
-// 👇 1. 直接导入 npm 包中的 DodoPayments
-import { DodoPayments } from 'dodopayments-checkout'
+import { DodoPayments } from "dodopayments-checkout";
 
 const { t } = useI18n();
 const { $api } = useNuxtApp();
-const me = useState<AuthUser | null>("auth:user", () => null);
-
 const config = useRuntimeConfig();
 const paddleClientToken = String(config.public.paddleClientToken || "");
 const paymentProvider = String(config.public.paymentProvider || "paddle");
 
 interface Props {
   modelValue: boolean;
+  user?: {
+    isLifetimeVip?: boolean;
+    vipExpiresAt?: string | null;
+  } | null;
 }
 
 const props = defineProps<Props>();
@@ -30,29 +31,48 @@ const visible = computed({
   set: (v) => emit("update:modelValue", v),
 });
 
-const submitting = ref(false);
+// 当前正在处理哪种支付（防止重复点击）
+const submittingPlan = ref<"lifetime" | "subscription" | null>(null);
 
-// 👇 2. 移除 DodoPaymentsCheckout 的 window 声明，仅保留 Paddle
+// ============================================================
+// 判断展示哪些卡片
+// ============================================================
+const isSubActive = computed(() => {
+  return !!props.user?.vipExpiresAt && new Date(props.user.vipExpiresAt) > new Date();
+});
+
+const showLifetime = computed(() => {
+  // 只要不是终身 VIP，就展示终身卡片（哪怕他现在是订阅）
+  return !props.user?.isLifetimeVip;
+});
+
+const showSubscription = computed(() => {
+  // 只要订阅过期了，就展示订阅卡片（哪怕他现在是终身）
+  return !isSubActive.value;
+});
+
+// 👇 如果两者都不展示（理论上不可能），直接关闭
+watch([showLifetime, showSubscription], ([l, s]) => {
+  if (!l && !s && visible.value) visible.value = false;
+});
+
+// ============================================================
+// SDK 初始化（保留原逻辑）
+// ============================================================
 declare global {
   interface Window {
     Paddle: any;
   }
 }
 
-// ============================================================
-// 工具函数：等待第三方 SDK 加载完成（仅用于 Paddle）
-// ============================================================
-function waitForSDK(sdkName: 'Paddle'): Promise<any> {
+function waitForSDK(sdkName: "Paddle"): Promise<any> {
   return new Promise((resolve, reject) => {
     let attempts = 0;
     const maxAttempts = 50;
-
     const check = () => {
-      if (window[sdkName]) {
-        resolve(window[sdkName]);
-      } else if (attempts >= maxAttempts) {
-        reject(new Error(`${sdkName} SDK load timeout`));
-      } else {
+      if (window[sdkName]) resolve(window[sdkName]);
+      else if (attempts >= maxAttempts) reject(new Error(`${sdkName} SDK load timeout`));
+      else {
         attempts++;
         setTimeout(check, 100);
       }
@@ -61,18 +81,14 @@ function waitForSDK(sdkName: 'Paddle'): Promise<any> {
   });
 }
 
-// ============================================================
-// Paddle 相关逻辑
-// ============================================================
 let paddleInitialized = false;
 async function initPaddle() {
   if (paddleInitialized || !paddleClientToken) return;
   try {
-    const paddle = await waitForSDK('Paddle');
+    const paddle = await waitForSDK("Paddle");
     if (paddleClientToken.startsWith("test_")) {
       paddle.Environment.set("sandbox");
     }
-
     paddle.Initialize({
       token: paddleClientToken,
       eventCallback: (event: any) => {
@@ -87,181 +103,175 @@ async function initPaddle() {
   }
 }
 
-async function handlePaddleSubscribe() {
-  const paddle = await waitForSDK('Paddle');
+// ============================================================
+// 购买逻辑
+// ============================================================
+async function handlePaddleSubscribe(planType: "lifetime" | "subscription") {
+  const paddle = await waitForSDK("Paddle");
   const res = await $api<{ priceId: string; userId: number }>(
     "/api/paddle/checkout-vip",
-    { method: "POST" }
+    { method: "POST", body: { planType } } // 👈 传给后端的 planType
   );
 
   paddle.Checkout.open({
     items: [{ priceId: res.priceId, quantity: 1 }],
-    customData: { userId: res.userId, type: "vip" },
+    customData: { userId: res.userId, type: "vip", planType },
   });
 }
 
-// ============================================================
-// 👇 3. 核心修改：Dodo Payments 相关逻辑
-// ============================================================
-async function handleDodoSubscribe() {
-  // 1. 请求后端创建 Checkout Session
+async function handleDodoSubscribe(planType: "lifetime" | "subscription") {
   const res = await $api<{ checkout_url: string; session_id: string }>(
     "/api/dodo/create-checkout",
     {
       method: "POST",
-      body: { type: "vip", payload: {} }
+      body: { type: "vip", payload: { planType } }, // 👈 传给后端的 planType
     }
   );
 
   if (!res.checkout_url) throw new Error("Failed to get checkout URL");
 
-  // 2. 初始化 Dodo 支付组件（保留一次兜底初始化）
   DodoPayments.Initialize({
-    mode: 'test', // 上线时改为 'live'
-    displayType: 'overlay',
+    mode: "test", // 上线时改为 'live'
+    displayType: "overlay",
     onEvent: (event: any) => {
-      // 支付成功
-      if (event.event_type === 'payment.succeeded') {
-        console.log('Dodo payment success', event);
+      if (event.event_type === "payment.succeeded") {
         handleSuccess();
       }
-      // 用户主动关闭弹窗
-      if (event.event_type === 'checkout.closed') {
-        submitting.value = false;
+      if (event.event_type === "checkout.closed") {
+        submittingPlan.value = null;
       }
-      // 支付发生错误
-      if (event.event_type === 'checkout.error') {
-        showToast(event.data?.message || '支付发生错误');
-        submitting.value = false;
+      if (event.event_type === "checkout.error") {
+        showToast(event.data?.message || "支付发生错误");
+        submittingPlan.value = null;
       }
-    }
+    },
   });
 
-  // 3. 打开收银台 Overlay
-  await DodoPayments.Checkout.open({
-    checkoutUrl: res.checkout_url,
-  });
+  await DodoPayments.Checkout.open({ checkoutUrl: res.checkout_url });
 }
 
-// ============================================================
-// 统一入口与状态处理
-// ============================================================
 function handleSuccess() {
-  showToast({
-    type: "success",
-    message: t("vip_subscribe_success"),
-  });
+  showToast({ type: "success", message: t("vip_subscribe_success") });
   visible.value = false;
-  submitting.value = false;
+  submittingPlan.value = null;
   emit("success");
 }
 
-// 监听弹窗打开，如果是 Paddle 模式则需要提前初始化
+async function handleSubscribe(planType: "lifetime" | "subscription") {
+  if (submittingPlan.value) return;
+  submittingPlan.value = planType;
+
+  try {
+    if (paymentProvider === "dodo") {
+      await handleDodoSubscribe(planType);
+    } else {
+      await handlePaddleSubscribe(planType);
+    }
+  } catch (err: any) {
+    showToast(err?.data?.error || err.message || "发起支付失败，请重试");
+    submittingPlan.value = null;
+  } finally {
+    if (paymentProvider === "paddle") {
+      submittingPlan.value = null;
+    }
+  }
+}
+
 watch(visible, (open) => {
   if (open && paymentProvider === "paddle") {
     initPaddle();
   }
 });
-
-async function handleSubscribe() {
-  submitting.value = true;
-  try {
-    if (paymentProvider === "dodo") {
-      await handleDodoSubscribe();
-    } else {
-      await handlePaddleSubscribe();
-    }
-  } catch (err: any) {
-    showToast(err?.data?.error || err.message || "发起支付失败，请重试");
-    submitting.value = false;
-  } finally {
-    if (paymentProvider === "paddle") {
-      submitting.value = false;
-    }
-  }
-}
 </script>
 
 <template>
   <van-popup
     v-model:show="visible"
     round
-    :style="{ width: 'min(380px, 90%)' }"
+    position="bottom"
+    :style="{
+      maxHeight: '90vh',
+      width: 'min(500px, 100%)',
+      left: '50%',
+      right: 'auto',
+      translate: '-50% 0',
+    }"
     teleport="body"
-    :close-on-click-overlay="!submitting"
+    :close-on-click-overlay="!submittingPlan"
     class="vip-modal"
   >
     <div class="vip-modal__content">
-      <!-- 顶部皇冠 -->
       <div class="vip-modal__header">
         <van-icon name="gem-o" class="vip-modal__icon" />
-        <h2 class="vip-modal__title">{{ t("user_upgrade_vip") }}</h2>
-        <p class="vip-modal__subtitle">
-          {{ t("vip_auto_renew_tip") }}
-        </p>
+        <h2 class="vip-modal__title">{{ t("vip_upgrade_title") }}</h2>
+        <p class="vip-modal__subtitle">{{ t("vip_upgrade_subtitle") }}</p>
       </div>
 
-      <!-- 价格展示区 -->
-      <div class="vip-modal__price-box">
-        <div class="vip-modal__price">
-          <span class="symbol">$</span>
-          <span class="amount">9.90</span>
-          <span class="period">/ {{ t("year") }}</span>
+      <div class="vip-modal__plans">
+        <!-- 🌟 终身 VIP 卡片 -->
+        <div v-if="showLifetime" class="plan-card plan-card--lifetime">
+          <div class="plan-card__badge">💎 Lifetime</div>
+          <h3 class="plan-card__title">{{ t("vip_plan_lifetime_title") }}</h3>
+          <div class="plan-card__price">
+            <span class="symbol">$</span>
+            <span class="amount">8.9</span>
+            <span class="period">{{ t("vip_plan_once") }}</span>
+          </div>
+          <ul class="plan-card__list">
+            <li class="highlight">
+              <strong>{{ t("vip_plan_lifetime_bonus") }}</strong>
+            </li>
+            <li>
+              <van-icon name="success" class="check" />{{ t("vip_plan_lifetime_f1") }}
+            </li>
+            <li>
+              <van-icon name="success" class="check" />{{ t("vip_plan_lifetime_f2") }}
+            </li>
+          </ul>
+          <button
+            type="button"
+            class="btn btn--primary btn--lg plan-card__btn"
+            :disabled="!!submittingPlan"
+            @click="handleSubscribe('lifetime')"
+          >
+            {{
+              submittingPlan === "lifetime"
+                ? t("btn_processing")
+                : t("vip_plan_lifetime_btn")
+            }}
+          </button>
+        </div>
+
+        <!-- 🌈 订阅 VIP 卡片 -->
+        <div v-if="showSubscription" class="plan-card plan-card--subscription">
+          <div class="plan-card__badge">🌈 Subscription</div>
+          <h3 class="plan-card__title">{{ t("vip_plan_sub_title") }}</h3>
+          <div class="plan-card__price">
+            <span class="symbol">$</span>
+            <span class="amount">5.9</span>
+            <span class="period">/ {{ t("year") }}</span>
+          </div>
+          <ul class="plan-card__list">
+            <li><van-icon name="success" class="check" />{{ t("vip_plan_sub_f1") }}</li>
+            <li><van-icon name="success" class="check" />{{ t("vip_plan_sub_f2") }}</li>
+            <li><van-icon name="success" class="check" />{{ t("vip_plan_sub_f3") }}</li>
+          </ul>
+          <button
+            type="button"
+            class="btn btn--gold btn--lg plan-card__btn"
+            :disabled="!!submittingPlan"
+            @click="handleSubscribe('subscription')"
+          >
+            {{
+              submittingPlan === "subscription"
+                ? t("btn_processing")
+                : t("vip_plan_sub_btn")
+            }}
+          </button>
         </div>
       </div>
 
-      <!-- 特权列表 -->
-      <ul class="vip-modal__features">
-        <li class="vip-modal__feature-item">
-          <van-icon name="success" class="check-icon" />
-          <span>{{ t("user_vip_desc_1") }}</span>
-        </li>
-        <li class="vip-modal__feature-item">
-          <van-icon name="success" class="check-icon" />
-          <span>{{ t("user_vip_desc_2") }}</span>
-        </li>
-        <li class="vip-modal__feature-item">
-          <van-icon name="success" class="check-icon" />
-          <span>{{ t("user_vip_desc_3") }}</span>
-        </li>
-        <li class="vip-modal__feature-item">
-          <van-icon name="success" class="check-icon" />
-          <span>{{ t("user_vip_desc_4") }}</span>
-        </li>
-        <li class="vip-modal__feature-item highlight">
-          <van-icon name="gold-coin-o" class="check-icon" />
-          <span>{{ t("vip_bonus_points_tip") }}</span>
-        </li>
-      </ul>
-
-      <!-- 底部操作 -->
-      <div class="vip-modal__actions">
-        <button
-          type="button"
-          class="btn btn--lg vip-modal__cancel"
-          :disabled="submitting"
-          @click="visible = false"
-        >
-          {{ t("btn_cancel") }}
-        </button>
-        <button
-          type="button"
-          class="btn btn--lg vip-modal__submit"
-          :disabled="submitting"
-          @click="handleSubscribe"
-        >
-          {{
-            submitting
-              ? t("btn_processing")
-              : t("vip_subscribe_btn")
-          }}
-        </button>
-      </div>
-
-      <!-- 小字提示 -->
-      <p class="vip-modal__terms">
-        {{ t("vip_terms_tip") }}
-      </p>
+      <p class="vip-modal__terms">{{ t("vip_upgrade_tips") }}</p>
     </div>
   </van-popup>
 </template>
@@ -279,11 +289,11 @@ async function handleSubscribe() {
 
   &__header {
     text-align: center;
-    margin-bottom: @sp-4;
+    margin-bottom: @sp-5;
   }
 
   &__icon {
-    font-size: 48px;
+    font-size: 44px;
     color: #f1c40f;
     margin-bottom: @sp-2;
     filter: drop-shadow(0 4px 12px rgba(241, 196, 15, 0.4));
@@ -303,106 +313,11 @@ async function handleSubscribe() {
     color: @ink-3;
   }
 
-  &__price-box {
+  &__plans {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: @sp-4;
     margin-bottom: @sp-5;
-  }
-
-  &__price {
-    display: flex;
-    align-items: baseline;
-    color: @ink-1;
-
-    .symbol {
-      font-size: @fs-lg;
-      font-weight: 600;
-      color: @ink-2;
-    }
-    .amount {
-      font-size: 42px;
-      font-family: @font-mono;
-      font-weight: 700;
-      color: #d4af37;
-      margin: 0 4px;
-    }
-    .period {
-      font-size: @fs-sm;
-      color: @ink-3;
-    }
-  }
-
-  &__features {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 @sp-6;
-    background: @surface-2;
-    border-radius: @radius-lg;
-    padding: @sp-4;
-    border: 1px solid @border;
-
-    .highlight {
-      color: #d4af37;
-      font-weight: 600;
-    }
-  }
-
-  &__feature-item {
-    display: flex;
-    align-items: flex-start;
-    gap: @sp-2;
-    font-size: @fs-sm;
-    color: @ink-2;
-    line-height: 1.5;
-
-    & + & {
-      margin-top: @sp-3;
-    }
-
-    .check-icon {
-      color: #d4af37;
-      font-size: 16px;
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-  }
-
-  &__actions {
-    display: flex;
-    gap: @sp-3;
-    margin-bottom: @sp-3;
-
-    .btn {
-      flex: 1;
-      height: 44px;
-    }
-  }
-
-  &__cancel {
-    color: @ink-2;
-    background: @surface;
-    border-color: @border-strong;
-
-    &:hover {
-      border-color: @accent;
-      color: @accent;
-    }
-  }
-
-  &__submit {
-    color: @ink-1;
-    background: linear-gradient(135deg, #f1c40f 0%, #e5b769 100%);
-    border: none;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
-
-    &:hover {
-      background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%);
-    }
-
-    &:disabled {
-      opacity: 0.7;
-    }
   }
 
   &__terms {
@@ -411,6 +326,109 @@ async function handleSubscribe() {
     color: @ink-3;
     text-align: center;
     line-height: 1.4;
+  }
+}
+
+.plan-card {
+  position: relative;
+  padding: @sp-5;
+  border-radius: @radius-lg;
+  border: 2px solid @border;
+  background: @surface;
+  overflow: hidden;
+
+  &--lifetime {
+    border-color: #00bfff;
+    background: linear-gradient(180deg, fade(#00bfff, 5%) 0%, @surface 100%);
+  }
+
+  &--subscription {
+    border-color: #f1c40f;
+    background: linear-gradient(180deg, fade(#f1c40f, 5%) 0%, @surface 100%);
+  }
+
+  &__badge {
+    position: absolute;
+    top: 12px;
+    right: -28px;
+    width: 100px;
+    padding: 4px 0;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    .plan-card--lifetime & {
+      background: #00bfff;
+    }
+    .plan-card--subscription & {
+      background: #f1c40f;
+    }
+  }
+
+  &__title {
+    margin: 0 0 @sp-2;
+    font-size: @fs-lg;
+    font-weight: 700;
+    color: @ink-1;
+  }
+
+  &__price {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: @sp-3;
+    color: @ink-1;
+
+    .symbol {
+      font-size: @fs-lg;
+      font-weight: 600;
+    }
+    .amount {
+      font-size: 32px;
+      font-family: @font-mono;
+      font-weight: 700;
+      margin: 0 2px;
+    }
+    .period {
+      font-size: @fs-sm;
+      color: @ink-3;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 @sp-4;
+    font-size: @fs-sm;
+    color: @ink-2;
+    line-height: 1.5;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      & + li {
+        margin-top: @sp-2;
+      }
+    }
+
+    .check {
+      color: #d4af37;
+      font-size: 16px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .highlight {
+      color: #00bfff;
+      font-weight: 600;
+    }
+  }
+
+  &__btn {
+    width: 100%;
+    height: 44px;
   }
 }
 </style>

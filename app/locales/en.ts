@@ -110,14 +110,14 @@ export default {
   chat_hide: 'Hide from others',
   chat_show: 'Show to others',
   btn_i_know: 'I got it',
-  pet_album_empty_owner: 'No photos yet. Upload one!',
+  pet_album_empty_owner: 'No photos yet. Upload one! (Max 2)',
   pet_album_empty_guest: 'Their album is empty.',
   pet_msg_empty_owner: 'No messages yet. Be the first!',
   pet_msg_empty_guest: 'No messages yet.',
   pet_public_chat_empty: '{petName}: {ownerNickname}, are you doing okay?',
   msg_please_login: 'Please login first',
   vip_feature_title: 'VIP Feature',
-  vip_feature_album_desc: 'Album upload is a VIP feature.\nSubscribe to upload photos.',
+  vip_feature_album_desc: 'Lifetime VIP unlocks up to 20 photos. Free users can upload 2.',
   vip_feature_chat_desc: 'Talking with pets is a VIP feature.\nSubscribe to interact with them.',
   vip_feature_chat_owner_only: 'You can only talk with your own pets',
   msg_operation_failed: 'Operation failed',
@@ -614,4 +614,29 @@ export default {
 
   article_contribute_text: 'If you have a pet memorial story to share, please email us at fczx1999@gmail.com. We will publish it as soon as we receive it.',
 
+  lifetime_vip_sub_expired: 'You are a Lifetime VIP, but your AI Chat subscription has expired. Renew your subscription to continue chatting with them.', // 👈 新增
+
+  vip_upgrade_title: 'Upgrade Privileges',
+  vip_upgrade_subtitle: 'Choose the memorial plan that suits you best',
+  vip_plan_lifetime_title: 'Lifetime Keepsake',
+  vip_plan_once: 'One-time',
+  vip_plan_lifetime_bonus: 'Special Offer: Get 1-Year Subscription FREE!',
+  vip_plan_lifetime_f1: 'Permanently unlock 20 photos, exclusive backgrounds, effects, & music',
+  vip_plan_lifetime_f2: 'Get 10,000 bonus points',
+  vip_plan_lifetime_btn: 'Upgrade Lifetime ($8.9)',
+  vip_plan_sub_title: 'Premium Subscription',
+  vip_plan_sub_f1: 'Unlock AI cross-time chat & monthly exclusive gifts',
+  vip_plan_sub_f2: 'Unlock exclusive memoirs & daily mood effects',
+  vip_plan_sub_f3: 'Get 10,000 bonus points',
+  vip_plan_sub_btn: 'Subscribe ($5.9/yr)',
+  vip_upgrade_tips: 'By purchasing, you agree to our Terms of Service. Subscription can be canceled anytime.',
+
+  upload_quota_full: 'Your album is full ({max} photos max for your plan). Upgrade to Lifetime VIP to unlock 20.',
+
+  export_image_btn: 'Memorial Card',
+  export_html_btn: 'Export HTML',
+  export_generating: 'Generating...',
+  export_success: 'Success! Downloading...',
+  export_failed: 'Failed to generate. Please try again.',
+  vip_feature_html_desc: 'Exporting HTML is a Lifetime VIP exclusive feature',
 }

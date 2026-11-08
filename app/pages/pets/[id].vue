@@ -6,6 +6,7 @@ import type { PetGiftSummary } from "~/components/GiftModal.vue";
 import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import { useEffectBackgrounds } from "~/composables/usePetEffect";
+import html2canvas from 'html2canvas';
 
 // ============================================================
 // 国际化 & 特效逻辑
@@ -22,6 +23,8 @@ interface OwnerBrief {
   nickname: string;
   avatarUrl: string | null;
   isVip?: boolean;
+  isLifetimeVip?: boolean;
+  vipExpiresAt?: string | null;
 }
 
 interface PetDetail {
@@ -145,7 +148,7 @@ const { data: photos, refresh: refreshPhotos } = await useAsyncData<PhotoPublic[
 const { data: messages, refresh: refreshMessages } = await useAsyncData<MessagePage>(
   () => `pet:${slug.value}:messages`,
   () => $api<MessagePage>(`/api/pets/${slug.value}/messages?limit=${PAGE_SIZE}&offset=0`)
-)
+);
 
 const { data: giftSummary } = await useAsyncData<PetGiftSummary[]>(
   () => `pet:${slug.value}:gifts`,
@@ -222,39 +225,38 @@ const myPoint = computed<number | undefined>(() => me.value?.point);
 // ============================================================
 // 👇 新增：点赞逻辑
 // ============================================================
-const hasLiked = ref(false)
-const isLiking = ref(false)
+const hasLiked = ref(false);
+const isLiking = ref(false);
 
 onMounted(() => {
   if (import.meta.client && slug.value) {
-    const liked = localStorage.getItem(`liked_pet_${slug.value}`)
-    if (liked === 'true') {
-      hasLiked.value = true
+    const liked = localStorage.getItem(`liked_pet_${slug.value}`);
+    if (liked === "true") {
+      hasLiked.value = true;
     }
   }
-})
+});
 
 async function handleLike() {
-  if (hasLiked.value || isLiking.value || !pet.value) return
+  if (hasLiked.value || isLiking.value || !pet.value) return;
 
-  isLiking.value = true
+  isLiking.value = true;
   try {
     // 调用后端点赞接口
-    const res = await $api<{ likeCount: number }>(
-      `/api/pets/${slug.value}/like`,
-      { method: 'POST' }
-    )
-    
+    const res = await $api<{ likeCount: number }>(`/api/pets/${slug.value}/like`, {
+      method: "POST",
+    });
+
     // 更新显示数量
-    pet.value.likeCount = res.likeCount
-    hasLiked.value = true
-    
+    pet.value.likeCount = res.likeCount;
+    hasLiked.value = true;
+
     // 保存本地状态
-    localStorage.setItem(`liked_pet_${slug.value}`, 'true')
+    localStorage.setItem(`liked_pet_${slug.value}`, "true");
   } catch (err: any) {
-    showToast(err?.data?.error || '点赞失败，请稍后重试')
+    showToast(err?.data?.error || "点赞失败，请稍后重试");
   } finally {
-    isLiking.value = false
+    isLiking.value = false;
   }
 }
 
@@ -268,10 +270,10 @@ async function handleLike() {
 type FestivalParticle = {
   id: number;
   emoji: string;
-  left: number;     // 百分比
-  top: number;      // 百分比
-  size: number;     // px
-  delay: number;    // 秒
+  left: number; // 百分比
+  top: number; // 百分比
+  size: number; // px
+  delay: number; // 秒
   duration: number; // 秒
 };
 
@@ -284,11 +286,11 @@ function buildFestivalParticles(emoji: string, count: number): FestivalParticle[
     list.push({
       id: i,
       emoji,
-      left: 5 + Math.random() * 90,       // 5% ~ 95%
-      top: 8 + Math.random() * 80,        // 8% ~ 88%
-      size: 28 + Math.random() * 32,      // 28 ~ 60px
-      delay: Math.random() * 4,           // 0 ~ 4s
-      duration: 3 + Math.random() * 2.5,  // 3 ~ 5.5s
+      left: 5 + Math.random() * 90, // 5% ~ 95%
+      top: 8 + Math.random() * 80, // 8% ~ 88%
+      size: 28 + Math.random() * 32, // 28 ~ 60px
+      delay: Math.random() * 4, // 0 ~ 4s
+      duration: 3 + Math.random() * 2.5, // 3 ~ 5.5s
     });
   }
   return list;
@@ -577,14 +579,14 @@ function handleUploadPhoto() {
     return;
   }
 
-  if (!me.value.isVip) {
-    showDialog({
-      title: t("vip_feature_title"),
-      message: t("vip_feature_album_desc"),
-      confirmButtonText: t("btn_i_know"),
-    });
-    return;
-  }
+  // if (!me.value.isVip) {
+  //   showDialog({
+  //     title: t("vip_feature_title"),
+  //     message: t("vip_feature_album_desc"),
+  //     confirmButtonText: t("btn_i_know"),
+  //   });
+  //   return;
+  // }
 
   uploadPhotoModalVisible.value = true;
 }
@@ -791,11 +793,11 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
   giftSummary.value = summary;
   // 👇 修改：把留言和对话也加入刷新队列，确保数据完全同步
   await Promise.all([
-    refreshGiftRecords(), 
-    refreshPet(), 
+    refreshGiftRecords(),
+    refreshPet(),
     refreshMe(),
-    refreshMessages(),      // 刷新留言
-    refreshPublicChat()     // 刷新对话
+    refreshMessages(), // 刷新留言
+    refreshPublicChat(), // 刷新对话
   ]);
   showToast({ type: "success", message: t("gift_bonus_points") });
 
@@ -841,7 +843,18 @@ function handleChat() {
     showDialog({ message: t("vip_feature_chat_owner_only") });
     return;
   }
-  
+
+  // 👇 新增：如果用户是终身VIP，但订阅过期了，提示他去升级订阅
+  const isSubVip = me.value.vipExpiresAt && new Date(me.value.vipExpiresAt) > new Date();
+  if (me.value.isLifetimeVip && !isSubVip) {
+    showDialog({
+      title: t("vip_feature_title"),
+      message: t("lifetime_vip_sub_expired"),
+      confirmButtonText: t("btn_i_know"),
+    });
+    return;
+  }
+
   // 👇 核心修改点：删除了原有的非 VIP 拦截逻辑
   // 现在所有主人（无论是否 VIP）都能打开弹窗
   chatModalVisible.value = true;
@@ -1050,6 +1063,117 @@ async function copyShareLink() {
 }
 
 // ============================================================
+// 👇 新增：导出图片与 HTML 逻辑
+// ============================================================
+const exportingImage = ref(false);
+
+async function handleExportImage() {
+  if (!me.value) {
+    showDialog({ message: t("msg_please_login") });
+    return;
+  }
+  
+  exportingImage.value = true;
+  const loadingToast = showToast({ type: 'loading', message: t('export_generating'), duration: 0, forbidClick: true });
+
+  try {
+    // 获取要截图的 DOM 容器
+    const node = document.getElementById('export-image-container');
+    if (!node) throw new Error('Container not found');
+
+    // 等待所有图片加载完毕（防止图片没加载出来截图是空白）
+    const images = node.querySelectorAll('img');
+    await Promise.all(Array.from(images).map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    }));
+
+    // 截图
+    const canvas = await html2canvas(node, {
+      scale: 2, // 提高清晰度
+      useCORS: true, // 允许跨域图片（OSS需要配置CORS）
+      backgroundColor: '#F9F7F3',
+    });
+
+    // 下载
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `${pet.value?.name || 'pet'}-memorial.png`;
+    link.href = dataUrl;
+    link.click();
+    
+    loadingToast.close();
+    showToast({ type: 'success', message: t('export_success') });
+  } catch (err) {
+    console.error(err);
+    loadingToast.close();
+    showToast(t('export_failed'));
+  } finally {
+    exportingImage.value = false;
+  }
+}
+
+function handleExportHtml() {
+  if (!me.value) {
+    showDialog({ message: t("msg_please_login") });
+    return;
+  }
+  if (!me.value.isLifetimeVip) {
+    showDialog({
+      title: t("vip_feature_title"),
+      message: t("vip_feature_html_desc"),
+      confirmButtonText: t("btn_i_know"),
+    });
+    return;
+  }
+
+  // 克隆当前整页 DOM
+  const documentClone = document.documentElement.cloneNode(true) as HTMLElement;
+  
+  // 移除所有的 <script>（避免导出的静态页面执行原站的逻辑，纯做展示）
+  const scripts = documentClone.querySelectorAll('script');
+  scripts.forEach(s => s.remove());
+
+  // 处理掉 Vue 留下的动态标记，保证纯静态展示
+  const vueDataElements = documentClone.querySelectorAll('[data-v-app]');
+  vueDataElements.forEach(el => el.removeAttribute('data-v-app'));
+
+  // 提取样式并内联（Nuxt 的 CSS 是动态注入的，我们可以把所有的 <style> 和 <link rel="stylesheet"> 留下来）
+  // 其实 cloneNode 已经包含了 style，直接拼接即可
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="${locale.value}">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${pet.value?.name}'s Memorial - PetMemory</title>
+      <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/vant@4/lib/index.css" />
+      <style>
+        /* 覆盖一些可能导致静态页面布局错乱的响应式样式 */
+        body { background: #F5EEE4; margin: 0; }
+        .layout-wrapper { min-height: 100vh; }
+      </style>
+    </head>
+    <body>
+      ${documentClone.innerHTML}
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${pet.value?.name || 'pet'}-memorial.html`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast({ type: 'success', message: t('export_success') });
+}
+
+// ============================================================
 // 标题
 // ============================================================
 
@@ -1105,7 +1229,8 @@ useHead(() => ({
           animationDelay: p.delay + 's',
           animationDuration: p.duration + 's',
         }"
-      >{{ p.emoji }}</span>
+        >{{ p.emoji }}</span
+      >
     </div>
 
     <!-- 悬浮音乐开关 -->
@@ -1206,18 +1331,31 @@ useHead(() => ({
               <NuxtLink :to="`/users/${pet.owner.id}`" class="pet-hero__owner-link">
                 {{ pet.owner.nickname }}
               </NuxtLink>
-              <van-icon
-                v-if="isVipPet"
-                name="gem-o"
-                class="pet-hero__owner-vip-icon"
-                @click="vipModalVisible = true"
-              />
+              <div v-if="pet.owner.isVip" class="pet-hero__vip-icons">
+                <!-- 终身 VIP -->
+                <van-icon
+                  v-if="pet.owner.isLifetimeVip"
+                  name="diamond-o"
+                  class="pet-hero__owner-vip-icon is-lifetime"
+                  @click="vipModalVisible = true"
+                />
+                <!-- 订阅 VIP -->
+                <van-icon
+                  v-if="
+                    pet.owner.vipExpiresAt &&
+                    new Date(pet.owner.vipExpiresAt) > new Date()
+                  "
+                  name="gem-o"
+                  class="pet-hero__owner-vip-icon is-sub"
+                  @click="vipModalVisible = true"
+                />
+              </div>
             </div>
 
             <!-- 👇 新增：点赞按钮区 -->
             <div class="pet-hero__like-wrap">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 class="pet-like-btn"
                 :class="{ 'is-liked': hasLiked }"
                 :disabled="isLiking"
@@ -1248,7 +1386,8 @@ useHead(() => ({
             </div>
 
             <span v-if="photos && photos.length" class="pet-album__count">
-              {{ photos.length }} / 20 {{ locale === "en" ? "photos" : "张" }}
+              {{ photos.length }} / {{ me?.isLifetimeVip ? 20 : 2 }}
+              {{ locale === "en" ? "photos" : "张" }}
             </span>
           </div>
 
@@ -1284,6 +1423,14 @@ useHead(() => ({
           <div v-else class="pet-album__empty">
             <p class="pet-album__empty-text">
               {{ isOwner ? t("pet_album_empty_owner") : t("pet_album_empty_guest") }}
+            </p>
+            <!-- 可以加一行小字提示免费额度 -->
+            <p v-if="isOwner && !me?.isLifetimeVip" class="pet-album__empty-hint">
+              {{
+                locale === "en"
+                  ? "Free users can upload up to 2 photos."
+                  : "免费用户最多可上传 2 张照片。"
+              }}
             </p>
 
             <button
@@ -1513,7 +1660,6 @@ useHead(() => ({
 
         <!-- 操作区 -->
         <div class="pet-actions">
-
           <div class="pet-actions__row">
             <button v-if="isOwner" type="button" class="btn btn--lg" @click="handleEdit">
               {{ t("pet_edit_info") }}
@@ -1553,9 +1699,110 @@ useHead(() => ({
             <button type="button" class="btn btn--lg" @click="handleGift">
               {{ t("pet_send_gift") }}
             </button>
+            <!-- 新增：导出图片（所有人可点） -->
+            <button 
+              type="button" 
+              class="btn btn--lg" 
+              :disabled="exportingImage"
+              @click="handleExportImage"
+            >
+              <van-icon name="down" />
+              <span>{{ exportingImage ? t('export_generating') : t('export_image_btn') }}</span>
+            </button>
+
+            <!-- 新增：导出 HTML（终身 VIP 专属） -->
+            <button 
+              type="button" 
+              class="btn btn--lg" 
+              @click="handleExportHtml"
+            >
+              <van-icon name="description" />
+              <span>{{ t('export_html_btn') }}</span>
+            </button>
           </div>
         </div>
       </template>
+    </div>
+
+    <!-- 👇 新增：用于生成图片的隐藏容器 (固定宽 600px，不可见但被 html2canvas 读取) -->
+    <div 
+      v-if="pet" 
+      id="export-image-container" 
+      class="export-image-layer"
+    >
+      <!-- 👇 新增：右上角水印 -->
+      <div class="ex-watermark">petmemory.me</div>
+      <div class="export-card">
+        <!-- 1. 宠物面板 -->
+        <div class="ex-hero">
+          <img class="ex-avatar" :src="pet.avatarUrl || defaultPetAvatar" crossorigin="anonymous" />
+          <h1 class="ex-name">{{ pet.name }}</h1>
+          <p class="ex-intro" v-if="introParts.length">
+            {{ pet.name }}<span v-for="(part, i) in introParts" :key="i">{{ i === 0 ? " " : "，" }}{{ part }}</span>。
+          </p>
+          <div class="ex-mood">
+            <span>{{ moodStatusText }}</span>
+            <span>{{ pet.moodScore }} / 300</span>
+          </div>
+        </div>
+
+        <!-- 2. 相片 (最多 3 张) -->
+        <div class="ex-section" v-if="photos && photos.length > 0">
+          <div class="ex-photos">
+            <img 
+              v-for="photo in photos.slice(0, 3)" 
+              :key="photo.id" 
+              :src="photo.imageUrl" 
+              crossorigin="anonymous" 
+            />
+          </div>
+        </div>
+
+        <!-- 3. 礼物 (最多 6 个) -->
+        <div class="ex-section" v-if="giftItems.length > 0">
+          <h2 class="ex-title">{{ t('pet_gifts') }}</h2>
+          <div class="ex-gifts">
+            <div v-for="item in giftItems.slice(0, 6)" :key="item.id" class="ex-gift-item">
+              <img :src="item.giftImageUrl" crossorigin="anonymous" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 留言 (最多 3 条) -->
+        <div class="ex-section" v-if="messages?.items?.length">
+          <h2 class="ex-title">{{ t('pet_messages') }}</h2>
+          <div class="ex-msg-list">
+            <div v-for="msg in messages?.items?.slice(0, 3)" :key="msg.id" class="ex-msg">
+              <div class="ex-msg-head">
+                <span>{{ msg.author.nickname }}</span>
+                <span>{{ formatTime(msg.createdAt) }}</span>
+              </div>
+              <p>{{ msg.content }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 问答 (最多 3 轮即 6 条消息) -->
+        <div class="ex-section" v-if="publicChat?.hasConversation && publicChat?.messages?.length">
+          <h2 class="ex-title">{{ t('pet_chat_title') }}</h2>
+          <div class="ex-chat-list">
+            <div 
+              v-for="msg in publicChat?.messages?.slice(-6)" 
+              :key="msg.id" 
+              class="ex-chat" 
+              :class="msg.role === 'user' ? 'is-user' : 'is-pet'"
+            >
+              <span v-if="msg.role === 'assistant'" class="ex-chat-name">{{ pet?.name }}:</span>
+              <span v-else class="ex-chat-name">{{ publicChat?.ownerNickname }}:</span>
+              <span>{{ msg.content }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <p>{{ t('app_name') }} · PetMemory</p>
+        </div>
+      </div>
     </div>
 
     <!-- 表情生成弹窗 -->
@@ -1593,7 +1840,11 @@ useHead(() => ({
     <EditPetModal
       v-model="editPetModalVisible"
       :pet="editablePet"
-      :key="pet ? `${pet.name}-${pet.bio}-${pet.personality}-${pet.species}-${pet.leaveDate}` : 'no-pet'"
+      :key="
+        pet
+          ? `${pet.name}-${pet.bio}-${pet.personality}-${pet.species}-${pet.leaveDate}`
+          : 'no-pet'
+      "
       @success="onPetUpdated"
     />
 
@@ -1603,6 +1854,7 @@ useHead(() => ({
       v-model="uploadPhotoModalVisible"
       :slug="pet.slug"
       @success="onPhotosUploaded"
+      :current-count="photos?.length || 0"
     />
 
     <!-- 留言弹窗 -->
@@ -1897,8 +2149,8 @@ useHead(() => ({
 .festival-layer {
   position: fixed;
   inset: 0;
-  z-index: 90;              // 低于 .music-toggle(100)，高于内容
-  pointer-events: none;     // 不拦截任何点击
+  z-index: 90; // 低于 .music-toggle(100)，高于内容
+  pointer-events: none; // 不拦截任何点击
   overflow: hidden;
 }
 
@@ -2265,9 +2517,15 @@ useHead(() => ({
 }
 
 @keyframes heart-beat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 // ============================================================
@@ -3294,5 +3552,189 @@ useHead(() => ({
   &__close {
     width: 100%;
   }
+}
+
+// ============================================================
+// 👇 新增：生成图片的隐藏容器（固定样式，不受屏幕大小影响）
+// ============================================================
+.export-image-layer {
+  position: absolute; /* 👈 修复：用 absolute 既可以在屏幕外，又能作为子元素的定位参照 */
+  left: -9999px;
+  top: 0;
+  z-index: -1;
+  width: 600px;
+  background: #F9F7F3;
+  color: #3D332C;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+// 👇 新增：水印样式
+.ex-watermark {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #DCD0BF; // 用低对比度的暖灰色，不喧宾夺主
+  letter-spacing: 1px;
+  z-index: 10;
+  font-family: @font-mono; // 如果引入 common.less 可以直接用，或者写 monospace
+}
+
+.export-card {
+  padding: 40px;
+}
+
+.ex-hero {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #EBE3D8;
+
+  .ex-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 4px #fff, 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+  }
+  .ex-name {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: #3D332C;
+  }
+  .ex-intro {
+    font-size: 14px;
+    color: #7A6C61;
+    line-height: 1.6;
+    margin: 0 auto 12px;
+    max-width: 80%;
+  }
+  .ex-mood {
+    display: inline-flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #C25A5A;
+    background: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #EBE3D8;
+  }
+}
+
+.ex-section {
+  margin-bottom: 24px;
+  
+  .ex-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #3D332C;
+    margin: 0 0 12px;
+    padding-left: 8px;
+    border-left: 3px solid #C25A5A;
+  }
+}
+
+.ex-photos {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+
+  img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #EBE3D8;
+  }
+}
+
+.ex-gifts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+
+  .ex-gift-item {
+    width: 48px;
+    height: 48px;
+    padding: 6px;
+    background: #fff;
+    border-radius: 50%;
+    border: 1px solid #EBE3D8;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+}
+
+.ex-msg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .ex-msg {
+    background: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #EBE3D8;
+
+    .ex-msg-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #A69B91;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #3D332C;
+      word-break: break-all;
+    }
+  }
+}
+
+.ex-chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .ex-chat {
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #EBE3D8;
+    font-size: 13px;
+    line-height: 1.5;
+    
+    .ex-chat-name {
+      font-weight: 600;
+      margin-right: 6px;
+      color: #A66039;
+    }
+
+    &.is-user {
+      background: #FEF8F5;
+      border-color: #FCE4D8;
+      .ex-chat-name { color: #5B8A72; }
+    }
+  }
+}
+
+.ex-footer {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 12px;
+  color: #A69B91;
+  border-top: 1px dashed #EBE3D8;
+  padding-top: 20px;
 }
 </style>

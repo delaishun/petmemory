@@ -110,14 +110,14 @@ export default {
   chat_hide: '他人隐藏',
   chat_show: '他人可见',
   btn_i_know: '我知道了',
-  pet_album_empty_owner: '还没有照片，上传一张吧',
+  pet_album_empty_owner: '还没有照片，上传一张吧（最多 2 张）',
   pet_album_empty_guest: 'ta 的相册还是空的',
   pet_msg_empty_owner: '还没有留言，来做第一个吧',
   pet_msg_empty_guest: '还没有人留言',
   pet_public_chat_empty: '{petName}：{ownerNickname}，你现在还好吗？',
   msg_please_login: '请先登录',
   vip_feature_title: 'VIP 专享功能',
-  vip_feature_album_desc: '相册上传是 VIP 会员专享功能\n开通后即可为 ta 上传照片',
+  vip_feature_album_desc: '终身 VIP 可解锁 20 张相册空间，免费用户可上传 2 张。',
   vip_feature_chat_desc: '与宠物互动是 VIP 会员专享功能\n开通后即可和 ta 进行互动',
   vip_feature_chat_owner_only: '只能和自己的宠物互动',
   msg_operation_failed: '操作失败',
@@ -615,4 +615,30 @@ export default {
   article_comment_char_count: '{n}/600',
 
   article_contribute_text: '若您也有关于爱宠的回忆故事，欢迎投稿至 fczx1999@gmail.com，我们将在收到后第一时间为您发布。',
+
+  lifetime_vip_sub_expired: '您是终身 VIP，但 AI 对话专属订阅已过期，续费订阅即可继续和 ta 聊天。', // 👈 新增
+
+  vip_upgrade_title: '升级特权',
+  vip_upgrade_subtitle: '选择最适合您的纪念方案',
+  vip_plan_lifetime_title: '终身珍藏版',
+  vip_plan_once: '一次性买断',
+  vip_plan_lifetime_bonus: '限时优惠：买终身送 1 年订阅！',
+  vip_plan_lifetime_f1: '永久解锁 20 张相册、专属背景与特效、背景音乐',
+  vip_plan_lifetime_f2: '赠送 10000 积分',
+  vip_plan_lifetime_btn: '升级终身 VIP ($8.9)',
+  vip_plan_sub_title: '尊享订阅版',
+  vip_plan_sub_f1: '解锁 AI 跨时空对话、每月专属礼物',
+  vip_plan_sub_f2: '解锁专属回忆录、每日心情特效',
+  vip_plan_sub_f3: '赠送 10000 积分',
+  vip_plan_sub_btn: '订阅尊享 VIP ($5.9/年)',
+  vip_upgrade_tips: '点击购买即代表同意《服务条款》，订阅版支持随时取消。',
+
+  upload_quota_full: '您的相册额度已满（当前身份最多可传 {max} 张），升级终身 VIP 可解锁 20 张。',
+
+  export_image_btn: '生成纪念图',
+  export_html_btn: '导出网页',
+  export_generating: '正在生成...',
+  export_success: '生成成功，正在下载',
+  export_failed: '生成失败，请重试',
+  vip_feature_html_desc: '导出网页是终身 VIP 专享功能',
 }

@@ -23,8 +23,10 @@ interface PublicUser {
   email: string
   vipExpiresAt: string | null
   isVip: boolean
+  isLifetimeVip: boolean // 👈 新增：与后端返回结构对齐
   createdAt: string
   bio: string | null
+  point?: number // 👈 顺便补上，后端也会返回
 }
 
 interface Props {

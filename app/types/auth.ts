@@ -22,9 +22,11 @@ export interface AuthUser {
   email: string
   /** users.vip_expires_at，ISO 8601 字符串或 null */
   vipExpiresAt: string | null
-  /** 后端根据 vip_expires_at > NOW() 计算后返回，前端直接用 */
+  /** 后端根据 vip_expires_at > NOW() 或 is_lifetime_vip 计算后返回，前端直接用 */
   isVip: boolean
-  /** 是否为管理员（用于判定是否显示后台入口） 👈 新增 */
+  /** 是否终身 VIP（用于区分 💎 和 🌈 标识） 👈 新增 */
+  isLifetimeVip: boolean
+  /** 是否为管理员（用于判定是否显示后台入口） */
   isAdmin: boolean
   point?: number
   /** users.created_at，ISO 8601 字符串 */

@@ -4,11 +4,13 @@ import { showToast } from 'vant'
 import { processPhoto, ImageProcessError } from '~/utils/image-process'
 import { uploadToOss, buildFilename } from '~/utils/upload'
 import { useI18n } from '~/composables/useI18n'
+import type { AuthUser } from '~/types/auth'
 
 // ============================================================
-// 国际化
+// 国际化 & 用户状态
 // ============================================================
 const { t } = useI18n()
+const me = useState<AuthUser | null>('auth:user', () => null)
 
 // ============================================================
 // 类型
@@ -24,8 +26,8 @@ interface PhotoPublic {
 
 interface Props {
   modelValue: boolean
-  /** 宠物 slug，用于 POST /api/pets/:slug/photos */
   slug: string
+  currentCount?: number // 👈 新增：传入相册已有照片数量，用于计算剩余额度
 }
 
 const props = defineProps<Props>()
@@ -41,10 +43,17 @@ const visible = computed({
 
 const { $api } = useNuxtApp()
 
-// 常量：与后端 maxItems 对齐
-const MAX_FILES = 10
+// 👇 动态计算最大可上传数量
+const maxTotal = computed(() => {
+  return me.value?.isLifetimeVip ? 20 : 2
+})
 
-const canUpload = computed(() => !!props.slug)
+const maxFiles = computed(() => {
+  const remaining = Math.max(0, maxTotal.value - (props.currentCount || 0))
+  return remaining
+})
+
+const canUpload = computed(() => !!props.slug && maxFiles.value > 0)
 
 // ============================================================
 // 单张状态
@@ -64,7 +73,7 @@ interface UploadItem {
   status: ItemStatus
   progress: number
   error: string
-  url: string         // 上传成功后的 OSS URL
+  url: string
 }
 
 // ============================================================
@@ -72,12 +81,11 @@ interface UploadItem {
 // ============================================================
 
 const items = ref<UploadItem[]>([])
-const running = ref(false)      // 处理 + 上传阶段
-const saving = ref(false)       // 最后 POST 保存阶段
+const running = ref(false)
+const saving = ref(false)
 const uploaderList = ref<any[]>([])
 const globalError = ref('')
 
-// 每次开始 / 重置都自增，用于打断进行中的任务
 let runToken = 0
 let uidSeq = 0
 
@@ -86,12 +94,8 @@ let uidSeq = 0
 // ============================================================
 
 const total = computed(() => items.value.length)
-const doneCount = computed(
-  () => items.value.filter((i) => i.status === 'done').length,
-)
-const errorCount = computed(
-  () => items.value.filter((i) => i.status === 'error').length,
-)
+const doneCount = computed(() => items.value.filter((i) => i.status === 'done').length)
+const errorCount = computed(() => items.value.filter((i) => i.status === 'error').length)
 const hasError = computed(() => errorCount.value > 0)
 const busy = computed(() => running.value || saving.value)
 
@@ -137,18 +141,12 @@ function formatSize(bytes: number): string {
 
 function statusText(item: UploadItem): string {
   switch (item.status) {
-    case 'pending':
-      return t('upload_status_pending')
-    case 'processing':
-      return t('upload_status_processing')
-    case 'uploading':
-      return t('upload_status_uploading', { p: item.progress })
-    case 'done':
-      return t('upload_status_done')
-    case 'error':
-      return item.error || t('upload_status_error')
-    default:
-      return ''
+    case 'pending': return t('upload_status_pending')
+    case 'processing': return t('upload_status_processing')
+    case 'uploading': return t('upload_status_uploading', { p: item.progress })
+    case 'done': return t('upload_status_done')
+    case 'error': return item.error || t('upload_status_error')
+    default: return ''
   }
 }
 
@@ -162,9 +160,7 @@ function handleAfterRead(payload: any) {
     .map((x: any) => x?.file)
     .filter((f: any): f is File => f instanceof File)
 
-  // 立刻清空 van-uploader 的内部列表，改用自定义渲染
   uploaderList.value = []
-
   if (files.length) void startUpload(files)
 }
 
@@ -175,15 +171,14 @@ function handleAfterRead(payload: any) {
 async function startUpload(rawFiles: File[]) {
   if (busy.value || rawFiles.length === 0) return
   if (!canUpload.value) {
-    showToast(t('upload_err_no_slug'))
+    showToast(t('upload_err_max_files', { max: maxFiles.value }))
     return
   }
 
-  // 单次上限
   let files = rawFiles
-  if (files.length > MAX_FILES) {
-    showToast(t('upload_err_max_files', { max: MAX_FILES }))
-    files = files.slice(0, MAX_FILES)
+  if (files.length > maxFiles.value) {
+    showToast(t('upload_err_max_files', { max: maxFiles.value }))
+    files = files.slice(0, maxFiles.value)
   }
 
   const token = ++runToken
@@ -203,31 +198,23 @@ async function startUpload(rawFiles: File[]) {
   const succeeded: Array<{ url: string }> = []
 
   try {
-    // ---------- 阶段 1：逐张处理 + 上传 OSS ----------
     for (let i = 0; i < items.value.length; i++) {
       if (token !== runToken) return
-
       const item = items.value[i]
       if (!item) continue
 
       try {
-        // 1. 压缩 + 校验
         item.status = 'processing'
         const processed = await processPhoto(item.file)
         if (token !== runToken) return
 
-        // 本地预览
         item.previewUrl = URL.createObjectURL(processed.blob)
-
-        // 2. 上传 OSS
         item.status = 'uploading'
         item.progress = 0
         const filename = buildFilename(processed.ext)
         const { url } = await uploadToOss(processed.blob, filename, {
           fdir: 'pet_photos',
-          onProgress: (p) => {
-            item.progress = p
-          },
+          onProgress: (p) => { item.progress = p },
         })
         if (token !== runToken) return
 
@@ -238,17 +225,12 @@ async function startUpload(rawFiles: File[]) {
         if (token !== runToken) return
         console.error(`[UploadPhotoModal] item #${i} failed:`, err)
         item.status = 'error'
-        item.error =
-          err instanceof ImageProcessError
-            ? err.message
-            : err?.message || t('upload_item_error')
-        // 单张失败不中断，继续后面的
+        item.error = err instanceof ImageProcessError ? err.message : err?.message || t('upload_item_error')
       }
     }
 
     if (token !== runToken) return
 
-    // ---------- 阶段 2：批量保存到后端 ----------
     if (succeeded.length === 0) {
       globalError.value = t('upload_err_all_failed')
       return
@@ -258,10 +240,7 @@ async function startUpload(rawFiles: File[]) {
     try {
       const photos = await $api<PhotoPublic[]>(
         `/api/pets/${props.slug}/photos`,
-        {
-          method: 'POST',
-          body: { photos: succeeded },
-        },
+        { method: 'POST', body: { photos: succeeded } },
       )
       if (token !== runToken) return
 
@@ -273,14 +252,9 @@ async function startUpload(rawFiles: File[]) {
         showToast({ type: 'success', message: t('upload_msg_success') })
       }
 
-      // 全部成功 → 立即关闭；有部分失败 → 也关闭（失败信息已展示过）
       visible.value = false
     } catch (err: any) {
-      globalError.value =
-        err?.data?.error ||
-        err?.data?.message ||
-        err?.message ||
-        t('upload_err_save_failed')
+      globalError.value = err?.data?.error || err?.data?.message || err?.message || t('upload_err_save_failed')
     } finally {
       saving.value = false
     }
@@ -288,10 +262,6 @@ async function startUpload(rawFiles: File[]) {
     if (token === runToken) running.value = false
   }
 }
-
-// ============================================================
-// 关闭
-// ============================================================
 
 function handleClose() {
   if (busy.value) return
@@ -312,21 +282,25 @@ function handleClose() {
       <header class="upload-photo__header">
         <h2 class="upload-photo__title">{{ t('upload_photo_title') }}</h2>
         <p class="upload-photo__subtitle">
-          {{
-            items.length === 0
-              ? t('upload_photo_subtitle')
-              : overallText
-          }}
+          {{ items.length === 0 ? t('upload_photo_subtitle') : overallText }}
         </p>
       </header>
 
       <!-- 状态 1：选择文件 -->
       <div v-if="items.length === 0" class="upload-photo__body">
+        <!-- 额度已满 -->
+        <div v-if="maxFiles === 0" class="empty-quota">
+          <van-icon name="warning-o" size="32" color="#f1c40f" />
+          <p>{{ t('upload_quota_full', { max: maxTotal }) }}</p>
+        </div>
+
+        <!-- 正常选图 -->
         <van-uploader
+          v-else
           v-model="uploaderList"
           :after-read="handleAfterRead"
           :multiple="true"
-          :max-count="MAX_FILES"
+          :max-count="maxFiles"
           :preview-image="false"
           :disabled="!canUpload"
           accept="image/*,.heic,.heif"
@@ -335,18 +309,13 @@ function handleClose() {
           <div class="picker">
             <div class="picker__icon">
               <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-                <path
-                  d="M12 5v14M5 12h14"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  fill="none"
-                />
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
               </svg>
             </div>
             <div class="picker__text">{{ t('upload_photo_select') }}</div>
             <div class="picker__hint">
-              {{ t('upload_photo_hint', { max: MAX_FILES }) }}
+              <!-- 👇 动态展示可选数量 -->
+              {{ t('upload_photo_hint', { max: maxFiles }) }}
             </div>
           </div>
         </van-uploader>
@@ -359,53 +328,29 @@ function handleClose() {
       <!-- 状态 2：上传进度列表 -->
       <div v-else class="upload-photo__body">
         <ul class="items">
-          <li
-            v-for="item in items"
-            :key="item.uid"
-            class="item"
-            :class="`item--${item.status}`"
-          >
+          <li v-for="item in items" :key="item.uid" class="item" :class="`item--${item.status}`">
             <div class="item__thumb">
               <img v-if="item.previewUrl" :src="item.previewUrl" alt="" />
-              <van-loading
-                v-else-if="item.status !== 'pending'"
-                type="spinner"
-                size="16"
-              />
+              <van-loading v-else-if="item.status !== 'pending'" type="spinner" size="16" />
             </div>
-
             <div class="item__main">
               <div class="item__top">
                 <span class="item__name">{{ item.file.name }}</span>
                 <span class="item__status">{{ statusText(item) }}</span>
               </div>
-
-              <div class="item__meta">
-                {{ formatSize(item.file.size) }}
-              </div>
-
+              <div class="item__meta">{{ formatSize(item.file.size) }}</div>
               <div v-if="item.status === 'uploading'" class="item__progress">
-                <div
-                  class="item__progress-bar"
-                  :style="{ width: Math.max(item.progress, 2) + '%' }"
-                />
+                <div class="item__progress-bar" :style="{ width: Math.max(item.progress, 2) + '%' }" />
               </div>
             </div>
           </li>
         </ul>
       </div>
 
-      <!-- 全局错误 -->
       <p v-if="globalError" class="upload-photo__error">{{ globalError }}</p>
 
-      <!-- 底部按钮 -->
-      <div v-if="items.length > 0" class="upload-photo__actions">
-        <button
-          type="button"
-          class="btn btn--lg"
-          :disabled="busy"
-          @click="handleClose"
-        >
+      <div v-if="items.length > 0 || maxFiles === 0" class="upload-photo__actions">
+        <button type="button" class="btn btn--lg" :disabled="busy" @click="handleClose">
           {{ busy ? t('pets_loading') : t('btn_close') }}
         </button>
       </div>
@@ -416,9 +361,6 @@ function handleClose() {
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-// ============================================================
-// 弹窗主体
-// ============================================================
 .upload-photo {
   display: flex;
   flex-direction: column;
@@ -498,9 +440,24 @@ function handleClose() {
   }
 }
 
-// ============================================================
-// 选择区
-// ============================================================
+.empty-quota {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: @surface-2;
+  border-radius: @radius-lg;
+  border: 1px dashed @border;
+  
+  p {
+    margin: @sp-3 0 0;
+    font-size: @fs-sm;
+    color: @ink-2;
+    text-align: center;
+  }
+}
+
 .picker {
   width: 100%;
   padding: 32px 16px;
@@ -546,9 +503,6 @@ function handleClose() {
   }
 }
 
-// ============================================================
-// 上传列表
-// ============================================================
 .items {
   list-style: none;
   margin: 0;

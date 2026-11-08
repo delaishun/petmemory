@@ -13,6 +13,7 @@ interface PublicUser {
   email: string
   vipExpiresAt: string | null
   isVip: boolean
+  isLifetimeVip: boolean // 👈 新增：补齐类型
   createdAt: string
   bio: string | null
   point?: number

@@ -15,6 +15,8 @@ interface Props {
     avatarUrl: string
     owner?: {
       isVip?: boolean
+      isLifetimeVip?: boolean       // 👈 新增
+      vipExpiresAt?: string | null  // 👈 新增
     }
   }
 }
@@ -155,7 +157,22 @@ watch(
     
     <!-- 文字内容区 -->
     <div class="pet-card__content">
-      <div class="pet-card__name">{{ pet.name }}</div>
+      <div class="pet-card__name">
+        {{ pet.name }}
+        <!-- 👇 新增：名字旁的微型 VIP 标识 -->
+        <span v-if="pet.owner?.isVip" class="pet-card__vip-badge">
+          <van-icon
+            v-if="pet.owner.isLifetimeVip"
+            name="diamond-o"
+            class="is-lifetime"
+          />
+          <van-icon
+            v-if="pet.owner.vipExpiresAt && new Date(pet.owner.vipExpiresAt) > new Date()"
+            name="gem-o"
+            class="is-sub"
+          />
+        </span>
+      </div>
       <div v-if="petBrief(pet)" class="pet-card__brief">
         {{ petBrief(pet) }}
       </div>
@@ -278,11 +295,33 @@ watch(
   }
 
   &__name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     font-size: @fs-md;
     font-weight: 600;
     color: @ink-1;
     transition: color @dur-fast ease;
     .line-1();
+  }
+
+  // 👇 新增：VIP 角标样式
+  &__vip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 14px;
+
+    .is-lifetime {
+      color: #00bfff;
+      filter: drop-shadow(0 1px 2px rgba(0, 191, 255, 0.4));
+    }
+
+    .is-sub {
+      color: #f1c40f;
+      filter: drop-shadow(0 1px 2px rgba(241, 196, 15, 0.4));
+    }
   }
 
   &__brief {
