@@ -1072,62 +1072,49 @@ async function handleExportImage() {
     showDialog({ message: t("msg_please_login") });
     return;
   }
-
+  
   exportingImage.value = true;
-  const loadingToast = showToast({
-    type: "loading",
-    message: t("export_generating"),
-    duration: 0,
-    forbidClick: true,
-  });
+  // 用变量存下 loadingToast
+  const loadingToast = showToast({ type: 'loading', message: t('export_generating'), duration: 0, forbidClick: true });
 
   try {
-    const node = document.getElementById("export-image-container");
-    if (!node) throw new Error("Container not found");
+    const node = document.getElementById('export-image-container');
+    if (!node) throw new Error('Container not found');
 
-    // 临时提高层级，强制浏览器渲染该区域内容
-    node.style.zIndex = "9999";
-    node.style.opacity = "0.01";
-
-    // 等待所有图片加载并解码完成
-    const images = node.querySelectorAll("img");
-    await Promise.all(
-      Array.from(images).map((img) => {
-        // 加上 naturalHeight !== 0 防止图片其实加载失败了但 complete 为 true
-        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
-        return new Promise((resolve) => {
+    // 👇 关键优化：等待图片加载，但最多等 3 秒
+    const images = node.querySelectorAll('img');
+    await Promise.race([
+      Promise.all(Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
           img.onload = resolve;
           img.onerror = resolve;
         });
-      })
-    );
-
-    // 👇 关键：额外等待 300ms，给浏览器一点时间把图片画进 DOM
-    await new Promise((resolve) => setTimeout(resolve, 300));
+      })),
+      new Promise(resolve => setTimeout(resolve, 3000)) // 超过 3 秒直接强制往下走
+    ]);
 
     const canvas = await html2canvas(node, {
       scale: 2,
       useCORS: true,
-      backgroundColor: "#F9F7F3",
+      backgroundColor: '#F9F7F3',
+      imageTimeout: 5000, // html2canvas 自身的图片超时时间
+      allowTaint: false, // 禁止污染画布
     });
 
-    // 恢复层级
-    node.style.zIndex = "-9999";
-    node.style.opacity = "0.01";
-
-    const dataUrl = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.download = `${pet.value?.name || "pet"}-memorial.png`;
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `${pet.value?.name || 'pet'}-memorial.png`;
     link.href = dataUrl;
     link.click();
-
-    loadingToast.close();
-    showToast({ type: "success", message: t("export_success") });
+    
+    showToast({ type: 'success', message: t('export_success') });
   } catch (err) {
-    console.error(err);
-    loadingToast.close();
-    showToast(t("export_failed"));
+    console.error('导出图片失败', err);
+    showToast(t('export_failed'));
   } finally {
+    // 👇 无论成功还是失败，都强制关闭 loading 提示
+    loadingToast.close();
     exportingImage.value = false;
   }
 }
@@ -1717,6 +1704,7 @@ useHead(() => ({
             </button>
             <!-- 新增：导出图片（所有人可点） -->
             <button
+              v-if="isOwner"
               type="button"
               class="btn btn--lg"
               :disabled="exportingImage"
@@ -1729,7 +1717,7 @@ useHead(() => ({
             </button>
 
             <!-- 新增：导出 HTML（终身 VIP 专属） -->
-            <button type="button" class="btn btn--lg" @click="handleExportHtml">
+            <button v-if="isOwner" type="button" class="btn btn--lg" @click="handleExportHtml">
               <van-icon name="description" />
               <span>{{ t("export_html_btn") }}</span>
             </button>
