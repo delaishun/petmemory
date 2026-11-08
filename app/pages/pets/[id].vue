@@ -1735,7 +1735,7 @@ useHead(() => ({
         <div class="ex-hero">
           <img
             class="ex-avatar"
-            :src="pet.avatarUrl || defaultPetAvatar"
+            :src="(pet.avatarUrl || defaultPetAvatar) + (pet.avatarUrl ? '?t=' + Date.now() : '')"
             crossorigin="anonymous"
             style="display: block"
           />
@@ -1758,7 +1758,7 @@ useHead(() => ({
             <img
               v-for="photo in photos.slice(0, 3)"
               :key="photo.id"
-              :src="photo.imageUrl"
+              :src="photo.imageUrl + '?t=' + Date.now()"
               crossorigin="anonymous"
             />
           </div>
@@ -1774,7 +1774,7 @@ useHead(() => ({
               class="ex-gift-item"
             >
               <img
-                :src="item.giftImageUrl"
+                :src="item.giftImageUrl + '?t=' + Date.now()"
                 crossorigin="anonymous"
                 style="display: block; width: 100%; height: 100%"
               />
