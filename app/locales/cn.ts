@@ -661,4 +661,6 @@ export default {
   vip_sub_f2: '每月登录获赠随机礼物',
   vip_sub_f3: '每周生成专属回忆录并支持导出 PDF',
   vip_sub_f4: '赠送 10000 积分',
+
+  pet_chat_heaven_hint: '跨越时空，正在与身处天堂的 ta 对话',
 }

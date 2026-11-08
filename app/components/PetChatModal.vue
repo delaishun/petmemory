@@ -328,6 +328,11 @@ const title = computed(() =>
       <!-- 头部 -->
       <header class="pet-chat__header">
         <div class="pet-chat__title">{{ title }}</div>
+        <!-- 👇 新增：天堂对话提示 -->
+        <div class="pet-chat__heaven-hint">
+          <van-icon name="cloud-o" />
+          <span>{{ t('pet_chat_heaven_hint') }}</span>
+        </div>
         <div class="pet-chat__remaining" :class="{ 'is-empty': limitReached }">
           {{ remainingText }}
         </div>
@@ -481,6 +486,24 @@ const title = computed(() =>
     font-weight: 700;
     color: @ink-1;
     line-height: 1.3;
+  }
+
+  // 👇 请把这段新增的样式粘贴到这里
+  &__heaven-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: @ink-3;
+    letter-spacing: 0.05em;
+
+    :deep(.van-icon) {
+      font-size: 14px;
+      color: @accent;
+      margin-top: -1px;
+    }
   }
 
   &__remaining {

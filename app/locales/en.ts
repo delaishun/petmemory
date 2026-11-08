@@ -659,4 +659,6 @@ export default {
   vip_sub_f2: 'Receive random gifts every month upon login',
   vip_sub_f3: 'Generate exclusive memoirs weekly and export as PDF',
   vip_sub_f4: 'Get 10,000 bonus points',
+
+  pet_chat_heaven_hint: 'Chatting across time and space with your beloved in heaven',
 }

@@ -1,10 +1,10 @@
 <!-- app/pages/pricing.vue -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from '~/composables/useI18n'
 import type { AuthUser } from "~/types/auth";
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 // 获取全局用户状态
 const user = useState<AuthUser | null>("auth:user", () => null);
@@ -17,7 +17,8 @@ const upgradeVipModalVisible = ref(false);
 function handleSubscribe() {
   if (!user.value) {
     loginModalVisible.value = true;
-  } else if (!user.value.isVip) {
+  } else {
+    // 只要不是“终身+订阅双满”，就允许打开升级弹窗
     upgradeVipModalVisible.value = true;
   }
 }
@@ -25,10 +26,54 @@ function handleSubscribe() {
 // 登录成功后的回调
 function onLoginSuccess() {
   loginModalVisible.value = false;
-  if (user.value && !user.value.isVip) {
+  if (user.value) {
     upgradeVipModalVisible.value = true;
   }
 }
+
+// 👇 动态双语双 VIP 权益数据
+const vipPlans = computed(() => [
+  {
+    id: 'lifetime',
+    icon: '💎',
+    title: locale.value === 'en' ? 'Lifetime Keepsake' : '终身珍藏版',
+    price: '$8.9',
+    period: locale.value === 'en' ? 'One-time' : '一次性买断',
+    theme: 'blue',
+    features: locale.value === 'en' ? [
+      'Permanently unlock 20 photos limit',
+      'Premium backgrounds, effects & music',
+      'Export offline HTML webpage',
+      'Get 1-Year Subscription FREE (with AI)',
+      'Get 10,000 bonus points'
+    ] : [
+      '永久解锁 20 张相册空间',
+      '解锁精美背景、节日特效与专属音乐',
+      '一键导出离线 HTML 网页',
+      '限时赠送 1 年订阅 VIP（含 AI 对话）',
+      '赠送 10000 积分'
+    ]
+  },
+  {
+    id: 'subscription',
+    icon: '🌈',
+    title: locale.value === 'en' ? 'Premium Subscription' : '尊享订阅版',
+    price: '$5.9',
+    period: locale.value === 'en' ? '/ year' : '/ 年',
+    theme: 'gold',
+    features: locale.value === 'en' ? [
+      'Unlimited AI cross-time chat',
+      'Weekly exclusive memoir (PDF)',
+      'Monthly random gifts',
+      'Get 10,000 bonus points'
+    ] : [
+      '无限次 AI 跨时空对话',
+      '每周生成专属回忆录并支持 PDF 导出',
+      '每月登录获赠随机礼物',
+      '赠送 10000 积分'
+    ]
+  }
+])
 
 // 优化 SEO 描述，去掉 AI 字眼，强调纪念品
 useSeoMeta({
@@ -70,7 +115,6 @@ const gifts: { key: I18nKey; price: number }[] = [
   { key: 'gift_crown', price: 5.00 },
 ]
 
-// 👇 移除了 $60 的实物画册，仅保留 $45 电子版
 const portraits: { key: I18nKey; price: number }[] = [
   { key: 'pricing_portrait_1', price: 45 },
 ]
@@ -101,40 +145,53 @@ const portraits: { key: I18nKey; price: number }[] = [
         </div>
       </section>
 
-      <!-- VIP 会员区 (高级纪念空间) -->
+      <!-- 👇 修改：VIP 会员区 (双卡片) -->
       <section class="pricing-section">
-        <h2 class="pricing-section__title">{{ t('pricing_vip_section') }}</h2>
-        <div class="vip-card">
-          <div class="vip-card__icon">
-            <van-icon name="gem-o" />
-          </div>
-          <div class="vip-card__info">
-            <h3 class="vip-card__title">{{ t('pricing_vip_name') }}</h3>
-            <ul class="vip-card__features">
-              <li><van-icon name="success" /> {{ t('pricing_vip_f1') }}</li>
-              <li><van-icon name="success" /> {{ t('pricing_vip_f2') }}</li>
-              <li><van-icon name="success" /> {{ t('pricing_vip_f3') }}</li>
-              <!-- 这里的词条已在语言包中改为“互动式纪念伴侣” -->
-              <li><van-icon name="success" /> {{ t('pricing_vip_f4') }}</li>
-            </ul>
-          </div>
-          
-          <!-- 右侧价格与订阅按钮 -->
-          <div class="vip-card__action">
-            <div class="vip-card__price">
-              <span class="currency">$</span>{{ t('pricing_vip_price') }}<span class="period">{{ t('pricing_vip_period') }}</span>
+        <h2 class="pricing-section__title">
+          {{ locale === 'en' ? 'Premium Memorial Space' : '高级数字纪念空间' }}
+        </h2>
+        
+        <div class="vip-grid">
+          <div 
+            v-for="plan in vipPlans" 
+            :key="plan.id" 
+            class="vip-card"
+            :class="`vip-card--${plan.theme}`"
+          >
+            <div class="vip-card__header">
+              <div class="vip-card__icon">{{ plan.icon }}</div>
+              <div class="vip-card__info">
+                <h3 class="vip-card__title">{{ plan.title }}</h3>
+                <div class="vip-card__price">
+                  <span class="amount">{{ plan.price }}</span>
+                  <span class="period">{{ plan.period }}</span>
+                </div>
+              </div>
             </div>
             
-            <button 
-              v-if="!user?.isVip" 
-              type="button" 
-              class="btn btn--primary vip-card__btn"
-              @click="handleSubscribe"
-            >
-              {{ t('pricing_btn_get_vip') }}
-            </button>
-            <div v-else class="vip-card__active">
-              <van-icon name="checked" /> {{ t('pricing_vip_active') }}
+            <ul class="vip-card__features">
+              <li v-for="(f, i) in plan.features" :key="i">
+                <van-icon name="success" /> <span>{{ f }}</span>
+              </li>
+            </ul>
+            
+            <div class="vip-card__action">
+              <button 
+                v-if="!user" 
+                type="button" 
+                class="btn btn--primary vip-card__btn"
+                @click="handleSubscribe"
+              >
+                {{ locale === 'en' ? 'Login to Upgrade' : '登录后升级' }}
+              </button>
+              <button 
+                v-else
+                type="button" 
+                class="btn btn--primary vip-card__btn"
+                @click="handleSubscribe"
+              >
+                {{ locale === 'en' ? 'View & Upgrade' : '查看并升级' }}
+              </button>
             </div>
           </div>
         </div>
@@ -173,6 +230,7 @@ const portraits: { key: I18nKey; price: number }[] = [
     <UpgradeVipModal 
       v-if="upgradeVipModalVisible" 
       v-model="upgradeVipModalVisible" 
+      :user="user"
     />
   </div>
 </template>
@@ -222,21 +280,59 @@ const portraits: { key: I18nKey; price: number }[] = [
   }
 }
 
-.vip-card {
-  display: flex;
-  align-items: center;
-  gap: @sp-5;
-  padding: @sp-5 @sp-6;
-  background: linear-gradient(135deg, fade(@gold-soft, 50%), @surface);
-  border: 1px solid @gold-hover;
-  border-radius: @radius-lg;
-  box-shadow: 0 4px 12px fade(@gold-hover, 10);
+// ============================================================
+// 👇 新增：双 VIP 卡片样式
+// ============================================================
+.vip-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: @sp-4;
 
   @media (max-width: @bp-sm) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: @sp-4;
-    padding: @sp-5;
+    grid-template-columns: 1fr;
+  }
+}
+
+.vip-card {
+  display: flex;
+  flex-direction: column;
+  padding: @sp-5;
+  background: @surface;
+  border: 1px solid @border;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-1;
+  transition: transform @dur-fast ease, box-shadow @dur-fast ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: @shadow-2;
+  }
+
+  &--blue {
+    border-color: fade(#00bfff, 40%);
+    background: linear-gradient(180deg, fade(#00bfff, 3%) 0%, @surface 100%);
+    
+    .vip-card__icon { background: fade(#00bfff, 10%); }
+    .vip-card__price { color: #00bfff; }
+    .van-icon { color: #00bfff; }
+  }
+
+  &--gold {
+    border-color: fade(#f1c40f, 40%);
+    background: linear-gradient(180deg, fade(#f1c40f, 3%) 0%, @surface 100%);
+    
+    .vip-card__icon { background: fade(#f1c40f, 10%); }
+    .vip-card__price { color: #d4af37; }
+    .van-icon { color: #d4af37; }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: @sp-3;
+    margin-bottom: @sp-4;
+    padding-bottom: @sp-3;
+    border-bottom: 1px dashed @border;
   }
 
   &__icon {
@@ -244,13 +340,10 @@ const portraits: { key: I18nKey; price: number }[] = [
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 56px;
-    height: 56px;
-    font-size: 32px;
-    color: @gold-hover;
-    background: @surface;
+    width: 48px;
+    height: 48px;
+    font-size: 28px;
     border-radius: 50%;
-    box-shadow: @shadow-1;
   }
 
   &__info {
@@ -258,83 +351,55 @@ const portraits: { key: I18nKey; price: number }[] = [
   }
 
   &__title {
-    margin: 0 0 @sp-2;
-    font-size: @fs-lg;
+    margin: 0 0 4px;
+    font-size: @fs-base;
     font-weight: 700;
     color: @ink-1;
   }
 
+  &__price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-family: @font-mono;
+    font-weight: 700;
+
+    .amount { font-size: 24px; }
+    .period { font-size: @fs-xs; font-weight: 500; color: @ink-3; }
+  }
+
   &__features {
-    margin: 0;
+    margin: 0 0 @sp-5;
     padding: 0;
     list-style: none;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     gap: @sp-2;
-
-    @media (max-width: @bp-sm) {
-      grid-template-columns: 1fr;
-    }
 
     li {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
       font-size: @fs-sm;
       color: @ink-2;
+      line-height: 1.5;
 
       .van-icon {
-        color: @gold-hover;
+        font-size: 16px;
+        margin-top: 2px;
+        flex-shrink: 0;
       }
     }
   }
 
   &__action {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: @sp-3;
-
-    @media (max-width: @bp-sm) {
-      width: 100%;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: @sp-2;
-    }
-  }
-
-  &__price {
-    font-size: 36px;
-    font-weight: 800;
-    color: @gold-hover;
-    font-family: @font-mono;
-    white-space: nowrap;
-
-    .currency {
-      font-size: 20px;
-      margin-right: 2px;
-    }
-    .period {
-      font-size: @fs-sm;
-      font-weight: 500;
-      color: @ink-3;
-    }
+    margin-top: auto;
   }
 
   &__btn {
-    padding-left: @sp-5;
-    padding-right: @sp-5;
+    width: 100%;
     border-radius: @radius-pill;
-  }
-
-  &__active {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: @gold-hover;
-    font-weight: 600;
-    font-size: @fs-sm;
   }
 }
 
