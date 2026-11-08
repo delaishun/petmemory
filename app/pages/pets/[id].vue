@@ -7,6 +7,7 @@ import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant
 import { useI18n } from "~/composables/useI18n";
 import { useEffectBackgrounds } from "~/composables/usePetEffect";
 import html2canvas from "html2canvas";
+import JSZip from 'jszip';
 
 // ============================================================
 // 国际化 & 特效逻辑
@@ -1065,6 +1066,52 @@ async function copyShareLink() {
 // ============================================================
 // 👇 新增：导出图片与 HTML 逻辑
 // ============================================================
+// 👇 1. 新增：存储转化后的 Base64 图片
+const posterBase64 = reactive({
+  avatar: '',
+  photos: [] as string[],
+  gifts: [] as string[],
+});
+
+// 👇 2. 新增：强效 Base64 转换器（直接从你提供的参考代码中搬运）
+const convertUrlToBase64 = async (url: string): Promise<string> => {
+  if (!url) return "";
+  try {
+    const timeStampedUrl = url.includes("?") ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
+    const response = await fetch(timeStampedUrl, { mode: "cors" });
+    if (!response.ok) throw new Error("Fetch failed");
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(url); // 失败降级为原图
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    // 如果 Fetch 被跨域拦截，使用 Image 标签尝试绘制
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL("image/jpeg", 0.9));
+            return;
+          }
+        } catch (err) {}
+        resolve(url);
+      };
+      img.onerror = () => resolve(url);
+      img.src = url;
+    });
+  }
+};
+
 const exportingImage = ref(false);
 
 async function handleExportImage() {
@@ -1074,34 +1121,40 @@ async function handleExportImage() {
   }
   
   exportingImage.value = true;
-  // 用变量存下 loadingToast
   const loadingToast = showToast({ type: 'loading', message: t('export_generating'), duration: 0, forbidClick: true });
 
   try {
+    // 1. 并行把所有图片转成 Base64
+    const avatarB64 = await convertUrlToBase64(pet.value?.avatarUrl || defaultPetAvatar);
+    
+    const photosToConvert = photos.value?.slice(0, 3) || [];
+    const photosB64 = await Promise.all(photosToConvert.map(p => convertUrlToBase64(p.imageUrl)));
+    
+    const giftsToConvert = giftItems.value.slice(0, 6);
+    const giftsB64 = await Promise.all(giftsToConvert.map(g => convertUrlToBase64(g.giftImageUrl)));
+
+    // 2. 赋值给响应式变量
+    posterBase64.avatar = avatarB64;
+    posterBase64.photos = photosB64;
+    posterBase64.gifts = giftsB64;
+
+    // 3. 等待 Vue 更新 DOM 中的 img src
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
     const node = document.getElementById('export-image-container');
     if (!node) throw new Error('Container not found');
 
-    // 👇 关键优化：等待图片加载，但最多等 3 秒
-    const images = node.querySelectorAll('img');
-    await Promise.race([
-      Promise.all(Array.from(images).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      })),
-      new Promise(resolve => setTimeout(resolve, 3000)) // 超过 3 秒直接强制往下走
-    ]);
-
+    // 4. 截图
     const canvas = await html2canvas(node, {
-      scale: 2,
+      scale: 2, 
       useCORS: true,
+      allowTaint: true,
       backgroundColor: '#F9F7F3',
-      imageTimeout: 5000, // html2canvas 自身的图片超时时间
-      allowTaint: false, // 禁止污染画布
+      logging: false,
     });
 
+    // 5. 下载
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.download = `${pet.value?.name || 'pet'}-memorial.png`;
@@ -1111,15 +1164,18 @@ async function handleExportImage() {
     showToast({ type: 'success', message: t('export_success') });
   } catch (err) {
     console.error('导出图片失败', err);
-    showToast(t('export_failed'));
+    showToast({ type: 'fail', message: t('export_failed') });
   } finally {
-    // 👇 无论成功还是失败，都强制关闭 loading 提示
     loadingToast.close();
     exportingImage.value = false;
+    // 清空 Base64 释放内存（可选）
+    posterBase64.avatar = '';
+    posterBase64.photos = [];
+    posterBase64.gifts = [];
   }
 }
 
-function handleExportHtml() {
+async function handleExportHtml() {
   if (!me.value) {
     showDialog({ message: t("msg_please_login") });
     return;
@@ -1133,47 +1189,89 @@ function handleExportHtml() {
     return;
   }
 
-  // 克隆当前整页 DOM
-  const documentClone = document.documentElement.cloneNode(true) as HTMLElement;
+  const loadingToast = showToast({ type: 'loading', message: '正在打包网页及图片...', duration: 0, forbidClick: true });
 
-  // 移除所有的 <script>（避免导出的静态页面执行原站的逻辑，纯做展示）
-  const scripts = documentClone.querySelectorAll("script");
-  scripts.forEach((s) => s.remove());
+  try {
+    // 1. 克隆当前 DOM
+    const documentClone = document.documentElement.cloneNode(true) as HTMLElement;
+    
+    // 移除不需要打包的脚本和隐藏的截图容器
+    documentClone.querySelectorAll('script').forEach(s => s.remove());
+    const exportLayer = documentClone.querySelector('#export-image-container');
+    if (exportLayer) exportLayer.remove();
 
-  // 处理掉 Vue 留下的动态标记，保证纯静态展示
-  const vueDataElements = documentClone.querySelectorAll("[data-v-app]");
-  vueDataElements.forEach((el) => el.removeAttribute("data-v-app"));
+    const zip = new JSZip();
+    const imgFolder = zip.folder('images');
+    
+    // 2. 找出所有的 <img> 标签并下载图片
+    const images = Array.from(documentClone.querySelectorAll('img'));
+    let imgIndex = 0;
 
-  // 提取样式并内联（Nuxt 的 CSS 是动态注入的，我们可以把所有的 <style> 和 <link rel="stylesheet"> 留下来）
-  // 其实 cloneNode 已经包含了 style，直接拼接即可
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="${locale.value}">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${pet.value?.name}'s Memorial - PetMemory</title>
-      <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/vant@4/lib/index.css" />
-      <style>
-        /* 覆盖一些可能导致静态页面布局错乱的响应式样式 */
-        body { background: #F5EEE4; margin: 0; }
-        .layout-wrapper { min-height: 100vh; }
-      </style>
-    </head>
-    <body>
-      ${documentClone.innerHTML}
-    </body>
-    </html>
-  `;
+    for (const img of images) {
+      const src = img.getAttribute('src');
+      // 跳过空链接和已经是 base64 格式的图片
+      if (!src || src.startsWith('data:')) continue; 
+      
+      try {
+        // 下载图片为 Blob
+        const response = await fetch(src);
+        const blob = await response.blob();
+        
+        // 简单解析扩展名
+        let ext = 'png';
+        if (blob.type === 'image/jpeg') ext = 'jpg';
+        else if (blob.type === 'image/webp') ext = 'webp';
+        else if (blob.type === 'image/gif') ext = 'gif';
+        
+        const filename = `img_${imgIndex++}.${ext}`;
+        imgFolder?.file(filename, blob);
+        
+        // 将原 DOM 中的绝对路径替换为本地相对路径
+        img.setAttribute('src', `./images/${filename}`);
+      } catch (err) {
+        console.warn('部分图片下载失败，将保留原链接', src, err);
+      }
+    }
 
-  const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${pet.value?.name || "pet"}-memorial.html`;
-  link.click();
-  URL.revokeObjectURL(url);
-  showToast({ type: "success", message: t("export_success") });
+    // 3. 组装 HTML 文件
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="${locale.value}">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${pet.value?.name}'s Memorial - PetMemory</title>
+        <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/vant@4/lib/index.css" />
+        <style>
+          body { background: #F5EEE4; margin: 0; }
+          .layout-wrapper { min-height: 100vh; }
+        </style>
+      </head>
+      <body>
+        ${documentClone.innerHTML}
+      </body>
+      </html>
+    `;
+    
+    // 放入 HTML 文件
+    zip.file('index.html', htmlContent);
+
+    // 4. 生成 zip 压缩包并触发下载
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${pet.value?.name || 'pet'}-memorial.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    loadingToast.close();
+    showToast({ type: 'success', message: 'Export successful! You can view it offline after decompression' });
+  } catch (err) {
+    console.error('导出 HTML 打包失败', err);
+    loadingToast.close();
+    showToast({ type: 'fail', message: 'Export failed. Please try again' });
+  }
 }
 
 // ============================================================
@@ -1726,25 +1824,19 @@ useHead(() => ({
       </template>
     </div>
 
-    <!-- 👇 新增：用于生成图片的隐藏容器 (固定宽 600px，不可见但被 html2canvas 读取) -->
+        <!-- 👇 用于生成图片的隐藏容器 -->
     <div v-if="pet" id="export-image-container" class="export-image-layer">
-      <!-- 👇 新增：右上角水印 -->
+      <!-- 右上角水印 -->
       <div class="ex-watermark">petmemory.me</div>
+      
       <div class="export-card">
         <!-- 1. 宠物面板 -->
         <div class="ex-hero">
-          <img
-            class="ex-avatar"
-            :src="(pet.avatarUrl || defaultPetAvatar) + (pet.avatarUrl ? '?t=' + Date.now() : '')"
-            crossorigin="anonymous"
-            style="display: block"
-          />
+          <!-- 👇 改为使用 Base64 -->
+          <img class="ex-avatar" :src="posterBase64.avatar || pet.avatarUrl || defaultPetAvatar" style="display: block;" />
           <h1 class="ex-name">{{ pet.name }}</h1>
           <p class="ex-intro" v-if="introParts.length">
-            {{ pet.name
-            }}<span v-for="(part, i) in introParts" :key="i"
-              >{{ i === 0 ? " " : "，" }}{{ part }}</span
-            >。
+            {{ pet.name }}<span v-for="(part, i) in introParts" :key="i">{{ i === 0 ? " " : "，" }}{{ part }}</span>。
           </p>
           <div class="ex-mood">
             <span>{{ moodStatusText }}</span>
@@ -1755,36 +1847,29 @@ useHead(() => ({
         <!-- 2. 相片 (最多 3 张) -->
         <div class="ex-section" v-if="photos && photos.length > 0">
           <div class="ex-photos">
-            <img
-              v-for="photo in photos.slice(0, 3)"
-              :key="photo.id"
-              :src="photo.imageUrl + '?t=' + Date.now()"
-              crossorigin="anonymous"
+            <!-- 👇 改为使用 Base64 -->
+            <img 
+              v-for="(photo, index) in photos.slice(0, 3)" 
+              :key="photo.id" 
+              :src="posterBase64.photos[index] || photo.imageUrl" 
             />
           </div>
         </div>
 
         <!-- 3. 礼物 (最多 6 个) -->
         <div class="ex-section" v-if="giftItems.length > 0">
-          <h2 class="ex-title">{{ t("pet_gifts") }}</h2>
+          <h2 class="ex-title">{{ t('pet_gifts') }}</h2>
           <div class="ex-gifts">
-            <div
-              v-for="item in giftItems.slice(0, 6)"
-              :key="item.id"
-              class="ex-gift-item"
-            >
-              <img
-                :src="item.giftImageUrl + '?t=' + Date.now()"
-                crossorigin="anonymous"
-                style="display: block; width: 100%; height: 100%"
-              />
+            <div v-for="(item, index) in giftItems.slice(0, 6)" :key="item.id" class="ex-gift-item">
+              <!-- 👇 改为使用 Base64 -->
+              <img :src="posterBase64.gifts[index] || item.giftImageUrl" style="display: block; width: 100%; height: 100%;" />
             </div>
           </div>
         </div>
 
         <!-- 4. 留言 (最多 3 条) -->
         <div class="ex-section" v-if="messages?.items?.length">
-          <h2 class="ex-title">{{ t("pet_messages") }}</h2>
+          <h2 class="ex-title">{{ t('pet_messages') }}</h2>
           <div class="ex-msg-list">
             <div v-for="msg in messages?.items?.slice(0, 3)" :key="msg.id" class="ex-msg">
               <div class="ex-msg-head">
@@ -1797,27 +1882,23 @@ useHead(() => ({
         </div>
 
         <!-- 5. 问答 (最多 3 轮即 6 条消息) -->
-        <div
-          class="ex-section"
-          v-if="publicChat?.hasConversation && publicChat?.messages?.length"
-        >
-          <h2 class="ex-title">{{ t("pet_chat_title") }}</h2>
+        <div class="ex-section" v-if="publicChat?.hasConversation && publicChat?.messages?.length">
+          <h2 class="ex-title">{{ t('pet_chat_title') }}</h2>
           <div class="ex-chat-list">
-            <div
-              v-for="msg in publicChat?.messages?.slice(-6)"
-              :key="msg.id"
-              class="ex-chat"
+            <div 
+              v-for="msg in publicChat?.messages?.slice(-6)" 
+              :key="msg.id" 
+              class="ex-chat" 
               :class="msg.role === 'user' ? 'is-user' : 'is-pet'"
             >
-              <span v-if="msg.role === 'assistant'" class="ex-chat-name"
-                >{{ pet?.name }}:</span
-              >
+              <span v-if="msg.role === 'assistant'" class="ex-chat-name">{{ pet?.name }}:</span>
               <span v-else class="ex-chat-name">{{ publicChat?.ownerNickname }}:</span>
               <span>{{ msg.content }}</span>
             </div>
           </div>
         </div>
 
+        <!-- 底部落款 -->
         <div class="ex-footer">
           <p>Pet Memory</p>
         </div>
@@ -3578,16 +3659,14 @@ useHead(() => ({
 // ============================================================
 .export-image-layer {
   position: fixed;
-  top: 0;
-  left: 0;
-  z-index: -9999; /* 放在最底层 */
+  top: -9999px;
+  left: -9999px;
+  z-index: -9999;
   width: 600px;
-  opacity: 0.01; /* 用透明隐藏，强行让浏览器渲染它 */
-  pointer-events: none; /* 防止遮挡点击 */
-  background: #f9f7f3;
-  color: #3d332c;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
+  background: #F9F7F3;
+  color: #3D332C;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  pointer-events: none;
 }
 
 // 👇 新增：水印样式
