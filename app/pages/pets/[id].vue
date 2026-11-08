@@ -1192,7 +1192,7 @@ async function handleExportHtml() {
   const loadingToast = showToast({ type: 'loading', message: '正在打包网页及图片...', duration: 0, forbidClick: true });
 
   try {
-    // 1. 克隆当前 DOM
+    // 1. 克隆当前整页 DOM
     const documentClone = document.documentElement.cloneNode(true) as HTMLElement;
     
     // 移除不需要打包的脚本和隐藏的截图容器
@@ -1209,25 +1209,41 @@ async function handleExportHtml() {
 
     for (const img of images) {
       const src = img.getAttribute('src');
-      // 跳过空链接和已经是 base64 格式的图片
-      if (!src || src.startsWith('data:')) continue; 
+      
+      // 跳过空链接、已经是 base64 或者是本地相对路径的图片
+      if (!src || src.startsWith('data:') || src.startsWith('./')) continue; 
       
       try {
-        // 下载图片为 Blob
-        const response = await fetch(src);
-        const blob = await response.blob();
+        // 👇 核心：使用强效转换器获取 Base64
+        const dataUrl = await convertUrlToBase64(src);
         
-        // 简单解析扩展名
-        let ext = 'png';
-        if (blob.type === 'image/jpeg') ext = 'jpg';
-        else if (blob.type === 'image/webp') ext = 'webp';
-        else if (blob.type === 'image/gif') ext = 'gif';
-        
-        const filename = `img_${imgIndex++}.${ext}`;
-        imgFolder?.file(filename, blob);
-        
-        // 将原 DOM 中的绝对路径替换为本地相对路径
-        img.setAttribute('src', `./images/${filename}`);
+        if (dataUrl.startsWith('data:')) {
+          // 将 Base64 解析并转成 Blob 存入 zip
+          const arr = dataUrl.split(',');
+          const mimeMatch = arr[0]?.match(/:(.*?);/);
+          const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+          const bstr = atob(arr[1] || '');
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          const blob = new Blob([u8arr], { type: mime });
+          
+          // 简单解析扩展名
+          let ext = 'png';
+          if (mime === 'image/jpeg') ext = 'jpg';
+          else if (mime === 'image/webp') ext = 'webp';
+          else if (mime === 'image/gif') ext = 'gif';
+          
+          const filename = `img_${imgIndex++}.${ext}`;
+          imgFolder?.file(filename, blob);
+          
+          // 将原 DOM 中的绝对路径替换为本地相对路径
+          img.setAttribute('src', `./images/${filename}`);
+        } else {
+          console.warn('图片转换失败，将保留原链接', src);
+        }
       } catch (err) {
         console.warn('部分图片下载失败，将保留原链接', src, err);
       }
@@ -1237,19 +1253,7 @@ async function handleExportHtml() {
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="${locale.value}">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${pet.value?.name}'s Memorial - PetMemory</title>
-        <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/vant@4/lib/index.css" />
-        <style>
-          body { background: #F5EEE4; margin: 0; }
-          .layout-wrapper { min-height: 100vh; }
-        </style>
-      </head>
-      <body>
-        ${documentClone.innerHTML}
-      </body>
+      ${documentClone.innerHTML}
       </html>
     `;
     
@@ -1266,11 +1270,11 @@ async function handleExportHtml() {
     URL.revokeObjectURL(url);
 
     loadingToast.close();
-    showToast({ type: 'success', message: 'Export successful! You can view it offline after decompression' });
+    showToast({ type: 'success', message: '导出成功！解压后即可离线查看' });
   } catch (err) {
     console.error('导出 HTML 打包失败', err);
     loadingToast.close();
-    showToast({ type: 'fail', message: 'Export failed. Please try again' });
+    showToast({ type: 'fail', message: t('export_failed') });
   }
 }
 
@@ -1838,9 +1842,9 @@ useHead(() => ({
           <p class="ex-intro" v-if="introParts.length">
             {{ pet.name }}<span v-for="(part, i) in introParts" :key="i">{{ i === 0 ? " " : "，" }}{{ part }}</span>。
           </p>
-          <div class="ex-mood">
-            <span>{{ moodStatusText }}</span>
-            <span>{{ pet.moodScore }} / 300</span>
+          <!-- 👇 修改：将原本的心情值框替换为宠物个性展示 -->
+          <div class="ex-personality" v-if="pet.personality">
+            {{ pet.personality }}
           </div>
         </div>
 
@@ -3692,6 +3696,11 @@ useHead(() => ({
   padding-bottom: 20px;
   border-bottom: 1px solid #ebe3d8;
 
+  /* 👇 新增：用 flex 强制内部元素居中 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
   .ex-avatar {
     width: 100px;
     height: 100px;
@@ -3713,15 +3722,19 @@ useHead(() => ({
     margin: 0 auto 12px;
     max-width: 80%;
   }
-  .ex-mood {
-    display: inline-flex;
-    gap: 12px;
-    font-size: 12px;
-    color: #c25a5a;
-    background: #fef8f5; /* 改为微粉底色 */
-    padding: 4px 12px;
-    border-radius: 20px;
-    border: 1px solid #fce4d8;
+
+  /* 👇 新增：宠物个性框样式 */
+  .ex-personality {
+    font-size: 14px;
+    color: #C25A5A;
+    background: #FEF8F5;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px dashed #FCE4D8;
+    margin: 0 auto;
+    max-width: 90%;
+    line-height: 1.5;
+    text-align: left;
   }
 }
 
