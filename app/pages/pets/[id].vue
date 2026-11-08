@@ -6,7 +6,7 @@ import type { PetGiftSummary } from "~/components/GiftModal.vue";
 import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import { useEffectBackgrounds } from "~/composables/usePetEffect";
-import html2canvas from 'html2canvas';
+import html2canvas from "html2canvas";
 
 // ============================================================
 // 国际化 & 特效逻辑
@@ -1072,45 +1072,61 @@ async function handleExportImage() {
     showDialog({ message: t("msg_please_login") });
     return;
   }
-  
+
   exportingImage.value = true;
-  const loadingToast = showToast({ type: 'loading', message: t('export_generating'), duration: 0, forbidClick: true });
+  const loadingToast = showToast({
+    type: "loading",
+    message: t("export_generating"),
+    duration: 0,
+    forbidClick: true,
+  });
 
   try {
-    // 获取要截图的 DOM 容器
-    const node = document.getElementById('export-image-container');
-    if (!node) throw new Error('Container not found');
+    const node = document.getElementById("export-image-container");
+    if (!node) throw new Error("Container not found");
 
-    // 等待所有图片加载完毕（防止图片没加载出来截图是空白）
-    const images = node.querySelectorAll('img');
-    await Promise.all(Array.from(images).map(img => {
-      if (img.complete) return Promise.resolve();
-      return new Promise(resolve => {
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-    }));
+    // 临时提高层级，强制浏览器渲染该区域内容
+    node.style.zIndex = "9999";
+    node.style.opacity = "0.01";
 
-    // 截图
+    // 等待所有图片加载并解码完成
+    const images = node.querySelectorAll("img");
+    await Promise.all(
+      Array.from(images).map((img) => {
+        // 加上 naturalHeight !== 0 防止图片其实加载失败了但 complete 为 true
+        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      })
+    );
+
+    // 👇 关键：额外等待 300ms，给浏览器一点时间把图片画进 DOM
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
     const canvas = await html2canvas(node, {
-      scale: 2, // 提高清晰度
-      useCORS: true, // 允许跨域图片（OSS需要配置CORS）
-      backgroundColor: '#F9F7F3',
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#F9F7F3",
     });
 
-    // 下载
-    const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = `${pet.value?.name || 'pet'}-memorial.png`;
+    // 恢复层级
+    node.style.zIndex = "-9999";
+    node.style.opacity = "0.01";
+
+    const dataUrl = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.download = `${pet.value?.name || "pet"}-memorial.png`;
     link.href = dataUrl;
     link.click();
-    
+
     loadingToast.close();
-    showToast({ type: 'success', message: t('export_success') });
+    showToast({ type: "success", message: t("export_success") });
   } catch (err) {
     console.error(err);
     loadingToast.close();
-    showToast(t('export_failed'));
+    showToast(t("export_failed"));
   } finally {
     exportingImage.value = false;
   }
@@ -1132,14 +1148,14 @@ function handleExportHtml() {
 
   // 克隆当前整页 DOM
   const documentClone = document.documentElement.cloneNode(true) as HTMLElement;
-  
+
   // 移除所有的 <script>（避免导出的静态页面执行原站的逻辑，纯做展示）
-  const scripts = documentClone.querySelectorAll('script');
-  scripts.forEach(s => s.remove());
+  const scripts = documentClone.querySelectorAll("script");
+  scripts.forEach((s) => s.remove());
 
   // 处理掉 Vue 留下的动态标记，保证纯静态展示
-  const vueDataElements = documentClone.querySelectorAll('[data-v-app]');
-  vueDataElements.forEach(el => el.removeAttribute('data-v-app'));
+  const vueDataElements = documentClone.querySelectorAll("[data-v-app]");
+  vueDataElements.forEach((el) => el.removeAttribute("data-v-app"));
 
   // 提取样式并内联（Nuxt 的 CSS 是动态注入的，我们可以把所有的 <style> 和 <link rel="stylesheet"> 留下来）
   // 其实 cloneNode 已经包含了 style，直接拼接即可
@@ -1163,14 +1179,14 @@ function handleExportHtml() {
     </html>
   `;
 
-  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
-  link.download = `${pet.value?.name || 'pet'}-memorial.html`;
+  link.download = `${pet.value?.name || "pet"}-memorial.html`;
   link.click();
   URL.revokeObjectURL(url);
-  showToast({ type: 'success', message: t('export_success') });
+  showToast({ type: "success", message: t("export_success") });
 }
 
 // ============================================================
@@ -1700,24 +1716,22 @@ useHead(() => ({
               {{ t("pet_send_gift") }}
             </button>
             <!-- 新增：导出图片（所有人可点） -->
-            <button 
-              type="button" 
-              class="btn btn--lg" 
+            <button
+              type="button"
+              class="btn btn--lg"
               :disabled="exportingImage"
               @click="handleExportImage"
             >
               <van-icon name="down" />
-              <span>{{ exportingImage ? t('export_generating') : t('export_image_btn') }}</span>
+              <span>{{
+                exportingImage ? t("export_generating") : t("export_image_btn")
+              }}</span>
             </button>
 
             <!-- 新增：导出 HTML（终身 VIP 专属） -->
-            <button 
-              type="button" 
-              class="btn btn--lg" 
-              @click="handleExportHtml"
-            >
+            <button type="button" class="btn btn--lg" @click="handleExportHtml">
               <van-icon name="description" />
-              <span>{{ t('export_html_btn') }}</span>
+              <span>{{ t("export_html_btn") }}</span>
             </button>
           </div>
         </div>
@@ -1725,20 +1739,24 @@ useHead(() => ({
     </div>
 
     <!-- 👇 新增：用于生成图片的隐藏容器 (固定宽 600px，不可见但被 html2canvas 读取) -->
-    <div 
-      v-if="pet" 
-      id="export-image-container" 
-      class="export-image-layer"
-    >
+    <div v-if="pet" id="export-image-container" class="export-image-layer">
       <!-- 👇 新增：右上角水印 -->
       <div class="ex-watermark">petmemory.me</div>
       <div class="export-card">
         <!-- 1. 宠物面板 -->
         <div class="ex-hero">
-          <img class="ex-avatar" :src="pet.avatarUrl || defaultPetAvatar" crossorigin="anonymous" />
+          <img
+            class="ex-avatar"
+            :src="pet.avatarUrl || defaultPetAvatar"
+            crossorigin="anonymous"
+            style="display: block"
+          />
           <h1 class="ex-name">{{ pet.name }}</h1>
           <p class="ex-intro" v-if="introParts.length">
-            {{ pet.name }}<span v-for="(part, i) in introParts" :key="i">{{ i === 0 ? " " : "，" }}{{ part }}</span>。
+            {{ pet.name
+            }}<span v-for="(part, i) in introParts" :key="i"
+              >{{ i === 0 ? " " : "，" }}{{ part }}</span
+            >。
           </p>
           <div class="ex-mood">
             <span>{{ moodStatusText }}</span>
@@ -1749,28 +1767,36 @@ useHead(() => ({
         <!-- 2. 相片 (最多 3 张) -->
         <div class="ex-section" v-if="photos && photos.length > 0">
           <div class="ex-photos">
-            <img 
-              v-for="photo in photos.slice(0, 3)" 
-              :key="photo.id" 
-              :src="photo.imageUrl" 
-              crossorigin="anonymous" 
+            <img
+              v-for="photo in photos.slice(0, 3)"
+              :key="photo.id"
+              :src="photo.imageUrl"
+              crossorigin="anonymous"
             />
           </div>
         </div>
 
         <!-- 3. 礼物 (最多 6 个) -->
         <div class="ex-section" v-if="giftItems.length > 0">
-          <h2 class="ex-title">{{ t('pet_gifts') }}</h2>
+          <h2 class="ex-title">{{ t("pet_gifts") }}</h2>
           <div class="ex-gifts">
-            <div v-for="item in giftItems.slice(0, 6)" :key="item.id" class="ex-gift-item">
-              <img :src="item.giftImageUrl" crossorigin="anonymous" />
+            <div
+              v-for="item in giftItems.slice(0, 6)"
+              :key="item.id"
+              class="ex-gift-item"
+            >
+              <img
+                :src="item.giftImageUrl"
+                crossorigin="anonymous"
+                style="display: block; width: 100%; height: 100%"
+              />
             </div>
           </div>
         </div>
 
         <!-- 4. 留言 (最多 3 条) -->
         <div class="ex-section" v-if="messages?.items?.length">
-          <h2 class="ex-title">{{ t('pet_messages') }}</h2>
+          <h2 class="ex-title">{{ t("pet_messages") }}</h2>
           <div class="ex-msg-list">
             <div v-for="msg in messages?.items?.slice(0, 3)" :key="msg.id" class="ex-msg">
               <div class="ex-msg-head">
@@ -1783,16 +1809,21 @@ useHead(() => ({
         </div>
 
         <!-- 5. 问答 (最多 3 轮即 6 条消息) -->
-        <div class="ex-section" v-if="publicChat?.hasConversation && publicChat?.messages?.length">
-          <h2 class="ex-title">{{ t('pet_chat_title') }}</h2>
+        <div
+          class="ex-section"
+          v-if="publicChat?.hasConversation && publicChat?.messages?.length"
+        >
+          <h2 class="ex-title">{{ t("pet_chat_title") }}</h2>
           <div class="ex-chat-list">
-            <div 
-              v-for="msg in publicChat?.messages?.slice(-6)" 
-              :key="msg.id" 
-              class="ex-chat" 
+            <div
+              v-for="msg in publicChat?.messages?.slice(-6)"
+              :key="msg.id"
+              class="ex-chat"
               :class="msg.role === 'user' ? 'is-user' : 'is-pet'"
             >
-              <span v-if="msg.role === 'assistant'" class="ex-chat-name">{{ pet?.name }}:</span>
+              <span v-if="msg.role === 'assistant'" class="ex-chat-name"
+                >{{ pet?.name }}:</span
+              >
               <span v-else class="ex-chat-name">{{ publicChat?.ownerNickname }}:</span>
               <span>{{ msg.content }}</span>
             </div>
@@ -1800,7 +1831,7 @@ useHead(() => ({
         </div>
 
         <div class="ex-footer">
-          <p>{{ t('app_name') }} · PetMemory</p>
+          <p>Pet Memory</p>
         </div>
       </div>
     </div>
@@ -3558,14 +3589,17 @@ useHead(() => ({
 // 👇 新增：生成图片的隐藏容器（固定样式，不受屏幕大小影响）
 // ============================================================
 .export-image-layer {
-  position: absolute; /* 👈 修复：用 absolute 既可以在屏幕外，又能作为子元素的定位参照 */
-  left: -9999px;
+  position: fixed;
   top: 0;
-  z-index: -1;
+  left: 0;
+  z-index: -9999; /* 放在最底层 */
   width: 600px;
-  background: #F9F7F3;
-  color: #3D332C;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  opacity: 0.01; /* 用透明隐藏，强行让浏览器渲染它 */
+  pointer-events: none; /* 防止遮挡点击 */
+  background: #f9f7f3;
+  color: #3d332c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
 }
 
 // 👇 新增：水印样式
@@ -3575,7 +3609,7 @@ useHead(() => ({
   right: 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #DCD0BF; // 用低对比度的暖灰色，不喧宾夺主
+  color: #dcd0bf; // 用低对比度的暖灰色，不喧宾夺主
   letter-spacing: 1px;
   z-index: 10;
   font-family: @font-mono; // 如果引入 common.less 可以直接用，或者写 monospace
@@ -3589,25 +3623,25 @@ useHead(() => ({
   text-align: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #EBE3D8;
+  border-bottom: 1px solid #ebe3d8;
 
   .ex-avatar {
     width: 100px;
     height: 100px;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 0 0 4px #fff, 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 0 0 4px #fff, 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 16px;
   }
   .ex-name {
     font-size: 28px;
     font-weight: 700;
     margin: 0 0 8px;
-    color: #3D332C;
+    color: #3d332c;
   }
   .ex-intro {
     font-size: 14px;
-    color: #7A6C61;
+    color: #7a6c61;
     line-height: 1.6;
     margin: 0 auto 12px;
     max-width: 80%;
@@ -3616,24 +3650,24 @@ useHead(() => ({
     display: inline-flex;
     gap: 12px;
     font-size: 12px;
-    color: #C25A5A;
-    background: #fff;
+    color: #c25a5a;
+    background: #fef8f5; /* 改为微粉底色 */
     padding: 4px 12px;
     border-radius: 20px;
-    border: 1px solid #EBE3D8;
+    border: 1px solid #fce4d8;
   }
 }
 
 .ex-section {
   margin-bottom: 24px;
-  
+
   .ex-title {
     font-size: 16px;
     font-weight: 600;
-    color: #3D332C;
+    color: #3d332c;
     margin: 0 0 12px;
     padding-left: 8px;
-    border-left: 3px solid #C25A5A;
+    border-left: 3px solid #c25a5a;
   }
 }
 
@@ -3647,7 +3681,7 @@ useHead(() => ({
     height: 160px;
     object-fit: cover;
     border-radius: 8px;
-    border: 1px solid #EBE3D8;
+    border: 1px solid #ebe3d8;
   }
 }
 
@@ -3663,8 +3697,8 @@ useHead(() => ({
     padding: 6px;
     background: #fff;
     border-radius: 50%;
-    border: 1px solid #EBE3D8;
-    
+    border: 1px solid #ebe3d8;
+
     img {
       width: 100%;
       height: 100%;
@@ -3682,13 +3716,13 @@ useHead(() => ({
     background: #fff;
     padding: 12px 16px;
     border-radius: 8px;
-    border: 1px solid #EBE3D8;
+    border: 1px solid #ebe3d8;
 
     .ex-msg-head {
       display: flex;
       justify-content: space-between;
       font-size: 12px;
-      color: #A69B91;
+      color: #a69b91;
       margin-bottom: 6px;
       font-weight: 500;
     }
@@ -3696,7 +3730,7 @@ useHead(() => ({
       margin: 0;
       font-size: 14px;
       line-height: 1.6;
-      color: #3D332C;
+      color: #3d332c;
       word-break: break-all;
     }
   }
@@ -3711,20 +3745,22 @@ useHead(() => ({
     background: #fff;
     padding: 10px 14px;
     border-radius: 8px;
-    border: 1px solid #EBE3D8;
+    border: 1px solid #ebe3d8;
     font-size: 13px;
     line-height: 1.5;
-    
+
     .ex-chat-name {
       font-weight: 600;
       margin-right: 6px;
-      color: #A66039;
+      color: #a66039;
     }
 
     &.is-user {
-      background: #FEF8F5;
-      border-color: #FCE4D8;
-      .ex-chat-name { color: #5B8A72; }
+      background: #fef8f5;
+      border-color: #fce4d8;
+      .ex-chat-name {
+        color: #5b8a72;
+      }
     }
   }
 }
@@ -3733,8 +3769,8 @@ useHead(() => ({
   margin-top: 40px;
   text-align: center;
   font-size: 12px;
-  color: #A69B91;
-  border-top: 1px dashed #EBE3D8;
+  color: #a69b91;
+  border-top: 1px dashed #ebe3d8;
   padding-top: 20px;
 }
 </style>
