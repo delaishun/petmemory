@@ -66,7 +66,6 @@ async function generate() {
   }
 }
 
-// 动态获取当前打印时间
 function updatePrintTime() {
   const d = new Date()
   const y = d.getFullYear()
@@ -78,6 +77,12 @@ function updatePrintTime() {
 }
 
 function exportPdf() {
+  // 如果还在加载中或者回忆录文本为空，拦截并提示
+  if (loading.value || !memoirText.value) {
+    showToast(t('memoir_generating') || '正在生成回忆录，请稍候...')
+    return
+  }
+
   updatePrintTime()
   const styleId = 'global-pdf-print-style'
   let styleEl = document.getElementById(styleId)
@@ -92,13 +97,13 @@ function exportPdf() {
           visibility: hidden !important;
         }
 
-        /* 2. 仅让纯净打印核心区可见 */
+        /* 2. 仅让纯净打印核心区及其内部所有文字可见 */
         .memoir-print-area,
         .memoir-print-area * {
           visibility: visible !important;
         }
 
-        /* 3. 让打印区充满 A4 纸页面并上下居中对齐 */
+        /* 3. 让打印区充满 A4 纸页面并顶部居中对齐 */
         .memoir-print-area {
           position: absolute !important;
           left: 50% !important;
@@ -112,7 +117,7 @@ function exportPdf() {
           box-sizing: border-box !important;
         }
 
-        /* 4. 头部（当前时间 + 宠物名字 + 头像）严格居中 */
+        /* 4. 顶部当前时间样式 */
         .memoir-print-time {
           display: block !important;
           text-align: center !important;
@@ -122,6 +127,7 @@ function exportPdf() {
           font-family: monospace !important;
         }
 
+        /* 5. 宠物头像和名字严格居中 */
         .memoir-header {
           display: flex !important;
           flex-direction: column !important;
@@ -150,15 +156,23 @@ function exportPdf() {
           margin: 0 !important;
         }
 
-        /* 5. 正文回忆录样式调整 */
+        /* 6. 回忆录正文排版（解决不显示和贴左问题） */
         .memoir-body {
+          display: block !important;
           text-align: left !important;
           font-size: 15px !important;
           line-height: 2.2 !important;
           color: #2c2c2c !important;
+          margin-top: 16px !important;
         }
 
-        /* 6. 底部 petmemory.me 居中 */
+        .memoir-body p {
+          visibility: visible !important;
+          display: block !important;
+          text-align: left !important;
+        }
+
+        /* 7. 底部 petmemory.me 居中 */
         .memoir-footer {
           display: block !important;
           text-align: center !important;
@@ -169,7 +183,7 @@ function exportPdf() {
           font-family: monospace !important;
         }
 
-        /* 7. 彻底干掉操作按钮和遮罩 */
+        /* 8. 彻底干掉操作按钮和遮罩 */
         .van-overlay,
         .memoir-actions,
         .no-print,
@@ -257,7 +271,6 @@ watch(visible, (val) => {
   margin: 0 auto;
 }
 
-// 屏幕上隐藏打印时间，只在打印时显示
 .memoir-print-time {
   display: none;
 }
