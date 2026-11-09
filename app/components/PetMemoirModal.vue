@@ -233,86 +233,78 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 全局生效的纯净打印排版（终极居中版） */
+/* 👇 全局生效的纯净打印排版（修复左侧半屏问题） */
 /* ============================================================ */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 15mm; /* 留出 A4 纸四周的白边 */
+    margin: 15mm;
   }
 
-  /* 1. 干掉主页和多余元素 */
+  /* 1. 隐藏多余网页元素 */
   #__nuxt,
   .van-overlay,
   .memoir-actions {
     display: none !important;
   }
 
-  /* 2. 根节点重置 */
   body, html {
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
     width: 100% !important;
-    height: auto !important;
+    height: 100% !important;
   }
 
-  /* 3. 核心大招：把弹窗变成一个全屏的居中画板（Flex 布局） */
+  /* 2. 强制弹窗铺满整张纸的宽度，而非只占半边 */
   .memoir-popup {
-    position: fixed !important;
-    inset: 0 !important; /* 铺满整个纸张 */
-    width: 100vw !important;
-    height: 100vh !important;
-    display: flex !important;
-    justify-content: center !important; /* 水平居中 */
-    align-items: flex-start !important; /* 靠上对齐 */
-    transform: none !important; /* 干掉原本的 -50% 偏移 */
-    left: auto !important;
-    bottom: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
-    box-shadow: none !important;
-    z-index: 9999 !important;
-  }
-
-  /* 4. 清空内部容器的限制 */
-  .memoir-popup .memoir-content {
+    position: static !important;
     display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
     height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .memoir-popup .memoir-content {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
   }
 
-  /* 5. 限制内容的实际宽度，配合 flex 在中间显示 */
+  /* 3. 核心修复：内层容器撑满 100% 宽度，并居中排版 */
   .memoir-popup .memoir-inner {
     display: block !important;
     width: 100% !important;
-    max-width: 600px !important; /* 限制宽度，保证文字不会拉得太长 */
-    margin: 0 auto !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
     box-sizing: border-box !important;
   }
 
-  /* 6. 头部排版 */
+  /* 4. 头部居中 */
   .memoir-popup .memoir-header {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     text-align: center !important;
-    padding-bottom: 12px !important;
-    margin-bottom: 16px !important;
-    border-bottom: 1px solid #eee !important;
+    padding-bottom: 15px !important;
+    margin-bottom: 20px !important;
+    border-bottom: 1px solid #ddd !important;
   }
 
   .memoir-popup .memoir-avatar {
-    width: 64px !important;
-    height: 64px !important;
+    width: 70px !important;
+    height: 70px !important;
     margin-bottom: 8px !important;
   }
   
@@ -322,25 +314,26 @@ watch(visible, (val) => {
   }
 
   .memoir-popup .memoir-date {
-    font-size: 12px !important;
+    font-size: 11px !important;
     color: #888 !important;
   }
 
-  /* 7. 正文排版 */
+  /* 5. 正文宽度拉满，不再偏在左侧半边 */
   .memoir-popup .memoir-body {
     display: block !important;
-    text-align: justify !important; /* 两端对齐，更适合纸质阅读 */
-    font-size: 14pt !important;
+    width: 100% !important;
+    text-align: left !important;
+    font-size: 13pt !important;
     line-height: 1.8 !important;
-    color: #000 !important;
-    page-break-inside: auto !important;
+    color: #2c2c2c !important;
   }
 
   .memoir-popup .memoir-body p {
     margin: 0 !important;
+    width: 100% !important;
   }
 
-  /* 8. 页脚排版 */
+  /* 6. 底部落款居中 */
   .memoir-popup .memoir-footer {
     display: flex !important;
     flex-direction: column !important;
@@ -351,7 +344,6 @@ watch(visible, (val) => {
     border-top: 1px dashed #ccc !important;
     font-size: 10pt !important;
     color: #666 !important;
-    page-break-inside: avoid !important;
   }
 }
 </style>
