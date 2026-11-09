@@ -86,7 +86,8 @@ function matchMonthDay(dateStr: string | null | undefined): boolean {
 
 function initFestivalEffect() {
   if (import.meta.server) return
-  if (!props.pet.owner?.isVip) {
+  // 👇 核心修改：只有终身 VIP 才触发卡片内特效
+  if (!props.pet.owner?.isLifetimeVip) {
     festivalType.value = null
     festivalParticles.value = []
     return
@@ -113,7 +114,8 @@ onMounted(() => {
 })
 
 watch(
-  () => [props.pet.birthday, props.pet.leaveDate, props.pet.owner?.isVip] as const,
+  // 👇 监听 isLifetimeVip 变化
+  () => [props.pet.birthday, props.pet.leaveDate, props.pet.owner?.isLifetimeVip] as const,
   () => initFestivalEffect()
 )
 </script>
@@ -122,10 +124,10 @@ watch(
   <NuxtLink
     :to="`/pets/${pet.slug}`"
     class="pet-card"
-    :class="{ 'is-vip-panel': pet.owner?.isVip }"
-    :style="getEffectStyle(pet.owner?.isVip)"
+    :class="{ 'is-vip-panel': pet.owner?.isLifetimeVip }"
+    :style="getEffectStyle(pet.owner?.isLifetimeVip)"
   >
-    <!-- 👇 生日 / 忌日 特效层（卡片内绝对定位，由卡片 overflow: hidden 裁剪） -->
+    <!-- 👇 生日 / 忌日 特效层 -->
     <div
       v-if="festivalType && festivalParticles.length"
       class="pet-card__festival"
@@ -145,8 +147,8 @@ watch(
       >{{ p.emoji }}</span>
     </div>
 
-    <!-- 头像带特效边框 (引入全局 avatar-effect) -->
-    <div class="pet-card__avatar-wrap avatar-effect" :class="getEffectClass(pet.owner?.isVip)">
+    <!-- 头像带特效边框 (只有终身VIP有特效边框) -->
+    <div class="pet-card__avatar-wrap avatar-effect" :class="getEffectClass(pet.owner?.isLifetimeVip)">
       <img
         class="pet-card__avatar"
         :src="pet.avatarUrl || defaultPetAvatar"
@@ -159,18 +161,19 @@ watch(
     <div class="pet-card__content">
       <div class="pet-card__name">
         {{ pet.name }}
-        <!-- 👇 新增：名字旁的微型 VIP 标识 -->
+        
+        <!-- 👇 修改：名字旁的微型 VIP 标识 (Emoji) -->
         <span v-if="pet.owner?.isVip" class="pet-card__vip-badge">
-          <van-icon
+          <span
             v-if="pet.owner.isLifetimeVip"
-            name="diamond-o"
+            title="终身 VIP"
             class="is-lifetime"
-          />
-          <van-icon
+          >💎</span>
+          <span
             v-if="pet.owner.vipExpiresAt && new Date(pet.owner.vipExpiresAt) > new Date()"
-            name="gem-o"
+            title="订阅 VIP"
             class="is-sub"
-          />
+          >🌈</span>
         </span>
       </div>
       <div v-if="petBrief(pet)" class="pet-card__brief">
@@ -306,22 +309,13 @@ watch(
     .line-1();
   }
 
-  // 👇 新增：VIP 角标样式
+  // 👇 修改：VIP 角标样式
   &__vip-badge {
     display: inline-flex;
     align-items: center;
     gap: 2px;
     font-size: 14px;
-
-    .is-lifetime {
-      color: #00bfff;
-      filter: drop-shadow(0 1px 2px rgba(0, 191, 255, 0.4));
-    }
-
-    .is-sub {
-      color: #f1c40f;
-      filter: drop-shadow(0 1px 2px rgba(241, 196, 15, 0.4));
-    }
+    // 移除了颜色和滤镜，因为 emoji 自带颜色
   }
 
   &__brief {
