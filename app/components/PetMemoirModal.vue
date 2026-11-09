@@ -6,7 +6,6 @@ import { useI18n } from '~/composables/useI18n'
 const { t } = useI18n()
 const { $api } = useNuxtApp()
 
-//123
 interface Props {
   modelValue: boolean
   petName: string
@@ -234,12 +233,19 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 全局生效的纯净打印排版 */
+/* 👇 全局生效的纯净打印排版（彻底解决居中及偏左半屏问题） */
 /* ============================================================ */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 15mm; /* 保留适当的页边距 */
+    margin: 15mm;
+  }
+
+  /* 1. 隐藏网页多余元素 */
+  #__nuxt,
+  .van-overlay,
+  .memoir-actions {
+    display: none !important;
   }
 
   body, html {
@@ -250,53 +256,47 @@ watch(visible, (val) => {
     height: auto !important;
   }
 
-  /* 1. 隐藏主页和操作按钮 */
-  #__nuxt, 
-  .van-overlay, 
-  .memoir-actions {
-    display: none !important;
-  }
-
-  /* 2. 彻底重置弹窗外层，强制脱离 Vant 的 fixed 限制，取消一切偏移 */
-  .van-popup {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: auto !important; /* 让高度由内容撑开 */
+  /* 2. 彻底清除 Vant 弹窗的行内偏移（如 left: 50% 和 translate），强制拉满 100% 并居中 */
+  .van-popup.memoir-popup {
+    position: static !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
-    transform: none !important; 
+    height: auto !important;
+    transform: none !important;
+    translate: none !important;
+    left: 0 !important;
+    right: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
-    overflow: visible !important; /* 去掉外层滚动条 */
   }
 
-  /* 3. 清理内容区，去掉高度限制和滚动条 */
-  .van-popup .memoir-content {
+  .van-popup.memoir-popup .memoir-content {
     display: block !important;
+    position: static !important;
     width: 100% !important;
-    max-height: none !important;
-    overflow: visible !important; /* 去掉内层滚动条 */
+    max-width: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
   }
 
-  /* 4. 核心居中：利用 max-width 和 margin: 0 auto 让内容完美居中 */
-  .van-popup .memoir-inner {
+  /* 3. 核心内层容器：限制宽度并设置 margin: 0 auto 保证绝对居中 */
+  .van-popup.memoir-popup .memoir-inner {
     display: block !important;
     width: 100% !important;
-    max-width: 700px !important; /* 限制最大宽度，防止文字拉得太长 */
-    margin: 0 auto !important;   /* 配合 max-width 实现居中 */
+    max-width: 650px !important;
+    margin: 0 auto !important;
     padding: 0 !important;
+    background: transparent !important;
     box-sizing: border-box !important;
   }
 
-  /* 5. 头部排版 */
-  .van-popup .memoir-header {
+  /* 4. 头部居中 */
+  .van-popup.memoir-popup .memoir-header {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -306,40 +306,39 @@ watch(visible, (val) => {
     border-bottom: 1px solid #ddd !important;
   }
 
-  .van-popup .memoir-avatar {
+  .van-popup.memoir-popup .memoir-avatar {
     width: 70px !important;
     height: 70px !important;
     margin-bottom: 8px !important;
   }
   
-  .van-popup .memoir-title {
+  .van-popup.memoir-popup .memoir-title {
     font-size: 20px !important;
     margin-bottom: 4px !important;
   }
 
-  .van-popup .memoir-date {
+  .van-popup.memoir-popup .memoir-date {
     font-size: 11px !important;
     color: #888 !important;
   }
 
-  /* 6. 正文排版 */
-  .van-popup .memoir-body {
+  /* 5. 正文宽度拉满且两端对齐 */
+  .van-popup.memoir-popup .memoir-body {
     display: block !important;
     width: 100% !important;
-    text-align: justify !important; /* 两端对齐，纸质书效果 */
+    text-align: justify !important;
     font-size: 13pt !important;
     line-height: 1.8 !important;
-    color: #000 !important;
-    page-break-inside: auto !important;
+    color: #2c2c2c !important;
   }
 
-  .van-popup .memoir-body p {
+  .van-popup.memoir-popup .memoir-body p {
     margin: 0 !important;
     width: 100% !important;
   }
 
-  /* 7. 底部落款居中 */
-  .van-popup .memoir-footer {
+  /* 6. 底部落款居中 */
+  .van-popup.memoir-popup .memoir-footer {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -349,7 +348,6 @@ watch(visible, (val) => {
     border-top: 1px dashed #ccc !important;
     font-size: 10pt !important;
     color: #666 !important;
-    page-break-inside: avoid !important;
   }
 }
 </style>
