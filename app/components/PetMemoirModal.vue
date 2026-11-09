@@ -2,34 +2,27 @@
 <script setup lang="ts">
 import { showToast } from 'vant'
 import { useI18n } from '~/composables/useI18n'
-
 const { t } = useI18n()
 const { $api } = useNuxtApp()
-
 interface Props {
   modelValue: boolean
   petName: string
   petAvatarUrl?: string | null
   slug: string
 }
-
 const props = withDefaults(defineProps<Props>(), {
   petAvatarUrl: null,
 })
-
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
-
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
 })
-
 const loading = ref(false)
 const memoirText = ref('')
 const currentPrintTime = ref('')
-
 const defaultPetAvatar =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
@@ -39,7 +32,6 @@ const defaultPetAvatar =
        <path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF" />
      </svg>`
   )
-
 async function generate() {
   loading.value = true
   try {
@@ -65,7 +57,6 @@ async function generate() {
     loading.value = false
   }
 }
-
 function updatePrintTime() {
   const d = new Date()
   const y = d.getFullYear()
@@ -75,7 +66,6 @@ function updatePrintTime() {
   const mm = String(d.getMinutes()).padStart(2, '0')
   currentPrintTime.value = `${y}-${m}-${dd} ${hh}:${mm}`
 }
-
 function exportPdf() {
   if (loading.value || !memoirText.value) {
     showToast(t('memoir_generating') || '正在生成回忆录，请稍候...')
@@ -84,14 +74,12 @@ function exportPdf() {
   updatePrintTime()
   window.print()
 }
-
 watch(visible, (val) => {
   if (val && !memoirText.value) {
     generate()
   }
 })
 </script>
-
 <template>
   <van-popup
     v-model:show="visible"
@@ -109,21 +97,17 @@ watch(visible, (val) => {
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
           <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
-
         <div v-if="loading" class="memoir-loading">
           <van-loading type="spinner" color="#E8A87C" size="32" />
           <p>{{ t('memoir_generating') || '正在翻阅回忆...' }}</p>
         </div>
-
         <div v-else class="memoir-body">
           <p style="white-space: pre-wrap;">{{ memoirText }}</p>
         </div>
-
         <!-- 底部落款 -->
         <div v-if="!loading" class="memoir-footer">
           petmemory.me
         </div>
-
         <div class="memoir-actions no-print">
           <button v-if="!loading" type="button" class="btn btn--primary btn--lg" @click="exportPdf">
             {{ t('memoir_export') || '导出 PDF' }}
@@ -136,10 +120,8 @@ watch(visible, (val) => {
     </div>
   </van-popup>
 </template>
-
 <style lang="less">
 @import "~/assets/css/common.less";
-
 /* ============================================================ */
 /* 屏幕显示样式 */
 /* ============================================================ */
@@ -222,9 +204,8 @@ watch(visible, (val) => {
     .btn { flex: 1; }
   }
 }
-
 /* ============================================================ */
-/* 👇 终极打印隔离：只留核心回忆录，彻底切断多余页面 */
+/* 👇 修复打印偏左问题 & 彻底消除尾部多余元素 */
 /* ============================================================ */
 @media print {
   @page {
@@ -232,99 +213,126 @@ watch(visible, (val) => {
     margin: 15mm;
   }
 
-  /* 1. 隐藏全网页所有非打印元素和后续杂项 */
-  body * {
+  /* 1. 核心大招：直接把主页框架完全隐藏 */
+  #__nuxt {
     display: none !important;
   }
 
-  /* 2. 仅精确放行打印核心区及其子元素 */
-  .memoir-print-area,
-  .memoir-print-area * {
-    display: block !important;
-    visibility: visible !important;
-  }
-
-  /* 3. 恢复头部和底部落款的 Flex 布局，保证居中 */
-  .memoir-print-area .memoir-header,
-  .memoir-print-area .memoir-footer {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-  }
-
-  /* 4. 强制重置根节点和打印卡片样式，居中展现 */
-  body, html {
+  /* 2. 重置 body 和 teleport 容器，让弹窗自然撑开 */
+  html, body {
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
     width: 100% !important;
+    height: auto !important;
   }
 
-  .memoir-print-area {
-    position: relative !important;
+  #teleports {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 3. 隐藏网页多余元素 */
+  .van-overlay,
+  .memoir-actions,
+  .no-print {
+    display: none !important;
+  }
+
+  /* 4. van-popup 弹窗彻底清除所有定位残留 */
+  .van-popup.memoir-popup {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
+    left: auto !important;
+    right: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .van-popup.memoir-popup .memoir-content {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  /* 5. 核心打印内容容器，强制居中 */
+  .van-popup.memoir-popup .memoir-inner {
+    display: block !important;
+    box-sizing: border-box !important;
     width: 100% !important;
     max-width: 620px !important;
     margin: 0 auto !important;
     padding: 0 !important;
-    background: #fff !important;
+    background: transparent !important;
   }
 
-  /* 5. 样式细节精修 */
-  .memoir-print-area .memoir-avatar {
-    width: 70px !important;
-    height: 70px !important;
-    margin: 0 auto 8px auto !important;
-    border-radius: 50% !important;
-    object-fit: cover !important;
-  }
-
-  .memoir-print-area .memoir-title {
-    font-size: 20px !important;
+  /* 6. 头部区域 */
+  .van-popup.memoir-popup .memoir-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
     text-align: center !important;
-    margin-bottom: 4px !important;
-    font-family: serif !important;
-    color: #2c2c2c !important;
-  }
-
-  .memoir-print-area .memoir-date {
-    font-size: 11px !important;
-    color: #888 !important;
-    text-align: center !important;
-    font-family: monospace !important;
-  }
-
-  .memoir-print-area .memoir-header {
     padding-bottom: 15px !important;
     margin-bottom: 20px !important;
     border-bottom: 1px solid #ddd !important;
   }
+  .van-popup.memoir-popup .memoir-avatar {
+    width: 70px !important;
+    height: 70px !important;
+    margin-bottom: 8px !important;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .van-popup.memoir-popup .memoir-title {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+    font-family: serif;
+  }
+  .van-popup.memoir-popup .memoir-date {
+    font-size: 11px !important;
+    color: #888 !important;
+    font-family: monospace;
+  }
 
-  .memoir-print-area .memoir-body {
+  /* 7. 正文排版 */
+  .van-popup.memoir-popup .memoir-body {
+    display: block !important;
+    width: 100% !important;
+    text-align: justify !important;
     font-size: 13pt !important;
     line-height: 1.8 !important;
     color: #2c2c2c !important;
-    text-align: justify !important;
-    font-family: serif !important;
+    font-family: serif;
+    word-break: break-word;
   }
-
-  .memoir-print-area .memoir-body p {
+  .van-popup.memoir-popup .memoir-body p {
     margin: 0 !important;
-    white-space: pre-wrap !important;
+    width: 100% !important;
+    white-space: pre-wrap;
   }
 
-  .memoir-print-area .memoir-footer {
+  /* 8. 底部落款 */
+  .van-popup.memoir-popup .memoir-footer {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
     margin-top: 30px !important;
     padding-top: 10px !important;
     border-top: 1px dashed #ccc !important;
     font-size: 10pt !important;
     color: #666 !important;
-    font-family: monospace !important;
-  }
-
-  /* 6. 隐藏操作按钮 */
-  .memoir-actions,
-  .no-print {
-    display: none !important;
+    font-family: monospace;
   }
 }
 </style>
