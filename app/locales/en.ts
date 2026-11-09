@@ -614,7 +614,7 @@ export default {
 
   article_contribute_text: 'If you have a pet memorial story to share, please email us at fczx1999@gmail.com. We will publish it as soon as we receive it.',
 
-  lifetime_vip_sub_expired: 'You are a Lifetime VIP, but your AI Chat subscription has expired. Renew your subscription to continue chatting with them.', // 👈 新增
+  lifetime_vip_sub_expired: 'You are a Lifetime VIP, but your Chat subscription has expired. Renew your subscription to continue chatting with them.', // 👈 新增
 
   vip_upgrade_title: 'Upgrade Privileges',
   vip_upgrade_subtitle: 'Choose the memorial plan that suits you best',
@@ -625,7 +625,7 @@ export default {
   vip_plan_lifetime_f2: 'Get 10,000 bonus points',
   vip_plan_lifetime_btn: 'Upgrade Lifetime ($8.9)',
   vip_plan_sub_title: 'Premium Subscription',
-  vip_plan_sub_f1: 'Unlock AI cross-time chat & monthly exclusive gifts',
+  vip_plan_sub_f1: 'Unlock cross-time pet chat & monthly exclusive gifts',
   vip_plan_sub_f2: 'Unlock exclusive memoirs & daily mood effects',
   vip_plan_sub_f3: 'Get 10,000 bonus points',
   vip_plan_sub_btn: 'Subscribe ($5.9/yr)',
@@ -655,7 +655,7 @@ export default {
   vip_lifetime_f4: 'Get 10,000 bonus points',
 
   vip_sub_title: 'Subscription VIP Privileges',
-  vip_sub_f1: 'Use AI to chat with your pet across time and space',
+  vip_sub_f1: 'Chat with your pet across time and space',
   vip_sub_f2: 'Receive random gifts every month upon login',
   vip_sub_f3: 'Generate exclusive memoirs weekly and export as PDF',
   vip_sub_f4: 'Get 10,000 bonus points',

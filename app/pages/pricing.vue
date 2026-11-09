@@ -44,13 +44,13 @@ const vipPlans = computed(() => [
       'Permanently unlock 20 photos limit',
       'Premium backgrounds, effects & music',
       'Export offline HTML webpage',
-      'Get 1-Year Subscription FREE (with AI)',
+      'Get 1-Year Subscription FREE (Includes Cross-Time Messaging)',
       'Get 10,000 bonus points'
     ] : [
       '永久解锁 20 张相册空间',
       '解锁精美背景、节日特效与专属音乐',
       '一键导出离线 HTML 网页',
-      '限时赠送 1 年订阅 VIP（含 AI 对话）',
+      '限时赠送 1 年订阅 VIP（含宠物对话）',
       '赠送 10000 积分'
     ]
   },
@@ -62,12 +62,12 @@ const vipPlans = computed(() => [
     period: locale.value === 'en' ? '/ year' : '/ 年',
     theme: 'gold',
     features: locale.value === 'en' ? [
-      'Unlimited AI cross-time chat',
+      'Unlimited Cross-Time Pet Chat',
       'Weekly exclusive memoir (PDF)',
       'Monthly random gifts',
       'Get 10,000 bonus points'
     ] : [
-      '无限次 AI 跨时空对话',
+      '无限次跨时空宠物对话',
       '每周生成专属回忆录并支持 PDF 导出',
       '每月登录获赠随机礼物',
       '赠送 10000 积分'

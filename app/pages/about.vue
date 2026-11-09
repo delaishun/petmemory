@@ -36,12 +36,12 @@ const tiers = computed(() => [
       'Create pet memorial page',
       'Upload up to 2 photos',
       'Unlimited messages & gifts',
-      '3 free AI interactions'
+      '3 free interactions with chat'
     ] : [
       '建立专属宠物主页',
       '上传最多 2 张相片',
       '无限次留言与赠礼',
-      '3 次免费 AI 对话体验'
+      '3 次免费宠物对话体验'
     ]
   },
   {
@@ -69,12 +69,12 @@ const tiers = computed(() => [
     icon: '🌈',
     isVip: true,
     features: locale.value === 'en' ? [
-      'Unlimited AI cross-time chat',
+      'Unlimited Cross-Time Pet Chat',
       'Weekly exclusive memoir (PDF)',
       'Monthly random gifts',
       'Get 10,000 bonus points'
     ] : [
-      '无限次 AI 跨时空对话',
+      '无限次跨时空宠物对话',
       '每周生成专属回忆录并支持 PDF 导出',
       '每月登录获赠随机礼物',
       '赠送 10000 积分'

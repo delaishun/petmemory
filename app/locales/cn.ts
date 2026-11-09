@@ -616,7 +616,7 @@ export default {
 
   article_contribute_text: '若您也有关于爱宠的回忆故事，欢迎投稿至 fczx1999@gmail.com，我们将在收到后第一时间为您发布。',
 
-  lifetime_vip_sub_expired: '您是终身 VIP，但 AI 对话专属订阅已过期，续费订阅即可继续和 ta 聊天。', // 👈 新增
+  lifetime_vip_sub_expired: '您是终身 VIP，但 宠物对话专属订阅已过期，续费订阅即可继续和 ta 聊天。', // 👈 新增
 
   vip_upgrade_title: '升级特权',
   vip_upgrade_subtitle: '选择最适合您的纪念方案',
@@ -627,7 +627,7 @@ export default {
   vip_plan_lifetime_f2: '赠送 10000 积分',
   vip_plan_lifetime_btn: '升级终身 VIP ($8.9)',
   vip_plan_sub_title: '尊享订阅版',
-  vip_plan_sub_f1: '解锁 AI 跨时空对话、每月专属礼物',
+  vip_plan_sub_f1: '解锁宠物跨时空对话、每月专属礼物',
   vip_plan_sub_f2: '解锁专属回忆录、每日心情特效',
   vip_plan_sub_f3: '赠送 10000 积分',
   vip_plan_sub_btn: '订阅尊享 VIP ($5.9/年)',
@@ -657,7 +657,7 @@ export default {
   vip_lifetime_f4: '赠送 10000 积分',
 
   vip_sub_title: '尊享订阅 VIP 权益',
-  vip_sub_f1: '使用 AI 模拟与宠物跨时空对话',
+  vip_sub_f1: '宠物跨时空对话',
   vip_sub_f2: '每月登录获赠随机礼物',
   vip_sub_f3: '每周生成专属回忆录并支持导出 PDF',
   vip_sub_f4: '赠送 10000 积分',
