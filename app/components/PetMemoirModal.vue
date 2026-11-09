@@ -28,6 +28,7 @@ const visible = computed({
 
 const loading = ref(false)
 const memoirText = ref('')
+const currentPrintTime = ref('')
 
 const defaultPetAvatar =
   "data:image/svg+xml;utf8," +
@@ -65,8 +66,19 @@ async function generate() {
   }
 }
 
-// 核心修复：使用经典的 visibility 显隐控制法，完美只打印回忆录卡片
+// 动态获取当前打印时间
+function updatePrintTime() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  currentPrintTime.value = `${y}-${m}-${dd} ${hh}:${mm}`
+}
+
 function exportPdf() {
+  updatePrintTime()
   const styleId = 'global-pdf-print-style'
   let styleEl = document.getElementById(styleId)
   
@@ -75,37 +87,49 @@ function exportPdf() {
     styleEl.id = styleId
     styleEl.innerHTML = `
       @media print {
-        /* 1. 默认隐藏页面上的一切内容 */
+        /* 1. 隐藏全网页所有元素 */
         body * {
           visibility: hidden !important;
         }
 
-        /* 2. 仅让回忆录打印核心区域及其内部子元素可见 */
+        /* 2. 仅让纯净打印核心区可见 */
         .memoir-print-area,
         .memoir-print-area * {
           visibility: visible !important;
         }
 
-        /* 3. 让打印区域重置到左上角并撑满 */
+        /* 3. 让打印区充满 A4 纸页面并上下居中对齐 */
         .memoir-print-area {
           position: absolute !important;
-          left: 0 !important;
+          left: 50% !important;
           top: 0 !important;
+          transform: translateX(-50%) !important;
           width: 100% !important;
-          max-width: 100% !important;
+          max-width: 650px !important;
           margin: 0 !important;
-          padding: 20px 40px !important;
+          padding: 30px 20px !important;
           background: #fff !important;
           box-sizing: border-box !important;
         }
 
-        /* 4. 强制居中头部与头像，杜绝偏左或重叠 */
+        /* 4. 头部（当前时间 + 宠物名字 + 头像）严格居中 */
+        .memoir-print-time {
+          display: block !important;
+          text-align: center !important;
+          font-size: 12px !important;
+          color: #999 !important;
+          margin-bottom: 12px !important;
+          font-family: monospace !important;
+        }
+
         .memoir-header {
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           text-align: center !important;
-          margin-bottom: 30px !important;
+          margin-bottom: 24px !important;
+          border-bottom: none !important;
+          padding-bottom: 0 !important;
         }
 
         .memoir-avatar {
@@ -114,13 +138,19 @@ function exportPdf() {
           width: 80px !important;
           height: 80px !important;
           border-radius: 50% !important;
+          object-fit: cover !important;
         }
 
-        .memoir-title, .memoir-subtitle {
+        .memoir-title {
           text-align: center !important;
           width: 100% !important;
+          font-size: 22px !important;
+          font-weight: 700 !important;
+          color: #2c2c2c !important;
+          margin: 0 !important;
         }
 
+        /* 5. 正文回忆录样式调整 */
         .memoir-body {
           text-align: left !important;
           font-size: 15px !important;
@@ -128,10 +158,22 @@ function exportPdf() {
           color: #2c2c2c !important;
         }
 
-        /* 5. 彻底隐藏遮罩、按钮等非打印元素 */
+        /* 6. 底部 petmemory.me 居中 */
+        .memoir-footer {
+          display: block !important;
+          text-align: center !important;
+          font-size: 12px !important;
+          color: #999 !important;
+          margin-top: 40px !important;
+          border-top: none !important;
+          font-family: monospace !important;
+        }
+
+        /* 7. 彻底干掉操作按钮和遮罩 */
         .van-overlay,
         .memoir-actions,
-        .no-print {
+        .no-print,
+        .memoir-subtitle {
           display: none !important;
           visibility: hidden !important;
         }
@@ -161,12 +203,16 @@ watch(visible, (val) => {
     class="memoir-popup"
   >
     <div class="memoir-content">
-      <!-- 带有 memoir-print-area 类名的容器会被精准提取打印 -->
+      <!-- 纯净打印包裹区 -->
       <div class="memoir-inner memoir-print-area">
+        <!-- 打印专属：顶部当前时间 -->
+        <div class="memoir-print-time" v-if="currentPrintTime">
+          {{ currentPrintTime }}
+        </div>
+
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
-          <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
-          <p class="memoir-subtitle">Exclusive Weekly Memory</p>
+          <h2 class="memoir-title">{{ petName }}</h2>
         </header>
 
         <div v-if="loading" class="memoir-loading">
@@ -209,6 +255,11 @@ watch(visible, (val) => {
   padding: @sp-6 @sp-5;
   max-width: 650px;
   margin: 0 auto;
+}
+
+// 屏幕上隐藏打印时间，只在打印时显示
+.memoir-print-time {
+  display: none;
 }
 
 .memoir-header {
