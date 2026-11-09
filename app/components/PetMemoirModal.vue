@@ -33,15 +33,18 @@ const exporting = ref(false)
 const memoirText = ref('')
 const currentPrintTime = ref('')
 
-const defaultPetAvatar =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-       <rect width="120" height="120" fill="#F5EEE4" />
-       <circle cx="60" cy="52" r="22" fill="#DCD0BF" />
-       <path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF" />
-     </svg>`
-  )
+// 头像加载失败时的兜底标识
+const avatarLoadError = ref(false)
+
+// 监听弹窗打开时，重置头像加载状态
+watch(visible, (val) => {
+  if (val) {
+    avatarLoadError.value = false
+    if (!memoirText.value) {
+      generate()
+    }
+  }
+})
 
 async function generate() {
   loading.value = true
@@ -50,7 +53,7 @@ async function generate() {
       method: 'POST',
     })
     
-    // 👇 自动清洗掉 AI 文本末尾自带的“永远爱你的...”字样，防止与前端落款重复
+    // 自动清洗掉 AI 文本末尾自带的“永远爱你的...”字样，防止与前端落款重复
     let cleanText = res.memoir || ''
     cleanText = cleanText.replace(/永远爱你的[\s\S]*$/, '').trim()
     memoirText.value = cleanText
@@ -99,8 +102,8 @@ async function exportPdf() {
   updatePrintTime()
   await nextTick() // 等待日期及 DOM 渲染完成
   
-  // 给头像加载留出一点缓冲时间，防止 html2canvas 截到空白头像
-  await new Promise((resolve) => setTimeout(resolve, 200))
+  // 给头像加载留出一点缓冲时间
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
   const target = document.querySelector('.memoir-print-area') as HTMLElement
   if (!target) {
@@ -120,6 +123,7 @@ async function exportPdf() {
     const canvas = await html2canvas(target, {
       scale: 2, // 2倍清晰度
       useCORS: true,
+      allowTaint: true,
       backgroundColor: '#faf6f1',
       windowWidth: target.scrollWidth,
       windowHeight: target.scrollHeight,
@@ -132,16 +136,13 @@ async function exportPdf() {
     // 2. 使用 jsPDF 将画布生成 PDF
     const pdf = new jsPDF('p', 'mm', 'a4')
     
-    // A4 纸尺寸 (mm)
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = pdf.internal.pageSize.getHeight()
     
     const margin = 10 // 页边距 10mm
     const contentWidth = pdfWidth - margin * 2
 
-    // 根据画布比例计算图片在 PDF 中的实际高度
     const imgHeight = (canvas.height * contentWidth) / canvas.width
-
     const imgData = canvas.toDataURL('image/jpeg', 0.95)
 
     let heightLeft = imgHeight
@@ -159,7 +160,6 @@ async function exportPdf() {
       heightLeft -= (pdfHeight - margin * 2)
     }
 
-    // 触发下载（落款干净、不带括号大宝）
     pdf.save(`${props.petName}-Memoir.pdf`)
     loadingToast.close()
   } catch (err) {
@@ -170,12 +170,6 @@ async function exportPdf() {
     exporting.value = false
   }
 }
-
-watch(visible, (val) => {
-  if (val && !memoirText.value) {
-    generate()
-  }
-})
 </script>
 
 <template>
@@ -192,7 +186,26 @@ watch(visible, (val) => {
       <!-- 截图核心区域 -->
       <div class="memoir-inner memoir-print-area">
         <header class="memoir-header">
-          <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" crossorigin="anonymous" />
+          <!-- 宠物头像：增加 @error 兜底与直观 SVG 渲染 -->
+          <div class="memoir-avatar-wrap">
+            <img 
+              v-if="petAvatarUrl && !avatarLoadError" 
+              class="memoir-avatar" 
+              :src="petAvatarUrl" 
+              alt="avatar" 
+              crossorigin="anonymous"
+              @error="avatarLoadError = true" 
+            />
+            <!-- 兜底可爱小宠物 SVG 占位，确保绝不空白 -->
+            <div v-else class="memoir-avatar memoir-avatar-default">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+                <rect width="120" height="120" fill="#F5EEE4" rx="60"/>
+                <circle cx="60" cy="52" r="22" fill="#DCD0BF"/>
+                <path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF"/>
+              </svg>
+            </div>
+          </div>
+
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
           <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
@@ -204,7 +217,7 @@ watch(visible, (val) => {
 
         <div v-else class="memoir-body">
           <p style="white-space: pre-wrap;">{{ memoirText }}</p>
-          <!-- 单独规范的落款，不含（大宝） -->
+          <!-- 规范单次落款 -->
           <div class="memoir-signoff">
             永远爱你的 {{ petName }}
           </div>
@@ -265,13 +278,21 @@ watch(visible, (val) => {
   padding-bottom: @sp-4;
 }
 
+.memoir-avatar-wrap {
+  width: 80px;
+  height: 80px;
+  margin-bottom: @sp-3;
+}
+
 .memoir-avatar {
   width: 80px;
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: @sp-3;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .memoir-title {
