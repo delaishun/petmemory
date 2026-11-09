@@ -65,7 +65,7 @@ async function generate() {
   }
 }
 
-// 核心修复：点击导出时动态注入全局打印样式，强行打垮主页的所有多余元素
+// 核心修复：使用经典的 visibility 显隐控制法，完美只打印回忆录卡片
 function exportPdf() {
   const styleId = 'global-pdf-print-style'
   let styleEl = document.getElementById(styleId)
@@ -75,65 +75,37 @@ function exportPdf() {
     styleEl.id = styleId
     styleEl.innerHTML = `
       @media print {
-        /* 1. 强行隐藏全局非弹窗元素 */
-        body > *:not(#teleports) {
-          display: none !important;
-        }
-        #teleports > *:not(.van-popup--bottom) {
-          display: none !important;
+        /* 1. 默认隐藏页面上的一切内容 */
+        body * {
+          visibility: hidden !important;
         }
 
-        /* 2. 隐藏弹窗遮罩及内部不打印的按钮/页脚 */
-        .van-overlay, 
-        .memoir-actions, 
-        .no-print {
-          display: none !important;
+        /* 2. 仅让回忆录打印核心区域及其内部子元素可见 */
+        .memoir-print-area,
+        .memoir-print-area * {
+          visibility: visible !important;
         }
 
-        /* 3. 彻底打碎 Vant 弹窗的绝对/固定定位，使其在 A4 纸上居中 */
-        html, body {
-          background: #fff !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
-        }
-
-        .van-popup,
-        .memoir-popup {
-          position: relative !important;
-          top: 0 !important;
+        /* 3. 让打印区域重置到左上角并撑满 */
+        .memoir-print-area {
+          position: absolute !important;
           left: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
-          transform: none !important;
+          top: 0 !important;
           width: 100% !important;
           max-width: 100% !important;
-          max-height: none !important;
           margin: 0 !important;
-          padding: 0 !important;
+          padding: 20px 40px !important;
           background: #fff !important;
-          box-shadow: none !important;
-          border: none !important;
+          box-sizing: border-box !important;
         }
 
-        .memoir-content {
-          background: #fff !important;
-          max-height: none !important;
-          min-height: auto !important;
-          overflow: visible !important;
-        }
-
-        /* 4. 解决 p1 问题：解决居左与重叠，精准垂直水平居中 Header */
-        .memoir-inner {
-          max-width: 680px !important;
-          margin: 0 auto !important;
-          padding: 40px 20px !important;
-        }
-
+        /* 4. 强制居中头部与头像，杜绝偏左或重叠 */
         .memoir-header {
-          display: block !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
           text-align: center !important;
-          margin: 0 auto 30px auto !important;
+          margin-bottom: 30px !important;
         }
 
         .memoir-avatar {
@@ -146,20 +118,28 @@ function exportPdf() {
 
         .memoir-title, .memoir-subtitle {
           text-align: center !important;
+          width: 100% !important;
         }
 
         .memoir-body {
-          font-size: 15px !important;
-          line-height: 2 !important;
-          color: #2c2c2c !important;
           text-align: left !important;
+          font-size: 15px !important;
+          line-height: 2.2 !important;
+          color: #2c2c2c !important;
+        }
+
+        /* 5. 彻底隐藏遮罩、按钮等非打印元素 */
+        .van-overlay,
+        .memoir-actions,
+        .no-print {
+          display: none !important;
+          visibility: hidden !important;
         }
       }
     `
     document.head.appendChild(styleEl)
   }
 
-  // 触发打印流程
   window.print()
 }
 
@@ -181,6 +161,7 @@ watch(visible, (val) => {
     class="memoir-popup"
   >
     <div class="memoir-content">
+      <!-- 带有 memoir-print-area 类名的容器会被精准提取打印 -->
       <div class="memoir-inner memoir-print-area">
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
