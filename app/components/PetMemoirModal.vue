@@ -107,7 +107,7 @@ watch(visible, (val) => {
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
-          <!-- 👇 日期在这里显示 -->
+          <!-- 打印与屏幕共用的时间显示 -->
           <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
 
@@ -138,12 +138,11 @@ watch(visible, (val) => {
   </van-popup>
 </template>
 
-<!-- 👇 核心修改：移除 scoped，让打印样式能够选中全局节点 -->
 <style lang="less">
 @import "~/assets/css/common.less";
 
 /* ============================================================ */
-/* 屏幕显示样式（必须带上作用域限定，防止污染全局） */
+/* 屏幕显示样式 */
 /* ============================================================ */
 .memoir-popup {
   .memoir-content {
@@ -190,7 +189,7 @@ watch(visible, (val) => {
     font-size: @fs-xs;
     color: @ink-3;
     font-family: @font-mono;
-    margin: 0;
+    margin: @sp-1 0 0;
   }
 
   .memoir-loading {
@@ -235,32 +234,38 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 终极打印排版覆盖（全局生效） */
+/* 👇 全局生效的纯净打印排版 */
 /* ============================================================ */
 @media print {
-  /* 1. 核心大招：直接干掉主页面框架，包含所有的主页按钮、页脚、相册等 */
+  /* 1. 严格设定 A4 纸张边距，消除页面外溢 */
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  /* 2. 隐藏全网页所有非弹窗骨架 */
   #__nuxt,
   .van-overlay {
     display: none !important;
   }
 
-  /* 2. 重置全局边距 */
   body, html {
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
+    width: 100% !important;
+    height: auto !important;
   }
 
-  /* 3. 解除 Vant 弹窗的所有限制，让它回归自然文档流 */
+  /* 3. 让弹窗完全展开并顶格贴顶，消灭开头巨大空白 */
   .memoir-popup {
     position: static !important; 
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
     max-height: none !important;
     transform: none !important;
-    left: auto !important;
-    bottom: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
@@ -268,12 +273,10 @@ watch(visible, (val) => {
     overflow: visible !important;
   }
 
-  /* 4. 去掉滚动条，让内容撑开 */
   .memoir-popup .memoir-content {
     display: block !important;
     position: static !important;
     width: 100% !important;
-    max-width: 100% !important;
     height: auto !important;
     max-height: none !important;
     margin: 0 !important;
@@ -281,58 +284,75 @@ watch(visible, (val) => {
     background: transparent !important;
     box-shadow: none !important;
     overflow: visible !important;
-    min-height: 0 !important;
   }
 
-  /* 5. 内层容器：居中排版，留出合适的打印边距（消除顶部大段空白） */
+  /* 4. 打印主容器：取消死板的强制防断页，允许长文自然流转到下一页 */
   .memoir-popup .memoir-inner {
     display: block !important;
-    padding: 20mm 15mm !important; 
+    width: 100% !important;
     max-width: 100% !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: transparent !important;
     box-sizing: border-box !important;
   }
 
-  /* 6. 头部紧凑排列 */
+  /* 5. 紧凑美观的头部 */
   .memoir-popup .memoir-header {
-    padding-bottom: 15px !important;
-    margin-bottom: 20px !important;
-    border-bottom: 1px dashed #ccc !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 16px !important;
+    border-bottom: 1px solid #eee !important;
   }
 
   .memoir-popup .memoir-avatar {
-    width: 80px !important;
-    height: 80px !important;
-    margin-bottom: 10px !important;
+    width: 64px !important;
+    height: 64px !important;
+    margin-bottom: 8px !important;
   }
   
   .memoir-popup .memoir-title {
-    font-size: 22px !important;
-    margin-bottom: 5px !important;
+    font-size: 18px !important;
+    margin-bottom: 2px !important;
   }
 
   .memoir-popup .memoir-date {
-    font-size: 12px !important;
+    font-size: 11px !important;
+    color: #888 !important;
   }
 
-  /* 7. 正文左对齐，行高适合纸质阅读 */
+  /* 6. 正文完美左对齐，且文字过长时自动流转到第二页 */
   .memoir-popup .memoir-body {
+    display: block !important;
     text-align: left !important;
-    font-size: 14pt !important;
+    font-size: 13.5pt !important;
     line-height: 1.8 !important;
-    color: #000 !important;
+    color: #2c2c2c !important;
+    page-break-inside: auto !important;
   }
 
+  .memoir-popup .memoir-body p {
+    margin: 0 !important;
+  }
+
+  /* 7. 底部落款正常跟随 */
   .memoir-popup .memoir-footer {
-    margin-top: 40px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
+    margin-top: 24px !important;
     padding-top: 10px !important;
-    border-top: 1px solid #ccc !important;
+    border-top: 1px dashed #ddd !important;
     font-size: 10pt !important;
     color: #666 !important;
+    page-break-inside: avoid !important;
   }
 
-  /* 8. 隐藏按钮 */
+  /* 8. 隐藏操作按钮 */
   .memoir-popup .memoir-actions {
     display: none !important;
   }
