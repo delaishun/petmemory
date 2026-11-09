@@ -46,7 +46,7 @@ async function generate() {
         return
       }
     }
-    
+
     showToast(err?.data?.error || '生成失败，请稍后再试')
     visible.value = false
   } finally {
@@ -144,12 +144,16 @@ watch(visible, (val) => {
   color: @ink-2;
 }
 
+/* 👇 修改：文字居中，移除首行缩进 */
 .memoir-body {
-  font-size: 15px;
-  line-height: 2;
+  font-size: 16px; /* 稍微调大一点字号，适合 PDF 阅读 */
+  line-height: 2.2;
   color: @ink-1;
   font-family: @font-serif;
-  text-indent: 2em;
+  text-align: center; 
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0 @sp-4;
 }
 
 .memoir-actions {
@@ -160,27 +164,38 @@ watch(visible, (val) => {
 }
 
 /* 👇 打印 PDF 专用的 CSS */
-/* 👇 打印 PDF 专用的 CSS */
 @media print {
-  /* 1. 隐藏页面上的其他所有元素（彻底不占位） */
-  body > *:not(#teleports) {
+  /* 1. 彻底隐藏 Nuxt 主容器（解决背景和头像残留的问题） */
+  #__nuxt {
     display: none !important;
   }
 
-  /* 2. 重置 Vant 弹窗容器的样式，取消高度限制和遮罩 */
-  .van-popup {
-    position: static !important;
+  /* 2. 确保弹窗所在的 teleport 容器正常显示 */
+  #teleports {
     display: block !important;
-    background: transparent !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 3. 重置 Vant 弹窗的高度限制和滚动（解决内容截断的问题） */
+  .van-popup {
+    position: relative !important;
+    display: block !important;
+    background: #fff !important;
     max-height: none !important;
     overflow: visible !important;
+    box-shadow: none !important;
   }
+
   .van-overlay {
     display: none !important;
   }
 
-  /* 3. 让内容区 100% 撑开 */
-  .printable-area {
+  /* 4. 让内容区 100% 撑开，不受屏幕高度限制 */
+  .memoir-content {
     display: block !important;
     position: static !important;
     width: 100% !important;
@@ -193,8 +208,8 @@ watch(visible, (val) => {
     overflow: visible !important;
   }
 
-  /* 4. 隐藏不需要打印的按钮 */
-  .no-print {
+  /* 5. 隐藏不需要打印的按钮 */
+  .memoir-actions {
     display: none !important;
   }
 }
