@@ -106,7 +106,9 @@ watch(visible, (val) => {
       <div class="memoir-inner memoir-print-area">
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
-          <h2 class="memoir-title">{{ petName }}</h2>
+          <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
+          <!-- 👇 日期在这里显示 -->
+          <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
 
         <div v-if="loading" class="memoir-loading">
@@ -120,8 +122,7 @@ watch(visible, (val) => {
 
         <!-- 底部落款 -->
         <div v-if="!loading" class="memoir-footer">
-          <span>petmemory.me</span>
-          <span v-if="currentPrintTime" style="font-size: 9px; opacity: 0.8;">{{ currentPrintTime }}</span>
+          petmemory.me
         </div>
 
         <div class="memoir-actions no-print">
@@ -137,109 +138,120 @@ watch(visible, (val) => {
   </van-popup>
 </template>
 
-<style scoped lang="less">
+<!-- 👇 核心修改：移除 scoped，让打印样式能够选中全局节点 -->
+<style lang="less">
 @import "~/assets/css/common.less";
 
 /* ============================================================ */
-/* 屏幕显示样式 */
+/* 屏幕显示样式（必须带上作用域限定，防止污染全局） */
 /* ============================================================ */
-.memoir-content {
-  background: #faf6f1;
-  max-height: 85vh;
-  overflow-y: auto;
-  min-height: 240px; 
-}
+.memoir-popup {
+  .memoir-content {
+    background: #faf6f1;
+    max-height: 85vh;
+    overflow-y: auto;
+    min-height: 240px; 
+  }
 
-.memoir-inner {
-  padding: @sp-6 @sp-5;
-  max-width: 650px;
-  margin: 0 auto;
-}
+  .memoir-inner {
+    padding: @sp-6 @sp-5;
+    max-width: 650px;
+    margin: 0 auto;
+  }
 
-.memoir-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: @sp-6;
-  border-bottom: 1px solid @border;
-  padding-bottom: @sp-4;
-}
+  .memoir-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: @sp-6;
+    border-bottom: 1px solid @border;
+    padding-bottom: @sp-4;
+  }
 
-.memoir-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: @sp-3;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+  .memoir-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: @sp-3;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 
-.memoir-title {
-  font-family: @font-serif;
-  font-size: @fs-xl;
-  font-weight: 700;
-  color: @ink-1;
-  margin: 0 0 @sp-1;
-}
+  .memoir-title {
+    font-family: @font-serif;
+    font-size: @fs-xl;
+    font-weight: 700;
+    color: @ink-1;
+    margin: 0 0 @sp-1;
+  }
 
-.memoir-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: @sp-4;
-  padding: @sp-8 0;
-  color: @ink-2;
-}
+  .memoir-date {
+    font-size: @fs-xs;
+    color: @ink-3;
+    font-family: @font-mono;
+    margin: 0;
+  }
 
-.memoir-body {
-  font-size: 16px;
-  line-height: 2.2;
-  color: @ink-1;
-  font-family: @font-serif;
-  text-align: center; 
-  white-space: pre-wrap;
-  word-break: break-word;
-}
+  .memoir-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: @sp-4;
+    padding: @sp-8 0;
+    color: @ink-2;
+  }
 
-.memoir-footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  text-align: center;
-  font-size: 12px;
-  color: @ink-3;
-  margin-top: 40px;
-  padding-top: 15px;
-  border-top: 1px dashed #ddd;
-  font-family: @font-mono;
-}
+  .memoir-body {
+    font-size: 16px;
+    line-height: 2.2;
+    color: @ink-1;
+    font-family: @font-serif;
+    text-align: center; 
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
 
-.memoir-actions {
-  margin-top: @sp-6;
-  display: flex;
-  gap: @sp-3;
-  .btn { flex: 1; }
+  .memoir-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    font-size: 12px;
+    color: @ink-3;
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px dashed #ddd;
+    font-family: @font-mono;
+  }
+
+  .memoir-actions {
+    margin-top: @sp-6;
+    display: flex;
+    gap: @sp-3;
+    .btn { flex: 1; }
+  }
 }
 
 /* ============================================================ */
-/* 👇 终极打印排版覆盖（不再需要 JS 动态注入） */
+/* 👇 终极打印排版覆盖（全局生效） */
 /* ============================================================ */
 @media print {
-  /* 1. 核心大招：直接干掉主页面框架，包含所有的主页按钮、页脚 */
-  #__nuxt {
+  /* 1. 核心大招：直接干掉主页面框架，包含所有的主页按钮、页脚、相册等 */
+  #__nuxt,
+  .van-overlay {
     display: none !important;
   }
 
-  /* 2. 确保 teleport 的容器正常显示 */
-  #teleports {
-    display: block !important;
-    position: static !important;
-    width: 100% !important;
+  /* 2. 重置全局边距 */
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
   }
 
-  /* 3. 解除 Vant 弹窗的 fixed 定位、居中位移和高度限制 */
+  /* 3. 解除 Vant 弹窗的所有限制，让它回归自然文档流 */
   .memoir-popup {
     position: static !important; 
     display: block !important;
@@ -251,18 +263,13 @@ watch(visible, (val) => {
     bottom: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: #fff !important;
+    background: transparent !important;
     box-shadow: none !important;
     overflow: visible !important;
   }
 
-  /* 4. 隐藏遮罩 */
-  .van-overlay {
-    display: none !important;
-  }
-
-  /* 5. 去掉滚动条，清除所有外层内边距 */
-  .memoir-content {
+  /* 4. 去掉滚动条，让内容撑开 */
+  .memoir-popup .memoir-content {
     display: block !important;
     position: static !important;
     width: 100% !important;
@@ -277,46 +284,56 @@ watch(visible, (val) => {
     min-height: 0 !important;
   }
 
-  /* 6. 内层容器：设置合理的打印边距（20mm），并自动居中 */
-  .memoir-inner {
+  /* 5. 内层容器：居中排版，留出合适的打印边距（消除顶部大段空白） */
+  .memoir-popup .memoir-inner {
     display: block !important;
-    padding: 20mm !important; 
+    padding: 20mm 15mm !important; 
     max-width: 100% !important;
     margin: 0 auto !important;
     background: transparent !important;
     box-sizing: border-box !important;
   }
 
-  /* 7. 压缩头部高度，消除多余空白 */
-  .memoir-header {
-    padding-bottom: 10px !important;
-    margin-bottom: 15px !important;
-    border-bottom: 1px solid #ddd !important;
+  /* 6. 头部紧凑排列 */
+  .memoir-popup .memoir-header {
+    padding-bottom: 15px !important;
+    margin-bottom: 20px !important;
+    border-bottom: 1px dashed #ccc !important;
   }
 
-  .memoir-avatar {
-    width: 60px !important;
-    height: 60px !important;
-    margin-bottom: 8px !important;
+  .memoir-popup .memoir-avatar {
+    width: 80px !important;
+    height: 80px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .memoir-popup .memoir-title {
+    font-size: 22px !important;
+    margin-bottom: 5px !important;
   }
 
-  /* 8. 正文排版：左对齐，行高适中，保证纸张可读性 */
-  .memoir-body {
+  .memoir-popup .memoir-date {
+    font-size: 12px !important;
+  }
+
+  /* 7. 正文左对齐，行高适合纸质阅读 */
+  .memoir-popup .memoir-body {
     text-align: left !important;
-    font-size: 14px !important;
+    font-size: 14pt !important;
     line-height: 1.8 !important;
-    color: #333 !important;
+    color: #000 !important;
   }
 
-  .memoir-footer {
-    margin-top: 30px !important;
-    border-top: 1px dashed #ccc !important;
+  .memoir-popup .memoir-footer {
+    margin-top: 40px !important;
     padding-top: 10px !important;
-    font-size: 10px !important;
+    border-top: 1px solid #ccc !important;
+    font-size: 10pt !important;
+    color: #666 !important;
   }
 
-  /* 9. 隐藏操作按钮 */
-  .memoir-actions {
+  /* 8. 隐藏按钮 */
+  .memoir-popup .memoir-actions {
     display: none !important;
   }
 }
