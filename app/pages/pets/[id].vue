@@ -1211,9 +1211,17 @@ async function handleExportHtml() {
     return;
   }
 
+  // 👇 核心修改：通过 if 判断语言
+  let loadingMessage = '';
+  if (locale.value === 'en') {
+    loadingMessage = 'Packing webpage and images...';
+  } else {
+    loadingMessage = '正在打包网页及图片...';
+  }
+
   const loadingToast = showToast({
     type: "loading",
-    message: "正在打包网页及图片...",
+    message: loadingMessage,
     duration: 0,
     forbidClick: true,
   });
@@ -1297,7 +1305,13 @@ async function handleExportHtml() {
     URL.revokeObjectURL(url);
 
     loadingToast.close();
-    showToast({ type: "success", message: "导出成功！解压后即可离线查看" });
+    let successMessage = '';
+    if (locale.value === 'en') {
+      successMessage = 'Export successful! Unzip to view offline.';
+    } else {
+      successMessage = '导出成功！解压后即可离线查看';
+    }
+    showToast({ type: "success", message: successMessage });
   } catch (err) {
     console.error("导出 HTML 打包失败", err);
     loadingToast.close();

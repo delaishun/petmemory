@@ -146,28 +146,40 @@ watch(visible, (val) => {
 }
 
 /* 👇 打印 PDF 专用的 CSS */
+/* 👇 打印 PDF 专用的 CSS */
 @media print {
-  /* 隐藏网页上其它所有内容 */
-  body * {
-    visibility: hidden;
+  /* 1. 隐藏页面上的其他所有元素（彻底不占位） */
+  body > *:not(#teleports) {
+    display: none !important;
   }
-  /* 只显示弹窗内容区 */
-  .printable-area, .printable-area * {
-    visibility: visible;
+
+  /* 2. 重置 Vant 弹窗容器的样式，取消高度限制和遮罩 */
+  .van-popup {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
-  /* 调整打印位置，去除背景和阴影 */
+  .van-overlay {
+    display: none !important;
+  }
+
+  /* 3. 让内容区 100% 撑开 */
   .printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 20px;
-    background: #fff;
-    box-shadow: none;
-    max-height: none;
-    overflow: visible;
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    overflow: visible !important;
   }
-  /* 隐藏不需要打印的按钮 */
+
+  /* 4. 隐藏不需要打印的按钮 */
   .no-print {
     display: none !important;
   }
