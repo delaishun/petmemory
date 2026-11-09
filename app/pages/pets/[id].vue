@@ -7,7 +7,7 @@ import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant
 import { useI18n } from "~/composables/useI18n";
 import { useEffectBackgrounds } from "~/composables/usePetEffect";
 import html2canvas from "html2canvas";
-import JSZip from 'jszip';
+import JSZip from "jszip";
 
 // ============================================================
 // 国际化 & 特效逻辑
@@ -214,11 +214,16 @@ const isOwner = computed(
   () => !!me.value && !!pet.value && me.value.id === pet.value.owner.id
 );
 
-const isVipPet = computed(() => {
-  if (pet.value?.owner?.isVip !== undefined) {
-    return pet.value.owner.isVip;
-  }
-  return isOwner.value && !!me.value?.isVip;
+// const isVipPet = computed(() => {
+//   if (pet.value?.owner?.isVip !== undefined) {
+//     return pet.value.owner.isVip;
+//   }
+//   return isOwner.value && !!me.value?.isVip;
+// });
+
+// 👇 判断是否为终身 VIP 宠物（用于控制背景、特效、音乐）
+const isLifetimeVipPet = computed(() => {
+  return !!pet.value?.owner?.isLifetimeVip;
 });
 
 const myPoint = computed<number | undefined>(() => me.value?.point);
@@ -229,7 +234,7 @@ const myPoint = computed<number | undefined>(() => me.value?.point);
 const hasLiked = ref(false);
 const isLiking = ref(false);
 
-const memoirModalVisible = ref(false)
+const memoirModalVisible = ref(false);
 
 onMounted(() => {
   if (import.meta.client && slug.value) {
@@ -309,7 +314,7 @@ function matchMonthDay(dateStr: string | null | undefined): boolean {
 
 function initFestivalEffect() {
   if (import.meta.server) return;
-  if (!pet.value || !isVipPet.value) {
+  if (!pet.value || !isLifetimeVipPet.value) {
     festivalType.value = null;
     festivalParticles.value = [];
     return;
@@ -337,7 +342,7 @@ onMounted(() => {
 });
 
 watch(
-  () => [pet.value?.birthday, pet.value?.leaveDate, isVipPet.value] as const,
+  () => [pet.value?.birthday, pet.value?.leaveDate, isLifetimeVipPet.value] as const,
   () => initFestivalEffect()
 );
 
@@ -390,7 +395,7 @@ function removeGlobalEvents() {
 
 function initBackgroundMusic() {
   if (import.meta.server) return;
-  if (!isVipPet.value || audio.value) return;
+  if (!isLifetimeVipPet.value || audio.value) return;
 
   let musicUrl = "";
   const festivalName = getCurrentFestivalName();
@@ -449,7 +454,7 @@ function toggleMusic() {
 }
 
 watch(
-  () => isVipPet.value,
+  () => isLifetimeVipPet.value,
   (vip) => {
     if (vip && import.meta.client) initBackgroundMusic();
   },
@@ -528,7 +533,11 @@ async function toggleChatVisibility() {
 // ============================================================
 // VIP 权益弹窗
 // ============================================================
-const vipModalVisible = ref(false);
+// const vipModalVisible = ref(false);
+
+// ---------- VIP 权益说明弹窗 ----------
+const lifetimeVipModalVisible = ref(false) // 终身 VIP
+const subVipModalVisible = ref(false)      // 订阅 VIP
 
 // ============================================================
 // 编辑弹窗
@@ -1070,7 +1079,7 @@ async function copyShareLink() {
 // ============================================================
 // 👇 1. 新增：存储转化后的 Base64 图片
 const posterBase64 = reactive({
-  avatar: '',
+  avatar: "",
   photos: [] as string[],
   gifts: [] as string[],
 });
@@ -1079,7 +1088,9 @@ const posterBase64 = reactive({
 const convertUrlToBase64 = async (url: string): Promise<string> => {
   if (!url) return "";
   try {
-    const timeStampedUrl = url.includes("?") ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
+    const timeStampedUrl = url.includes("?")
+      ? `${url}&_t=${Date.now()}`
+      : `${url}?_t=${Date.now()}`;
     const response = await fetch(timeStampedUrl, { mode: "cors" });
     if (!response.ok) throw new Error("Fetch failed");
     const blob = await response.blob();
@@ -1121,19 +1132,28 @@ async function handleExportImage() {
     showDialog({ message: t("msg_please_login") });
     return;
   }
-  
+
   exportingImage.value = true;
-  const loadingToast = showToast({ type: 'loading', message: t('export_generating'), duration: 0, forbidClick: true });
+  const loadingToast = showToast({
+    type: "loading",
+    message: t("export_generating"),
+    duration: 0,
+    forbidClick: true,
+  });
 
   try {
     // 1. 并行把所有图片转成 Base64
     const avatarB64 = await convertUrlToBase64(pet.value?.avatarUrl || defaultPetAvatar);
-    
+
     const photosToConvert = photos.value?.slice(0, 3) || [];
-    const photosB64 = await Promise.all(photosToConvert.map(p => convertUrlToBase64(p.imageUrl)));
-    
+    const photosB64 = await Promise.all(
+      photosToConvert.map((p) => convertUrlToBase64(p.imageUrl))
+    );
+
     const giftsToConvert = giftItems.value.slice(0, 6);
-    const giftsB64 = await Promise.all(giftsToConvert.map(g => convertUrlToBase64(g.giftImageUrl)));
+    const giftsB64 = await Promise.all(
+      giftsToConvert.map((g) => convertUrlToBase64(g.giftImageUrl))
+    );
 
     // 2. 赋值给响应式变量
     posterBase64.avatar = avatarB64;
@@ -1144,34 +1164,34 @@ async function handleExportImage() {
     await nextTick();
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const node = document.getElementById('export-image-container');
-    if (!node) throw new Error('Container not found');
+    const node = document.getElementById("export-image-container");
+    if (!node) throw new Error("Container not found");
 
     // 4. 截图
     const canvas = await html2canvas(node, {
-      scale: 2, 
+      scale: 2,
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#F9F7F3',
+      backgroundColor: "#F9F7F3",
       logging: false,
     });
 
     // 5. 下载
-    const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = `${pet.value?.name || 'pet'}-memorial.png`;
+    const dataUrl = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.download = `${pet.value?.name || "pet"}-memorial.png`;
     link.href = dataUrl;
     link.click();
-    
-    showToast({ type: 'success', message: t('export_success') });
+
+    showToast({ type: "success", message: t("export_success") });
   } catch (err) {
-    console.error('导出图片失败', err);
-    showToast({ type: 'fail', message: t('export_failed') });
+    console.error("导出图片失败", err);
+    showToast({ type: "fail", message: t("export_failed") });
   } finally {
     loadingToast.close();
     exportingImage.value = false;
     // 清空 Base64 释放内存（可选）
-    posterBase64.avatar = '';
+    posterBase64.avatar = "";
     posterBase64.photos = [];
     posterBase64.gifts = [];
   }
@@ -1191,63 +1211,68 @@ async function handleExportHtml() {
     return;
   }
 
-  const loadingToast = showToast({ type: 'loading', message: '正在打包网页及图片...', duration: 0, forbidClick: true });
+  const loadingToast = showToast({
+    type: "loading",
+    message: "正在打包网页及图片...",
+    duration: 0,
+    forbidClick: true,
+  });
 
   try {
     // 1. 克隆当前整页 DOM
     const documentClone = document.documentElement.cloneNode(true) as HTMLElement;
-    
+
     // 移除不需要打包的脚本和隐藏的截图容器
-    documentClone.querySelectorAll('script').forEach(s => s.remove());
-    const exportLayer = documentClone.querySelector('#export-image-container');
+    documentClone.querySelectorAll("script").forEach((s) => s.remove());
+    const exportLayer = documentClone.querySelector("#export-image-container");
     if (exportLayer) exportLayer.remove();
 
     const zip = new JSZip();
-    const imgFolder = zip.folder('images');
-    
+    const imgFolder = zip.folder("images");
+
     // 2. 找出所有的 <img> 标签并下载图片
-    const images = Array.from(documentClone.querySelectorAll('img'));
+    const images = Array.from(documentClone.querySelectorAll("img"));
     let imgIndex = 0;
 
     for (const img of images) {
-      const src = img.getAttribute('src');
-      
+      const src = img.getAttribute("src");
+
       // 跳过空链接、已经是 base64 或者是本地相对路径的图片
-      if (!src || src.startsWith('data:') || src.startsWith('./')) continue; 
-      
+      if (!src || src.startsWith("data:") || src.startsWith("./")) continue;
+
       try {
         // 👇 核心：使用强效转换器获取 Base64
         const dataUrl = await convertUrlToBase64(src);
-        
-        if (dataUrl.startsWith('data:')) {
+
+        if (dataUrl.startsWith("data:")) {
           // 将 Base64 解析并转成 Blob 存入 zip
-          const arr = dataUrl.split(',');
+          const arr = dataUrl.split(",");
           const mimeMatch = arr[0]?.match(/:(.*?);/);
-          const mime = mimeMatch ? mimeMatch[1] : 'image/png';
-          const bstr = atob(arr[1] || '');
+          const mime = mimeMatch ? mimeMatch[1] : "image/png";
+          const bstr = atob(arr[1] || "");
           let n = bstr.length;
           const u8arr = new Uint8Array(n);
           while (n--) {
             u8arr[n] = bstr.charCodeAt(n);
           }
           const blob = new Blob([u8arr], { type: mime });
-          
+
           // 简单解析扩展名
-          let ext = 'png';
-          if (mime === 'image/jpeg') ext = 'jpg';
-          else if (mime === 'image/webp') ext = 'webp';
-          else if (mime === 'image/gif') ext = 'gif';
-          
+          let ext = "png";
+          if (mime === "image/jpeg") ext = "jpg";
+          else if (mime === "image/webp") ext = "webp";
+          else if (mime === "image/gif") ext = "gif";
+
           const filename = `img_${imgIndex++}.${ext}`;
           imgFolder?.file(filename, blob);
-          
+
           // 将原 DOM 中的绝对路径替换为本地相对路径
-          img.setAttribute('src', `./images/${filename}`);
+          img.setAttribute("src", `./images/${filename}`);
         } else {
-          console.warn('图片转换失败，将保留原链接', src);
+          console.warn("图片转换失败，将保留原链接", src);
         }
       } catch (err) {
-        console.warn('部分图片下载失败，将保留原链接', src, err);
+        console.warn("部分图片下载失败，将保留原链接", src, err);
       }
     }
 
@@ -1258,25 +1283,25 @@ async function handleExportHtml() {
       ${documentClone.innerHTML}
       </html>
     `;
-    
+
     // 放入 HTML 文件
-    zip.file('index.html', htmlContent);
+    zip.file("index.html", htmlContent);
 
     // 4. 生成 zip 压缩包并触发下载
-    const content = await zip.generateAsync({ type: 'blob' });
+    const content = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(content);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `${pet.value?.name || 'pet'}-memorial.zip`;
+    link.download = `${pet.value?.name || "pet"}-memorial.zip`;
     link.click();
     URL.revokeObjectURL(url);
 
     loadingToast.close();
-    showToast({ type: 'success', message: '导出成功！解压后即可离线查看' });
+    showToast({ type: "success", message: "导出成功！解压后即可离线查看" });
   } catch (err) {
-    console.error('导出 HTML 打包失败', err);
+    console.error("导出 HTML 打包失败", err);
     loadingToast.close();
-    showToast({ type: 'fail', message: t('export_failed') });
+    showToast({ type: "fail", message: t("export_failed") });
   }
 }
 
@@ -1342,7 +1367,7 @@ useHead(() => ({
 
     <!-- 悬浮音乐开关 -->
     <button
-      v-if="isVipPet && audio"
+      v-if="isLifetimeVipPet && audio"
       class="music-toggle"
       :class="{ 'is-playing': isMusicPlaying }"
       @click.stop="toggleMusic"
@@ -1371,13 +1396,13 @@ useHead(() => ({
         <!-- 头部：绑定动态样式和特效类名 -->
         <div
           class="pet-hero"
-          :style="getEffectStyle(isVipPet)"
-          :class="{ 'is-vip-panel': isVipPet }"
+          :style="getEffectStyle(isLifetimeVipPet)"
+          :class="{ 'is-vip-panel': isLifetimeVipPet }"
         >
           <!-- 头像包裹层：绑定特效类名 (保留原头像) -->
           <div
             class="pet-hero__avatar-wrap avatar-effect"
-            :class="getEffectClass(isVipPet)"
+            :class="getEffectClass(isLifetimeVipPet)"
           >
             <img
               class="pet-hero__avatar"
@@ -1438,24 +1463,30 @@ useHead(() => ({
               <NuxtLink :to="`/users/${pet.owner.id}`" class="pet-hero__owner-link">
                 {{ pet.owner.nickname }}
               </NuxtLink>
-              <div v-if="pet.owner.isVip" class="pet-hero__vip-icons">
+              <!-- 👇 替换为 Emoji 图标，完美区分 -->
+              <div
+                v-if="pet.owner.isVip"
+                style="display: flex; align-items: center; gap: 4px; margin-left: 4px"
+              >
                 <!-- 终身 VIP -->
-                <van-icon
+                <span
                   v-if="pet.owner.isLifetimeVip"
-                  name="diamond-o"
-                  class="pet-hero__owner-vip-icon is-lifetime"
-                  @click="vipModalVisible = true"
-                />
+                  title="终身 VIP"
+                  style="font-size: 16px; cursor: pointer"
+                  @click="lifetimeVipModalVisible = true"
+                  >💎</span
+                >
                 <!-- 订阅 VIP -->
-                <van-icon
+                <span
                   v-if="
                     pet.owner.vipExpiresAt &&
                     new Date(pet.owner.vipExpiresAt) > new Date()
                   "
-                  name="gem-o"
-                  class="pet-hero__owner-vip-icon is-sub"
-                  @click="vipModalVisible = true"
-                />
+                  title="订阅 VIP"
+                  style="font-size: 16px; cursor: pointer"
+                  @click="subVipModalVisible = true"
+                  >🌈</span
+                >
               </div>
             </div>
 
@@ -1821,39 +1852,56 @@ useHead(() => ({
             </button>
 
             <!-- 新增：导出 HTML（终身 VIP 专属） -->
-            <button v-if="isOwner" type="button" class="btn btn--lg" @click="handleExportHtml">
+            <button
+              v-if="isOwner"
+              type="button"
+              class="btn btn--lg"
+              @click="handleExportHtml"
+            >
               <van-icon name="description" />
               <span>{{ t("export_html_btn") }}</span>
             </button>
 
             <!-- 👇 新增：生成回忆录按钮，只有订阅 VIP 才能看到 -->
             <button
-              v-if="isOwner && me?.isVip && (!me?.isLifetimeVip || (me?.vipExpiresAt && new Date(me.vipExpiresAt) > new Date()))"
+              v-if="
+                isOwner &&
+                me?.isVip &&
+                (!me?.isLifetimeVip ||
+                  (me?.vipExpiresAt && new Date(me.vipExpiresAt) > new Date()))
+              "
               type="button"
               class="btn btn--lg"
               @click="memoirModalVisible = true"
             >
               <van-icon name="bookmark-o" />
-              <span>{{ t('generate_memoir') || '专属回忆录' }}</span>
+              <span>{{ t("generate_memoir") || "专属回忆录" }}</span>
             </button>
           </div>
         </div>
       </template>
     </div>
 
-        <!-- 👇 用于生成图片的隐藏容器 -->
+    <!-- 👇 用于生成图片的隐藏容器 -->
     <div v-if="pet" id="export-image-container" class="export-image-layer">
       <!-- 右上角水印 -->
       <div class="ex-watermark">petmemory.me</div>
-      
+
       <div class="export-card">
         <!-- 1. 宠物面板 -->
         <div class="ex-hero">
           <!-- 👇 改为使用 Base64 -->
-          <img class="ex-avatar" :src="posterBase64.avatar || pet.avatarUrl || defaultPetAvatar" style="display: block;" />
+          <img
+            class="ex-avatar"
+            :src="posterBase64.avatar || pet.avatarUrl || defaultPetAvatar"
+            style="display: block"
+          />
           <h1 class="ex-name">{{ pet.name }}</h1>
           <p class="ex-intro" v-if="introParts.length">
-            {{ pet.name }}<span v-for="(part, i) in introParts" :key="i">{{ i === 0 ? " " : "，" }}{{ part }}</span>。
+            {{ pet.name
+            }}<span v-for="(part, i) in introParts" :key="i"
+              >{{ i === 0 ? " " : "，" }}{{ part }}</span
+            >。
           </p>
           <!-- 👇 修改：将原本的心情值框替换为宠物个性展示 -->
           <!-- <div class="ex-personality" v-if="pet.personality">
@@ -1865,28 +1913,35 @@ useHead(() => ({
         <div class="ex-section" v-if="photos && photos.length > 0">
           <div class="ex-photos">
             <!-- 👇 改为使用 Base64 -->
-            <img 
-              v-for="(photo, index) in photos.slice(0, 3)" 
-              :key="photo.id" 
-              :src="posterBase64.photos[index] || photo.imageUrl" 
+            <img
+              v-for="(photo, index) in photos.slice(0, 3)"
+              :key="photo.id"
+              :src="posterBase64.photos[index] || photo.imageUrl"
             />
           </div>
         </div>
 
         <!-- 3. 礼物 (最多 6 个) -->
         <div class="ex-section" v-if="giftItems.length > 0">
-          <h2 class="ex-title">{{ t('pet_gifts') }}</h2>
+          <h2 class="ex-title">{{ t("pet_gifts") }}</h2>
           <div class="ex-gifts">
-            <div v-for="(item, index) in giftItems.slice(0, 6)" :key="item.id" class="ex-gift-item">
+            <div
+              v-for="(item, index) in giftItems.slice(0, 6)"
+              :key="item.id"
+              class="ex-gift-item"
+            >
               <!-- 👇 改为使用 Base64 -->
-              <img :src="posterBase64.gifts[index] || item.giftImageUrl" style="display: block; width: 100%; height: 100%;" />
+              <img
+                :src="posterBase64.gifts[index] || item.giftImageUrl"
+                style="display: block; width: 100%; height: 100%"
+              />
             </div>
           </div>
         </div>
 
         <!-- 4. 留言 (最多 3 条) -->
         <div class="ex-section" v-if="messages?.items?.length">
-          <h2 class="ex-title">{{ t('pet_messages') }}</h2>
+          <h2 class="ex-title">{{ t("pet_messages") }}</h2>
           <div class="ex-msg-list">
             <div v-for="msg in messages?.items?.slice(0, 3)" :key="msg.id" class="ex-msg">
               <div class="ex-msg-head">
@@ -1899,16 +1954,21 @@ useHead(() => ({
         </div>
 
         <!-- 5. 问答 (最多 3 轮即 6 条消息) -->
-        <div class="ex-section" v-if="publicChat?.hasConversation && publicChat?.messages?.length">
-          <h2 class="ex-title">{{ t('pet_chat_title') }}</h2>
+        <div
+          class="ex-section"
+          v-if="publicChat?.hasConversation && publicChat?.messages?.length"
+        >
+          <h2 class="ex-title">{{ t("pet_chat_title") }}</h2>
           <div class="ex-chat-list">
-            <div 
-              v-for="msg in publicChat?.messages?.slice(-6)" 
-              :key="msg.id" 
-              class="ex-chat" 
+            <div
+              v-for="msg in publicChat?.messages?.slice(-6)"
+              :key="msg.id"
+              class="ex-chat"
               :class="msg.role === 'user' ? 'is-user' : 'is-pet'"
             >
-              <span v-if="msg.role === 'assistant'" class="ex-chat-name">{{ pet?.name }}:</span>
+              <span v-if="msg.role === 'assistant'" class="ex-chat-name"
+                >{{ pet?.name }}:</span
+              >
               <span v-else class="ex-chat-name">{{ publicChat?.ownerNickname }}:</span>
               <span>{{ msg.content }}</span>
             </div>
@@ -2068,34 +2128,85 @@ useHead(() => ({
       </div>
     </van-popup>
 
-    <!-- VIP 权益说明弹窗 -->
+
+    <!-- 💎 终身 VIP 权益说明弹窗 -->
     <van-popup
-      v-model:show="vipModalVisible"
+      v-model:show="lifetimeVipModalVisible"
       round
       :style="{ width: 'min(340px, 85%)' }"
       teleport="body"
     >
       <div class="vip-popup">
         <div class="vip-popup__header">
-          <van-icon name="gem-o" class="vip-popup__icon" />
-          <h3 class="vip-popup__title">{{ t("user_vip_title") }}</h3>
+          <span class="vip-popup__icon" style="font-size: 44px;">💎</span>
+          <h3 class="vip-popup__title">{{ t('vip_lifetime_title') || '终身 VIP 权益' }}</h3>
         </div>
 
         <ul class="vip-popup__list">
           <li class="vip-popup__item">
-            <van-icon name="chat-o" class="vip-popup__item-icon" />
-            <span>{{ t("user_vip_desc_1") }}</span>
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f1') || '相册照片数量永久提升至 20 张' }}</span>
           </li>
           <li class="vip-popup__item">
-            <van-icon name="photo-o" class="vip-popup__item-icon" />
-            <span>{{ t("user_vip_desc_2") }}</span>
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f2') || '永久解锁精美背景、节日特效与专属音乐' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f3') || '支持一键导出 HTML 离线网页' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_lifetime_f4') || '赠送 10000 积分' }}</span>
           </li>
         </ul>
 
         <button
           type="button"
           class="btn btn--primary vip-popup__close"
-          @click="vipModalVisible = false"
+          @click="lifetimeVipModalVisible = false"
+        >
+          {{ t("btn_i_know") }}
+        </button>
+      </div>
+    </van-popup>
+
+    <!-- 🌈 订阅 VIP 权益说明弹窗 -->
+    <van-popup
+      v-model:show="subVipModalVisible"
+      round
+      :style="{ width: 'min(340px, 85%)' }"
+      teleport="body"
+    >
+      <div class="vip-popup">
+        <div class="vip-popup__header">
+          <span class="vip-popup__icon" style="font-size: 44px;">🌈</span>
+          <h3 class="vip-popup__title">{{ t('vip_sub_title') || '尊享订阅 VIP 权益' }}</h3>
+        </div>
+
+        <ul class="vip-popup__list">
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f1') || '使用 AI 模拟与宠物跨时空对话' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f2') || '每月登录获赠随机礼物' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f3') || '每周生成专属回忆录并支持导出 PDF' }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" />
+            <span>{{ t('vip_sub_f4') || '赠送 10000 积分' }}</span>
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          class="btn btn--primary vip-popup__close"
+          @click="subVipModalVisible = false"
         >
           {{ t("btn_i_know") }}
         </button>
@@ -3687,9 +3798,10 @@ useHead(() => ({
   left: -9999px;
   z-index: -9999;
   width: 600px;
-  background: #F9F7F3;
-  color: #3D332C;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f9f7f3;
+  color: #3d332c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
   pointer-events: none;
 }
 
