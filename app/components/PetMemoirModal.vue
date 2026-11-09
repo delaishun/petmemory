@@ -107,7 +107,6 @@ watch(visible, (val) => {
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
-          <!-- 打印与屏幕共用的时间显示 -->
           <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
 
@@ -234,16 +233,14 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 全局生效的纯净打印排版 */
+/* 👇 全局生效的纯净打印排版（已加入水平居中） */
 /* ============================================================ */
 @media print {
-  /* 1. 严格设定 A4 纸张边距，消除页面外溢 */
   @page {
     size: A4 portrait;
     margin: 12mm 15mm;
   }
 
-  /* 2. 隐藏全网页所有非弹窗骨架 */
   #__nuxt,
   .van-overlay {
     display: none !important;
@@ -257,7 +254,6 @@ watch(visible, (val) => {
     height: auto !important;
   }
 
-  /* 3. 让弹窗完全展开并顶格贴顶，消灭开头巨大空白 */
   .memoir-popup {
     position: static !important; 
     display: block !important;
@@ -286,18 +282,17 @@ watch(visible, (val) => {
     overflow: visible !important;
   }
 
-  /* 4. 打印主容器：取消死板的强制防断页，允许长文自然流转到下一页 */
+  /* 👇 核心修改：通过 margin: 0 auto 和 max-width 强制在 A4 纸页面中居中 */
   .memoir-popup .memoir-inner {
     display: block !important;
     width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
+    max-width: 650px !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     background: transparent !important;
     box-sizing: border-box !important;
   }
 
-  /* 5. 紧凑美观的头部 */
   .memoir-popup .memoir-header {
     display: flex !important;
     flex-direction: column !important;
@@ -324,7 +319,6 @@ watch(visible, (val) => {
     color: #888 !important;
   }
 
-  /* 6. 正文完美左对齐，且文字过长时自动流转到第二页 */
   .memoir-popup .memoir-body {
     display: block !important;
     text-align: left !important;
@@ -338,7 +332,6 @@ watch(visible, (val) => {
     margin: 0 !important;
   }
 
-  /* 7. 底部落款正常跟随 */
   .memoir-popup .memoir-footer {
     display: flex !important;
     flex-direction: column !important;
@@ -352,7 +345,6 @@ watch(visible, (val) => {
     page-break-inside: avoid !important;
   }
 
-  /* 8. 隐藏操作按钮 */
   .memoir-popup .memoir-actions {
     display: none !important;
   }
