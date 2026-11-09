@@ -108,6 +108,62 @@ const { data: recentArticles, pending: articlesPending } = await useAsyncData<{
 );
 
 // ============================================================
+// 👇 新增：首页权益对比数据
+// ============================================================
+const homeTiers = computed(() => [
+  {
+    id: 'free',
+    icon: 'smile-o',
+    title: locale.value === 'en' ? 'Free Explorer' : '免费体验版',
+    features: locale.value === 'en' ? [
+      'Create pet memorial page',
+      'Upload up to 2 photos',
+      'Unlimited messages & gifts',
+      '3 free AI interactions'
+    ] : [
+      '建立专属宠物主页',
+      '上传最多 2 张相片',
+      '无限次留言与赠礼',
+      '3 次免费 AI 对话体验'
+    ]
+  },
+  {
+    id: 'lifetime',
+    icon: '💎',
+    title: locale.value === 'en' ? 'Lifetime Keepsake' : '终身珍藏版',
+    price: '$8.9',
+    features: locale.value === 'en' ? [
+      'Permanently unlock 20 photos limit',
+      'Premium backgrounds, effects & music',
+      'Export offline HTML webpage',
+      'Get 1-Year Subscription FREE'
+    ] : [
+      '永久解锁 20 张相册空间',
+      '解锁精美背景、特效与音乐',
+      '一键导出离线 HTML 网页',
+      '限时赠送 1 年订阅 VIP'
+    ]
+  },
+  {
+    id: 'subscription',
+    icon: '🌈',
+    title: locale.value === 'en' ? 'Premium Subscription' : '尊享订阅版',
+    price: '$5.9 / yr',
+    features: locale.value === 'en' ? [
+      'Unlimited AI cross-time chat',
+      'Weekly exclusive memoir (PDF)',
+      'Monthly random gifts',
+      'Get 10,000 bonus points'
+    ] : [
+      '无限次 AI 跨时空对话',
+      '每周生成专属回忆录',
+      '每月登录获赠随机礼物',
+      '赠送 10000 积分'
+    ]
+  }
+])
+
+// ============================================================
 // 兜底图（宠物/用户/文章）
 // ============================================================
 
@@ -244,28 +300,7 @@ useHead({
       </header>
 
       <!-- ============================================ -->
-      <!-- 关于宠忆                                      -->
-      <!-- ============================================ -->
-      <section class="home-section">
-        <div class="section-title">
-          <div class="section-title__left">
-            <h2 class="section-title__main">{{ t("home_about_title") }}</h2>
-          </div>
-        </div>
-        <div class="home-about">
-          <div class="home-about__image-wrap">
-            <img
-              src="https://music.petmemory.me/cat128.gif"
-              alt="Cat icon"
-              loading="lazy"
-            />
-          </div>
-          <p class="home-about__desc">{{ t("home_seo_desc") }}</p>
-        </div>
-      </section>
-
-      <!-- ============================================ -->
-      <!-- 1. 最近更新的宠物                             -->
+      <!-- 1. 最近更新的宠物 (已上移)                    -->
       <!-- ============================================ -->
       <section class="home-section">
         <div class="section-title">
@@ -297,7 +332,55 @@ useHead({
       </section>
 
       <!-- ============================================ -->
-      <!-- 2. 最近送出的礼物                             -->
+      <!-- 2. 关于宠忆 & 会员权益对比 (已下移)            -->
+      <!-- ============================================ -->
+      <section class="home-section">
+        <div class="section-title">
+          <div class="section-title__left">
+            <h2 class="section-title__main">{{ t("home_about_title") }}</h2>
+          </div>
+        </div>
+        <div class="home-about">
+          <div class="home-about__image-wrap">
+            <img
+              src="https://music.petmemory.me/cat128.gif"
+              alt="Cat icon"
+              loading="lazy"
+            />
+          </div>
+          <p class="home-about__desc">{{ t("home_seo_desc") }}</p>
+        </div>
+
+        <!-- 👇 新增：首页三列权益卡片 -->
+        <div class="tiers-grid">
+          <div 
+            v-for="tier in homeTiers" 
+            :key="tier.id" 
+            class="tier-card"
+            :class="`tier-card--${tier.id}`"
+          >
+            <div class="tier-card__header">
+              <div class="tier-card__icon">
+                <span v-if="tier.id !== 'free'" style="font-size: 24px;">{{ tier.icon }}</span>
+                <van-icon v-else :name="tier.icon" />
+              </div>
+              <div class="tier-card__info">
+                <h3 class="tier-card__title">{{ tier.title }}</h3>
+                <p v-if="tier.price" class="tier-card__price">{{ tier.price }}</p>
+              </div>
+            </div>
+            <ul class="tier-card__list">
+              <li v-for="(f, i) in tier.features" :key="i">
+                <van-icon name="success" class="check-icon" />
+                <span>{{ f }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 3. 最近送出的礼物                             -->
       <!-- ============================================ -->
       <section class="home-section">
         <div class="section-title">
@@ -346,7 +429,7 @@ useHead({
       </section>
 
       <!-- ============================================ -->
-      <!-- 3. 最近的留言                                 -->
+      <!-- 4. 最近的留言                                 -->
       <!-- ============================================ -->
       <section class="home-section">
         <div class="section-title">
@@ -417,7 +500,7 @@ useHead({
       </section>
 
       <!-- ============================================ -->
-      <!-- 4. 宠物手绘                                   -->
+      <!-- 5. 宠物手绘                                   -->
       <!-- ============================================ -->
       <section class="home-section">
         <div class="section-title">
@@ -455,7 +538,7 @@ useHead({
       </section>
 
       <!-- ============================================ -->
-      <!-- 5. 宠物文章 (新增)                            -->
+      <!-- 6. 宠物文章 (新增)                            -->
       <!-- ============================================ -->
       <section
         class="home-section"
@@ -1015,6 +1098,120 @@ useHead({
 }
 
 // ============================================================
+// 👇 新增：首页权益卡片网格
+// ============================================================
+.tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: @sp-4;
+  margin-top: @sp-5;
+
+  @media (max-width: @bp-md) {
+    grid-template-columns: 1fr; // 窄屏时纵向排列
+  }
+}
+
+.tier-card {
+  background: @surface;
+  border: 1px solid @border;
+  border-radius: @radius-lg;
+  padding: @sp-4;
+  box-shadow: @shadow-1;
+  display: flex;
+  flex-direction: column;
+  transition: transform @dur-fast ease, box-shadow @dur-fast ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: @shadow-2;
+  }
+
+  &--free {
+    .tier-card__icon { color: @ink-2; background: @surface-2; }
+  }
+
+  &--lifetime {
+    border-color: fade(#00bfff, 30%);
+    background: linear-gradient(180deg, fade(#00bfff, 3%) 0%, @surface 100%);
+    .tier-card__icon { background: fade(#00bfff, 10%); }
+    .check-icon { color: #00bfff; }
+  }
+
+  &--subscription {
+    border-color: fade(#f1c40f, 30%);
+    background: linear-gradient(180deg, fade(#f1c40f, 3%) 0%, @surface 100%);
+    .tier-card__icon { background: fade(#f1c40f, 10%); }
+    .check-icon { color: #f1c40f; }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: @sp-3;
+    margin-bottom: @sp-3;
+    padding-bottom: @sp-3;
+    border-bottom: 1px dashed @border;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 50%;
+    box-shadow: @shadow-1;
+    background: @surface;
+  }
+
+  &__info {
+    flex: 1;
+  }
+
+  &__title {
+    margin: 0 0 2px;
+    font-family: @font-serif;
+    font-size: @fs-base;
+    font-weight: 700;
+    color: @ink-1;
+  }
+
+  &__price {
+    margin: 0;
+    font-family: @font-mono;
+    font-size: @fs-sm;
+    font-weight: 600;
+    color: @accent;
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: @fs-xs;
+      color: @ink-2;
+      line-height: 1.4;
+    }
+
+    .check-icon {
+      font-size: 14px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ============================================================
 // 5. 宠物手绘
 // ============================================================
 .home-drawing {
@@ -1315,4 +1512,4 @@ useHead({
     width: 100%;
   }
 }
-</style>  
+</style>
