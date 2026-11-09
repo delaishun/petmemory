@@ -15,8 +15,8 @@ interface Props {
     avatarUrl: string
     owner?: {
       isVip?: boolean
-      isLifetimeVip?: boolean       // 👈 新增
-      vipExpiresAt?: string | null  // 👈 新增
+      isLifetimeVip?: boolean
+      vipExpiresAt?: string | null
     }
   }
 }
@@ -86,7 +86,7 @@ function matchMonthDay(dateStr: string | null | undefined): boolean {
 
 function initFestivalEffect() {
   if (import.meta.server) return
-  // 👇 核心修改：只有终身 VIP 才触发卡片内特效
+  // 👇 只有终身 VIP 才触发生日特效
   if (!props.pet.owner?.isLifetimeVip) {
     festivalType.value = null
     festivalParticles.value = []
@@ -114,7 +114,6 @@ onMounted(() => {
 })
 
 watch(
-  // 👇 监听 isLifetimeVip 变化
   () => [props.pet.birthday, props.pet.leaveDate, props.pet.owner?.isLifetimeVip] as const,
   () => initFestivalEffect()
 )
@@ -147,7 +146,7 @@ watch(
       >{{ p.emoji }}</span>
     </div>
 
-    <!-- 头像带特效边框 (只有终身VIP有特效边框) -->
+    <!-- 头像带特效边框 -->
     <div class="pet-card__avatar-wrap avatar-effect" :class="getEffectClass(pet.owner?.isLifetimeVip)">
       <img
         class="pet-card__avatar"
@@ -162,17 +161,15 @@ watch(
       <div class="pet-card__name">
         {{ pet.name }}
         
-        <!-- 👇 修改：名字旁的微型 VIP 标识 (Emoji) -->
+        <!-- 👇 名字旁的微型 VIP 标识 -->
         <span v-if="pet.owner?.isVip" class="pet-card__vip-badge">
           <span
             v-if="pet.owner.isLifetimeVip"
             title="终身 VIP"
-            class="is-lifetime"
           >💎</span>
           <span
             v-if="pet.owner.vipExpiresAt && new Date(pet.owner.vipExpiresAt) > new Date()"
             title="订阅 VIP"
-            class="is-sub"
           >🌈</span>
         </span>
       </div>
@@ -186,9 +183,6 @@ watch(
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-// ============================================================
-// 宠物卡片样式（融合了首页和列表页的需求）
-// ============================================================
 .pet-card {
   display: flex;
   flex-direction: column;
@@ -230,7 +224,7 @@ watch(
   &__festival {
     position: absolute;
     inset: 0;
-    z-index: 0;              // 在头像和文字之下、卡片背景之上
+    z-index: 0;
     pointer-events: none;
     overflow: hidden;
   }
@@ -255,8 +249,6 @@ watch(
     z-index: 1;
     transition: all 0.3s ease;
     
-    // 传入全局 avatar-effect 所需的变量
-    // 卡片头像尺寸为 80px，所以偏移量为 -8px，遮罩比例约为 62%
     --ring-inset: -8px;
     --ring-mask: 62%;
 
@@ -309,13 +301,11 @@ watch(
     .line-1();
   }
 
-  // 👇 修改：VIP 角标样式
   &__vip-badge {
     display: inline-flex;
     align-items: center;
     gap: 2px;
     font-size: 14px;
-    // 移除了颜色和滤镜，因为 emoji 自带颜色
   }
 
   &__brief {

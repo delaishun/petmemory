@@ -23,6 +23,8 @@ interface HomePet {
     nickname: string;
     avatarUrl: string | null;
     isVip?: boolean;
+    isLifetimeVip?: boolean;      // 👈 必须补上
+    vipExpiresAt?: string | null; // 👈 必须补上
   };
 }
 
