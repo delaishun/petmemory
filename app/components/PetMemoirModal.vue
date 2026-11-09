@@ -91,21 +91,13 @@ function exportPdf() {
     styleEl.id = styleId
     styleEl.innerHTML = `
       @media print {
-        /* 1. 全局重置页面边距，确保从纸张最顶端开始 */
+        /* 1. 严格控制 A4 纸张边距，清空浏览器默认页眉页脚干扰 */
         @page {
           size: A4 portrait;
-          margin: 15mm 15mm;
+          margin: 10mm 15mm;
         }
 
-        body, html {
-          background: #fff !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
-          height: auto !important;
-        }
-
-        /* 2. 隐藏全网页所有非打印元素 */
+        /* 2. 隐藏全网页所有元素 */
         body * {
           visibility: hidden !important;
         }
@@ -116,10 +108,11 @@ function exportPdf() {
           visibility: visible !important;
         }
 
-        /* 4. 打印区紧贴顶部，不留无效大空白 */
+        /* 4. 强制让打印区绝对置顶，彻底消灭顶部空白 */
         .memoir-print-area {
-          position: relative !important;
-          display: block !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
           width: 100% !important;
           max-width: 100% !important;
           margin: 0 !important;
@@ -130,27 +123,22 @@ function exportPdf() {
           page-break-inside: avoid !important;
         }
 
-        /* 5. 隐藏顶部单独的时间（改为落款显示） */
-        .memoir-print-time {
-          display: none !important;
-        }
-
-        /* 6. 宠物头像和名字紧凑居中 */
+        /* 5. 宠物头像和名字紧凑居中 */
         .memoir-header {
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           text-align: center !important;
-          margin-bottom: 16px !important;
+          margin-bottom: 12px !important;
           border-bottom: none !important;
           padding-bottom: 0 !important;
         }
 
         .memoir-avatar {
           display: block !important;
-          margin: 0 auto 8px auto !important;
-          width: 64px !important;
-          height: 64px !important;
+          margin: 0 auto 6px auto !important;
+          width: 56px !important;
+          height: 56px !important;
           border-radius: 50% !important;
           object-fit: cover !important;
         }
@@ -158,20 +146,20 @@ function exportPdf() {
         .memoir-title {
           text-align: center !important;
           width: 100% !important;
-          font-size: 18px !important;
+          font-size: 16px !important;
           font-weight: 700 !important;
           color: #2c2c2c !important;
           margin: 0 !important;
         }
 
-        /* 7. 回忆录正文排版，自适应单页高度 */
+        /* 6. 回忆录正文排版，适度精简行高，确保单页完整 */
         .memoir-body {
           display: block !important;
           text-align: left !important;
-          font-size: 13px !important;
-          line-height: 1.8 !important;
+          font-size: 12.5px !important;
+          line-height: 1.6 !important;
           color: #2c2c2c !important;
-          margin-top: 8px !important;
+          margin-top: 6px !important;
         }
 
         .memoir-body p {
@@ -181,21 +169,21 @@ function exportPdf() {
           margin: 0 !important;
         }
 
-        /* 8. 底部落款：包含网址与当前时间 */
+        /* 7. 底部落款：域名 + 时间紧凑居中 */
         .memoir-footer {
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           justify-content: center !important;
-          gap: 4px !important;
-          font-size: 11px !important;
+          gap: 2px !important;
+          font-size: 10px !important;
           color: #888 !important;
-          margin-top: 24px !important;
+          margin-top: 16px !important;
           border-top: none !important;
           font-family: monospace !important;
         }
 
-        /* 9. 隐藏操作按钮和遮罩 */
+        /* 8. 隐藏操作按钮和遮罩 */
         .van-overlay,
         .memoir-actions,
         .no-print,
@@ -247,7 +235,7 @@ watch(visible, (val) => {
         <!-- 底部落款：域名 + 动态打印时间 -->
         <div v-if="!loading" class="memoir-footer">
           <span>petmemory.me</span>
-          <span v-if="currentPrintTime" style="font-size: 10px; opacity: 0.8;">{{ currentPrintTime }}</span>
+          <span v-if="currentPrintTime" style="font-size: 9px; opacity: 0.8;">{{ currentPrintTime }}</span>
         </div>
 
         <div class="memoir-actions no-print">
