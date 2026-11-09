@@ -77,45 +77,45 @@ watch(visible, (val) => {
 </script>
 
 <template>
+  <!-- 👇 移除了 maxHeight: '90vh'，让弹窗在加载时自然收缩 -->
   <van-popup
     v-model:show="visible"
     round
     position="bottom"
-    :style="{ maxHeight: '90vh', width: 'min(600px, 100%)', left: '50%', right: 'auto', translate: '-50% 0' }"
+    :style="{ width: 'min(600px, 100%)', left: '50%', right: 'auto', translate: '-50% 0' }"
     teleport="body"
     :close-on-click-overlay="!loading"
     class="memoir-modal"
   >
-    <!-- 👇 给内容区加上 memoir-print-area 类名用于打印 -->
     <div class="memoir-content memoir-print-area">
-      <header class="memoir-header">
-        <!-- 👇 新增：回忆录头像 -->
-        <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
-        <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
-        <p class="memoir-subtitle">Exclusive Weekly Memory</p>
-      </header>
+      <div class="memoir-inner">
+        <header class="memoir-header">
+          <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
+          <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
+          <p class="memoir-subtitle">Exclusive Weekly Memory</p>
+        </header>
 
-      <div v-if="loading" class="memoir-loading">
-        <van-loading type="spinner" color="#E8A87C" size="32" />
-        <p>{{ t('memoir_generating') || '正在翻阅回忆...' }}</p>
-      </div>
+        <div v-if="loading" class="memoir-loading">
+          <van-loading type="spinner" color="#E8A87C" size="32" />
+          <p>{{ t('memoir_generating') || '正在翻阅回忆...' }}</p>
+        </div>
 
-      <div v-else class="memoir-body">
-        <p style="white-space: pre-wrap;">{{ memoirText }}</p>
-      </div>
+        <div v-else class="memoir-body">
+          <p style="white-space: pre-wrap;">{{ memoirText }}</p>
+        </div>
 
-      <!-- 👇 新增：底部落款 -->
-      <div v-if="!loading" class="memoir-footer">
-        petmemory.me
-      </div>
+        <div v-if="!loading" class="memoir-footer">
+          petmemory.me
+        </div>
 
-      <div class="memoir-actions no-print">
-        <button v-if="!loading" type="button" class="btn btn--primary btn--lg" @click="exportPdf">
-          {{ t('memoir_export') || '导出 PDF' }}
-        </button>
-        <button type="button" class="btn btn--lg" @click="visible = false">
-          {{ t('btn_close') || '关闭' }}
-        </button>
+        <div class="memoir-actions no-print">
+          <button v-if="!loading" type="button" class="btn btn--primary btn--lg" @click="exportPdf">
+            {{ t('memoir_export') || '导出 PDF' }}
+          </button>
+          <button type="button" class="btn btn--lg" @click="visible = false">
+            {{ t('btn_close') || '关闭' }}
+          </button>
+        </div>
       </div>
     </div>
   </van-popup>
@@ -124,11 +124,19 @@ watch(visible, (val) => {
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
+/* 外层容器，用于控制最大高度和滚动 */
 .memoir-content {
-  padding: @sp-6 @sp-5;
   background: #faf6f1;
   max-height: 85vh;
   overflow-y: auto;
+  min-height: 200px; /* 防止加载时高度太扁 */
+}
+
+/* 内层容器，用于控制内容宽度和居中 */
+.memoir-inner {
+  padding: @sp-6 @sp-5;
+  max-width: 650px;
+  margin: 0 auto;
 }
 
 .memoir-header {
@@ -182,22 +190,16 @@ watch(visible, (val) => {
   text-align: center; 
   white-space: pre-wrap;
   word-break: break-word;
-  padding: 0 @sp-4;
-  max-width: 650px;
-  margin: 0 auto;
 }
 
 .memoir-footer {
-  text-align: center; /* 也可以改为 left/right，看你的喜好 */
+  text-align: center;
   font-size: 12px;
   color: @ink-3;
   margin-top: 40px;
   padding-top: 15px;
   border-top: 1px dashed #ddd;
   font-family: @font-mono;
-  max-width: 650px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .memoir-actions {
@@ -207,28 +209,29 @@ watch(visible, (val) => {
   .btn { flex: 1; }
 }
 
-/* 👇 打印 PDF 专用的终极 CSS */
+/* ============================================================ */
+/* 👇 最暴力的打印排版覆盖 */
+/* ============================================================ */
 @media print {
-  /* 1. 彻底干掉除了 teleports 以外的所有节点（把主页、Footer、按钮全物理移除） */
+  /* 1. 把除了 teleports 之外的整个网页物理删除（彻底干掉主页的按钮和页脚） */
   body > *:not(#teleports) {
     display: none !important;
   }
 
-  /* 2. 重置 body，防止页边距干扰 */
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
+  /* 2. 确保 teleports 正常显示 */
+  #teleports {
+    display: block !important;
+    position: static !important;
   }
 
-  /* 3. 解除 Vant 弹窗的 fixed 定位、居中位移和高度限制 */
+  /* 3. 取消 Vant 弹窗的 fixed 定位和动画，让它回归自然文档流 */
   .van-popup {
     position: static !important; 
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     max-height: none !important;
-    transform: none !important; /* 干掉 -50% 的居中位移 */
+    transform: none !important; /* 去掉 -50% 的居中偏移 */
     left: auto !important;
     bottom: auto !important;
     margin: 0 !important;
@@ -243,23 +246,31 @@ watch(visible, (val) => {
     display: none !important;
   }
 
-  /* 5. 让内容区 100% 正常流向纸张，留下舒适的页边距 */
+  /* 5. 强制内容区绝对定位在纸张左上角 */
   .memoir-content {
-    display: block !important;
-    position: static !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
     max-height: none !important;
-    margin: 0 auto !important;
-    padding: 30px 60px !important; /* 左右留白，适合 A4 纸 */
-    box-sizing: border-box !important;
-    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #fff !important;
     box-shadow: none !important;
+    overflow: visible !important;
+    min-height: 0 !important;
   }
 
-  /* 6. 隐藏操作按钮 */
+  /* 6. 确保内层内容居中显示并留出页边距 */
+  .memoir-inner {
+    padding: 20px 60px !important; /* 左右 60px 边距 */
+    max-width: 800px !important;
+    margin: 0 auto !important;
+  }
+
+  /* 7. 隐藏按钮 */
   .memoir-actions {
     display: none !important;
   }
