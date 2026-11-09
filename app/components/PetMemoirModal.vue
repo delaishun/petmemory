@@ -2,27 +2,37 @@
 <script setup lang="ts">
 import { showToast } from 'vant'
 import { useI18n } from '~/composables/useI18n'
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
+
 const { t } = useI18n()
 const { $api } = useNuxtApp()
+
 interface Props {
   modelValue: boolean
   petName: string
   petAvatarUrl?: string | null
   slug: string
 }
+
 const props = withDefaults(defineProps<Props>(), {
   petAvatarUrl: null,
 })
+
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
+
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
 })
+
 const loading = ref(false)
+const exporting = ref(false)
 const memoirText = ref('')
 const currentPrintTime = ref('')
+
 const defaultPetAvatar =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
@@ -32,6 +42,7 @@ const defaultPetAvatar =
        <path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF" />
      </svg>`
   )
+
 async function generate() {
   loading.value = true
   try {
@@ -50,13 +61,13 @@ async function generate() {
         return
       }
     }
-
-    showToast(err?.data?.error || '生成失败，请稍后再试')
+    showToast(errorMsg || '生成失败，请稍后再试')
     visible.value = false
   } finally {
     loading.value = false
   }
 }
+
 function updatePrintTime() {
   const d = new Date()
   const y = d.getFullYear()
@@ -66,20 +77,99 @@ function updatePrintTime() {
   const mm = String(d.getMinutes()).padStart(2, '0')
   currentPrintTime.value = `${y}-${m}-${dd} ${hh}:${mm}`
 }
-function exportPdf() {
-  if (loading.value || !memoirText.value) {
-    showToast(t('memoir_generating') || '正在生成回忆录，请稍候...')
+
+async function exportPdf() {
+  if (loading.value || !memoirText.value || exporting.value) {
     return
   }
+
+  exporting.value = true
+  const loadingToast = showToast({
+    type: 'loading',
+    message: '正在生成 PDF...',
+    duration: 0,
+    forbidClick: true,
+  })
+
   updatePrintTime()
-  window.print()
+  await nextTick() // 等待日期渲染
+
+  const target = document.querySelector('.memoir-print-area') as HTMLElement
+  if (!target) {
+    exporting.value = false
+    loadingToast.close()
+    return
+  }
+
+  try {
+    // 临时解除高度限制，让元素在截图中完全展开
+    const originalMaxHeight = target.style.maxHeight
+    const originalOverflow = target.style.overflow
+    target.style.maxHeight = 'none'
+    target.style.overflow = 'visible'
+
+    // 1. 使用 html2canvas 将目标 DOM 转为高清画布
+    const canvas = await html2canvas(target, {
+      scale: 2, // 2倍清晰度
+      useCORS: true,
+      backgroundColor: '#faf6f1',
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight,
+    })
+
+    // 恢复原来的样式
+    target.style.maxHeight = originalMaxHeight
+    target.style.overflow = originalOverflow
+
+    // 2. 使用 jsPDF 将画布生成 PDF
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    
+    // A4 纸尺寸 (mm)
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+    
+    const margin = 10 // 页边距 10mm
+    const contentWidth = pdfWidth - margin * 2
+
+    // 根据画布比例计算图片在 PDF 中的实际高度
+    const imgHeight = (canvas.height * contentWidth) / canvas.width
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.95)
+
+    let heightLeft = imgHeight
+    let position = margin
+
+    // 添加第一页
+    pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
+    heightLeft -= (pdfHeight - margin * 2)
+
+    // 如果内容超出一页，进行分页渲染
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight + margin
+      pdf.addPage()
+      pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
+      heightLeft -= (pdfHeight - margin * 2)
+    }
+
+    // 触发下载
+    pdf.save(`${props.petName}-Memoir.pdf`)
+    loadingToast.close()
+  } catch (err) {
+    console.error('PDF 生成失败', err)
+    loadingToast.close()
+    showToast('生成 PDF 失败，请重试')
+  } finally {
+    exporting.value = false
+  }
 }
+
 watch(visible, (val) => {
   if (val && !memoirText.value) {
     generate()
   }
 })
 </script>
+
 <template>
   <van-popup
     v-model:show="visible"
@@ -87,252 +177,147 @@ watch(visible, (val) => {
     position="bottom"
     :style="{ width: 'min(600px, 100%)', left: '50%', right: 'auto', translate: '-50% 0' }"
     teleport="body"
-    :close-on-click-overlay="!loading"
+    :close-on-click-overlay="!loading && !exporting"
     class="memoir-popup"
   >
     <div class="memoir-content">
+      <!-- 👇 这个 dom 会被 html2canvas 截取，所以样式必须完全自包含 -->
       <div class="memoir-inner memoir-print-area">
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
           <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
+
         <div v-if="loading" class="memoir-loading">
           <van-loading type="spinner" color="#E8A87C" size="32" />
           <p>{{ t('memoir_generating') || '正在翻阅回忆...' }}</p>
         </div>
+
         <div v-else class="memoir-body">
           <p style="white-space: pre-wrap;">{{ memoirText }}</p>
         </div>
+
         <!-- 底部落款 -->
         <div v-if="!loading" class="memoir-footer">
           petmemory.me
         </div>
-        <div class="memoir-actions no-print">
-          <button v-if="!loading" type="button" class="btn btn--primary btn--lg" @click="exportPdf">
-            {{ t('memoir_export') || '导出 PDF' }}
-          </button>
-          <button type="button" class="btn btn--lg" @click="visible = false">
-            {{ t('btn_close') || '关闭' }}
-          </button>
-        </div>
+      </div>
+
+      <!-- 按钮区，不在截图区内 -->
+      <div class="memoir-actions">
+        <button 
+          v-if="!loading" 
+          type="button" 
+          class="btn btn--primary btn--lg" 
+          :disabled="exporting"
+          @click="exportPdf"
+        >
+          {{ exporting ? '生成中...' : (t('memoir_export') || '导出 PDF') }}
+        </button>
+        <button type="button" class="btn btn--lg" :disabled="exporting" @click="visible = false">
+          {{ t('btn_close') || '关闭' }}
+        </button>
       </div>
     </div>
   </van-popup>
 </template>
+
 <style lang="less">
 @import "~/assets/css/common.less";
+
 /* ============================================================ */
-/* 屏幕显示样式 */
+/* 这里的样式完全为了 html2canvas 截图服务，无需考虑浏览器打印 */
 /* ============================================================ */
-.memoir-popup {
-  .memoir-content {
-    background: #faf6f1;
-    max-height: 85vh;
-    overflow-y: auto;
-    min-height: 240px;
-  }
-  .memoir-inner {
-    padding: @sp-6 @sp-5;
-    max-width: 650px;
-    margin: 0 auto;
-  }
-  .memoir-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin-bottom: @sp-6;
-    border-bottom: 1px solid @border;
-    padding-bottom: @sp-4;
-  }
-  .memoir-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: @sp-3;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-  .memoir-title {
-    font-family: @font-serif;
-    font-size: @fs-xl;
-    font-weight: 700;
-    color: @ink-1;
-    margin: 0 0 @sp-1;
-  }
-  .memoir-date {
-    font-size: @fs-xs;
-    color: @ink-3;
-    font-family: @font-mono;
-    margin: @sp-1 0 0;
-  }
-  .memoir-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: @sp-4;
-    padding: @sp-8 0;
-    color: @ink-2;
-  }
-  .memoir-body {
-    font-size: 16px;
-    line-height: 2.2;
-    color: @ink-1;
-    font-family: @font-serif;
-    text-align: center;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .memoir-footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    text-align: center;
-    font-size: 12px;
-    color: @ink-3;
-    margin-top: 40px;
-    padding-top: 15px;
-    border-top: 1px dashed #ddd;
-    font-family: @font-mono;
-  }
-  .memoir-actions {
-    margin-top: @sp-6;
-    display: flex;
-    gap: @sp-3;
-    .btn { flex: 1; }
-  }
+.memoir-content {
+  background: #faf6f1;
+  max-height: 85vh;
+  overflow-y: auto;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
 }
-/* ============================================================ */
-/* 👇 修复打印偏左问题 & 彻底消除尾部多余元素 */
-/* ============================================================ */
-@media print {
-  @page {
-    size: A4 portrait;
-    margin: 15mm;
-  }
 
-  /* 1. 核心大招：直接把主页框架完全隐藏 */
-  #__nuxt {
-    display: none !important;
-  }
+.memoir-inner {
+  padding: @sp-6 @sp-5;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 650px;
+  background: #faf6f1;
+}
 
-  /* 2. 重置 body 和 teleport 容器，让弹窗自然撑开 */
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
-    width: 100% !important;
-    height: auto !important;
-  }
+.memoir-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: @sp-6;
+  border-bottom: 1px solid @border;
+  padding-bottom: @sp-4;
+}
 
-  #teleports {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-  }
+.memoir-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: @sp-3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
-  /* 3. 隐藏网页多余元素 */
-  .van-overlay,
-  .memoir-actions,
-  .no-print {
-    display: none !important;
-  }
+.memoir-title {
+  font-family: @font-serif;
+  font-size: @fs-xl;
+  font-weight: 700;
+  color: @ink-1;
+  margin: 0 0 @sp-1;
+}
 
-  /* 4. van-popup 弹窗彻底清除所有定位残留 */
-  .van-popup.memoir-popup {
-    display: block !important;
-    position: static !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    transform: none !important;
-    left: auto !important;
-    right: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
+.memoir-date {
+  font-size: @fs-xs;
+  color: @ink-3;
+  font-family: @font-mono;
+  margin: @sp-1 0 0;
+}
 
-  .van-popup.memoir-popup .memoir-content {
-    display: block !important;
-    position: static !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-  }
+.memoir-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: @sp-4;
+  padding: @sp-8 0;
+  color: @ink-2;
+}
 
-  /* 5. 核心打印内容容器，强制居中 */
-  .van-popup.memoir-popup .memoir-inner {
-    display: block !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-    max-width: 620px !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    background: transparent !important;
-  }
+.memoir-body {
+  font-size: 16px;
+  line-height: 2.2;
+  color: @ink-1;
+  font-family: @font-serif;
+  text-align: justify;
+  word-break: break-word;
+}
 
-  /* 6. 头部区域 */
-  .van-popup.memoir-popup .memoir-header {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    text-align: center !important;
-    padding-bottom: 15px !important;
-    margin-bottom: 20px !important;
-    border-bottom: 1px solid #ddd !important;
-  }
-  .van-popup.memoir-popup .memoir-avatar {
-    width: 70px !important;
-    height: 70px !important;
-    margin-bottom: 8px !important;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  .van-popup.memoir-popup .memoir-title {
-    font-size: 20px !important;
-    margin-bottom: 4px !important;
-    font-family: serif;
-  }
-  .van-popup.memoir-popup .memoir-date {
-    font-size: 11px !important;
-    color: #888 !important;
-    font-family: monospace;
-  }
+.memoir-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  font-size: 12px;
+  color: @ink-3;
+  margin-top: 40px;
+  padding-top: 15px;
+  border-top: 1px dashed #ddd;
+  font-family: @font-mono;
+}
 
-  /* 7. 正文排版 */
-  .van-popup.memoir-popup .memoir-body {
-    display: block !important;
-    width: 100% !important;
-    text-align: justify !important;
-    font-size: 13pt !important;
-    line-height: 1.8 !important;
-    color: #2c2c2c !important;
-    font-family: serif;
-    word-break: break-word;
-  }
-  .van-popup.memoir-popup .memoir-body p {
-    margin: 0 !important;
-    width: 100% !important;
-    white-space: pre-wrap;
-  }
-
-  /* 8. 底部落款 */
-  .van-popup.memoir-popup .memoir-footer {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 2px !important;
-    margin-top: 30px !important;
-    padding-top: 10px !important;
-    border-top: 1px dashed #ccc !important;
-    font-size: 10pt !important;
-    color: #666 !important;
-    font-family: monospace;
-  }
+.memoir-actions {
+  margin-top: @sp-6;
+  display: flex;
+  gap: @sp-3;
+  padding: 0 @sp-5 @sp-5;
+  
+  .btn { flex: 1; }
 }
 </style>
