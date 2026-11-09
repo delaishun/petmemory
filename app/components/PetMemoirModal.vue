@@ -91,54 +91,66 @@ function exportPdf() {
     styleEl.id = styleId
     styleEl.innerHTML = `
       @media print {
-        /* 1. 隐藏全网页所有元素 */
+        /* 1. 全局重置页面边距，确保从纸张最顶端开始 */
+        @page {
+          size: A4 portrait;
+          margin: 15mm 15mm;
+        }
+
+        body, html {
+          background: #fff !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          height: auto !important;
+        }
+
+        /* 2. 隐藏全网页所有非打印元素 */
         body * {
           visibility: hidden !important;
         }
 
-        /* 2. 仅让纯净打印核心区可见 */
+        /* 3. 仅让纯净打印核心区可见 */
         .memoir-print-area,
         .memoir-print-area * {
           visibility: visible !important;
         }
 
-        /* 3. 让打印区回归文档流顶部，从 A4 纸最上方顺畅往下排版，绝不留大空白 */
+        /* 4. 打印区紧贴顶部，不留无效大空白 */
         .memoir-print-area {
-          position: static !important;
+          position: relative !important;
+          display: block !important;
           width: 100% !important;
           max-width: 100% !important;
-          margin: 0 auto !important;
-          padding: 10px 20px !important;
+          margin: 0 !important;
+          padding: 0 !important;
           background: #fff !important;
           box-sizing: border-box !important;
+          page-break-after: avoid !important;
+          page-break-inside: avoid !important;
         }
 
-        /* 4. 顶部当前时间样式 */
+        /* 5. 隐藏顶部单独的时间（改为落款显示） */
         .memoir-print-time {
-          display: block !important;
-          text-align: center !important;
-          font-size: 11px !important;
-          color: #aaa !important;
-          margin-bottom: 8px !important;
-          font-family: monospace !important;
+          display: none !important;
         }
 
-        /* 5. 宠物头像和名字居中 */
+        /* 6. 宠物头像和名字紧凑居中 */
         .memoir-header {
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           text-align: center !important;
-          margin-bottom: 20px !important;
+          margin-bottom: 16px !important;
           border-bottom: none !important;
           padding-bottom: 0 !important;
         }
 
         .memoir-avatar {
           display: block !important;
-          margin: 0 auto 10px auto !important;
-          width: 70px !important;
-          height: 70px !important;
+          margin: 0 auto 8px auto !important;
+          width: 64px !important;
+          height: 64px !important;
           border-radius: 50% !important;
           object-fit: cover !important;
         }
@@ -146,41 +158,44 @@ function exportPdf() {
         .memoir-title {
           text-align: center !important;
           width: 100% !important;
-          font-size: 20px !important;
+          font-size: 18px !important;
           font-weight: 700 !important;
           color: #2c2c2c !important;
           margin: 0 !important;
         }
 
-        /* 6. 回忆录正文排版，允许正常分页 */
+        /* 7. 回忆录正文排版，自适应单页高度 */
         .memoir-body {
           display: block !important;
           text-align: left !important;
-          font-size: 14px !important;
-          line-height: 2 !important;
+          font-size: 13px !important;
+          line-height: 1.8 !important;
           color: #2c2c2c !important;
-          margin-top: 10px !important;
-          page-break-inside: auto;
+          margin-top: 8px !important;
         }
 
         .memoir-body p {
           visibility: visible !important;
           display: block !important;
           text-align: left !important;
+          margin: 0 !important;
         }
 
-        /* 7. 底部 petmemory.me 居中 */
+        /* 8. 底部落款：包含网址与当前时间 */
         .memoir-footer {
-          display: block !important;
-          text-align: center !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 4px !important;
           font-size: 11px !important;
-          color: #aaa !important;
-          margin-top: 30px !important;
+          color: #888 !important;
+          margin-top: 24px !important;
           border-top: none !important;
           font-family: monospace !important;
         }
 
-        /* 8. 隐藏操作按钮和遮罩 */
+        /* 9. 隐藏操作按钮和遮罩 */
         .van-overlay,
         .memoir-actions,
         .no-print,
@@ -215,10 +230,6 @@ watch(visible, (val) => {
   >
     <div class="memoir-content">
       <div class="memoir-inner memoir-print-area">
-        <div class="memoir-print-time" v-if="currentPrintTime">
-          {{ currentPrintTime }}
-        </div>
-
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
           <h2 class="memoir-title">{{ petName }}</h2>
@@ -233,8 +244,10 @@ watch(visible, (val) => {
           <p style="white-space: pre-wrap;">{{ memoirText }}</p>
         </div>
 
+        <!-- 底部落款：域名 + 动态打印时间 -->
         <div v-if="!loading" class="memoir-footer">
-          petmemory.me
+          <span>petmemory.me</span>
+          <span v-if="currentPrintTime" style="font-size: 10px; opacity: 0.8;">{{ currentPrintTime }}</span>
         </div>
 
         <div class="memoir-actions no-print">
@@ -264,10 +277,6 @@ watch(visible, (val) => {
   padding: @sp-6 @sp-5;
   max-width: 650px;
   margin: 0 auto;
-}
-
-.memoir-print-time {
-  display: none;
 }
 
 .memoir-header {
@@ -324,6 +333,10 @@ watch(visible, (val) => {
 }
 
 .memoir-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   text-align: center;
   font-size: 12px;
   color: @ink-3;
