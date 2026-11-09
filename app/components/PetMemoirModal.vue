@@ -49,7 +49,12 @@ async function generate() {
     const res = await $api<{ memoir: string }>(`/api/pets/${props.slug}/memoir`, {
       method: 'POST',
     })
-    memoirText.value = res.memoir
+    
+    // 👇 自动清洗掉 AI 文本末尾自带的“永远爱你的...”字样，防止与前端落款重复
+    let cleanText = res.memoir || ''
+    cleanText = cleanText.replace(/永远爱你的[\s\S]*$/, '').trim()
+    memoirText.value = cleanText
+
   } catch (err: any) {
     const errorMsg = err?.data?.error || ''
 
@@ -92,7 +97,10 @@ async function exportPdf() {
   })
 
   updatePrintTime()
-  await nextTick() // 等待日期渲染
+  await nextTick() // 等待日期及 DOM 渲染完成
+  
+  // 给头像加载留出一点缓冲时间，防止 html2canvas 截到空白头像
+  await new Promise((resolve) => setTimeout(resolve, 200))
 
   const target = document.querySelector('.memoir-print-area') as HTMLElement
   if (!target) {
@@ -151,7 +159,7 @@ async function exportPdf() {
       heightLeft -= (pdfHeight - margin * 2)
     }
 
-    // 触发下载
+    // 触发下载（落款干净、不带括号大宝）
     pdf.save(`${props.petName}-Memoir.pdf`)
     loadingToast.close()
   } catch (err) {
@@ -181,10 +189,10 @@ watch(visible, (val) => {
     class="memoir-popup"
   >
     <div class="memoir-content">
-      <!-- 👇 这个 dom 会被 html2canvas 截取，所以样式必须完全自包含 -->
+      <!-- 截图核心区域 -->
       <div class="memoir-inner memoir-print-area">
         <header class="memoir-header">
-          <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
+          <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" crossorigin="anonymous" />
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
           <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
@@ -196,6 +204,10 @@ watch(visible, (val) => {
 
         <div v-else class="memoir-body">
           <p style="white-space: pre-wrap;">{{ memoirText }}</p>
+          <!-- 单独规范的落款，不含（大宝） -->
+          <div class="memoir-signoff">
+            永远爱你的 {{ petName }}
+          </div>
         </div>
 
         <!-- 底部落款 -->
@@ -226,9 +238,6 @@ watch(visible, (val) => {
 <style lang="less">
 @import "~/assets/css/common.less";
 
-/* ============================================================ */
-/* 这里的样式完全为了 html2canvas 截图服务，无需考虑浏览器打印 */
-/* ============================================================ */
 .memoir-content {
   background: #faf6f1;
   max-height: 85vh;
@@ -296,6 +305,13 @@ watch(visible, (val) => {
   font-family: @font-serif;
   text-align: justify;
   word-break: break-word;
+}
+
+.memoir-signoff {
+  margin-top: 24px;
+  text-align: right;
+  font-family: @font-serif;
+  font-weight: 600;
 }
 
 .memoir-footer {
