@@ -2083,6 +2083,7 @@ useHead(() => ({
       v-if="pet"
       v-model="memoirModalVisible"
       :pet-name="pet.name"
+      :pet-avatar-url="pet.avatarUrl"
       :slug="pet.slug"
     />
 

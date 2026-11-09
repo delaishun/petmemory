@@ -9,10 +9,14 @@ const { $api } = useNuxtApp()
 interface Props {
   modelValue: boolean
   petName: string
+  petAvatarUrl?: string | null
   slug: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  petAvatarUrl: null,
+})
+
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
@@ -25,6 +29,16 @@ const visible = computed({
 const loading = ref(false)
 const memoirText = ref('')
 
+const defaultPetAvatar =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+       <rect width="120" height="120" fill="#F5EEE4"/>
+       <circle cx="60" cy="52" r="22" fill="#DCD0BF"/>
+       <path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF"/>
+     </svg>`
+  )
+
 async function generate() {
   loading.value = true
   try {
@@ -35,18 +49,15 @@ async function generate() {
   } catch (err: any) {
     const errorMsg = err?.data?.error || ''
     
-    // 👇 捕获后端中文提示，提取剩余天数并替换为当前语言
     if (errorMsg.includes('每周只能生成一次回忆录')) {
       const match = errorMsg.match(/还需等待 (\d+) 天/)
       if (match && match[1]) {
-        showToast({ 
-          message: t('memoir_cooldown', { n: match[1] }) 
-        })
+        showToast({ message: t('memoir_cooldown', { n: match[1] }) })
         visible.value = false
         return
       }
     }
-
+    
     showToast(err?.data?.error || '生成失败，请稍后再试')
     visible.value = false
   } finally {
@@ -58,7 +69,6 @@ function exportPdf() {
   window.print()
 }
 
-// 弹窗打开时自动生成
 watch(visible, (val) => {
   if (val && !memoirText.value) {
     generate()
@@ -76,8 +86,11 @@ watch(visible, (val) => {
     :close-on-click-overlay="!loading"
     class="memoir-modal"
   >
-    <div class="memoir-content printable-area">
+    <!-- 👇 给内容区加上 memoir-print-area 类名用于打印 -->
+    <div class="memoir-content memoir-print-area">
       <header class="memoir-header">
+        <!-- 👇 新增：回忆录头像 -->
+        <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
         <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
         <p class="memoir-subtitle">Exclusive Weekly Memory</p>
       </header>
@@ -89,6 +102,11 @@ watch(visible, (val) => {
 
       <div v-else class="memoir-body">
         <p style="white-space: pre-wrap;">{{ memoirText }}</p>
+      </div>
+
+      <!-- 👇 新增：底部落款 -->
+      <div v-if="!loading" class="memoir-footer">
+        petmemory.me
       </div>
 
       <div class="memoir-actions no-print">
@@ -114,10 +132,23 @@ watch(visible, (val) => {
 }
 
 .memoir-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   margin-bottom: @sp-6;
   border-bottom: 1px solid @border;
   padding-bottom: @sp-4;
+}
+
+/* 👇 新增头像样式 */
+.memoir-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: @sp-3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .memoir-title {
@@ -144,9 +175,8 @@ watch(visible, (val) => {
   color: @ink-2;
 }
 
-/* 👇 修改：文字居中，移除首行缩进 */
 .memoir-body {
-  font-size: 16px; /* 稍微调大一点字号，适合 PDF 阅读 */
+  font-size: 16px;
   line-height: 2.2;
   color: @ink-1;
   font-family: @font-serif;
@@ -156,6 +186,16 @@ watch(visible, (val) => {
   padding: 0 @sp-4;
 }
 
+/* 👇 新增底部落款样式 */
+.memoir-footer {
+  text-align: right;
+  font-size: 12px;
+  color: @ink-3;
+  margin-top: 40px;
+  padding-right: @sp-4;
+  font-family: @font-mono;
+}
+
 .memoir-actions {
   margin-top: @sp-6;
   display: flex;
@@ -163,53 +203,42 @@ watch(visible, (val) => {
   .btn { flex: 1; }
 }
 
-/* 👇 打印 PDF 专用的 CSS */
+/* 👇 终极打印样式：暴力隐藏所有不需要的元素 */
 @media print {
-  /* 1. 彻底隐藏 Nuxt 主容器（解决背景和头像残留的问题） */
-  #__nuxt {
-    display: none !important;
+  /* 1. 把页面上所有东西都设为不可见，清除背景 */
+  body * {
+    visibility: hidden;
+    background: transparent !important;
+  }
+  
+  /* 2. 只把回忆录区域设为可见 */
+  .memoir-print-area, .memoir-print-area * {
+    visibility: visible;
   }
 
-  /* 2. 确保弹窗所在的 teleport 容器正常显示 */
-  #teleports {
-    display: block !important;
+  /* 3. 强制把回忆录区域绝对定位到左上角，铺满整页，不受任何高度限制 */
+  .memoir-print-area {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
-    height: auto !important;
-  }
-
-  /* 3. 重置 Vant 弹窗的高度限制和滚动（解决内容截断的问题） */
-  .van-popup {
-    position: relative !important;
-    display: block !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 40px !important;
     background: #fff !important;
+    display: block !important;
     max-height: none !important;
     overflow: visible !important;
     box-shadow: none !important;
   }
 
-  .van-overlay {
+  /* 4. 隐藏按钮 */
+  .memoir-actions {
     display: none !important;
   }
-
-  /* 4. 让内容区 100% 撑开，不受屏幕高度限制 */
-  .memoir-content {
-    display: block !important;
-    position: static !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    background: #fff !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-  }
-
-  /* 5. 隐藏不需要打印的按钮 */
-  .memoir-actions {
+  
+  /* 5. 移除弹窗的遮罩 */
+  .van-overlay {
     display: none !important;
   }
 }
