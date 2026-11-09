@@ -141,7 +141,6 @@ watch(visible, (val) => {
   padding-bottom: @sp-4;
 }
 
-/* 👇 新增头像样式 */
 .memoir-avatar {
   width: 80px;
   height: 80px;
@@ -186,7 +185,6 @@ watch(visible, (val) => {
   padding: 0 @sp-4;
 }
 
-/* 👇 新增底部落款样式 */
 .memoir-footer {
   text-align: right;
   font-size: 12px;
@@ -203,42 +201,58 @@ watch(visible, (val) => {
   .btn { flex: 1; }
 }
 
-/* 👇 终极打印样式：暴力隐藏所有不需要的元素 */
+/* 👇 打印 PDF 专用的终极 CSS */
 @media print {
-  /* 1. 把页面上所有东西都设为不可见，清除背景 */
-  body * {
-    visibility: hidden;
-    background: transparent !important;
-  }
-  
-  /* 2. 只把回忆录区域设为可见 */
-  .memoir-print-area, .memoir-print-area * {
-    visibility: visible;
+  /* 1. 彻底隐藏 Nuxt 主框架、遮罩层和不需要打印的元素 */
+  #__nuxt,
+  .van-overlay,
+  .site-header,
+  .site-footer,
+  .music-toggle,
+  .festival-layer {
+    display: none !important;
   }
 
-  /* 3. 强制把回忆录区域绝对定位到左上角，铺满整页，不受任何高度限制 */
-  .memoir-print-area {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
+  /* 2. 重置 body，防止边距干扰 */
+  body {
     margin: 0 !important;
-    padding: 40px !important;
+    padding: 0 !important;
     background: #fff !important;
+  }
+
+  /* 3. 把 Vant 弹窗从固定定位改为普通文档流，并去掉所有尺寸限制 */
+  .van-popup {
+    position: static !important;
     display: block !important;
+    background: #fff !important;
     max-height: none !important;
     overflow: visible !important;
     box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important; /* 移除居中用的位移 */
+    left: auto !important;
+    bottom: auto !important;
   }
 
-  /* 4. 隐藏按钮 */
-  .memoir-actions {
-    display: none !important;
+  /* 4. 确保回忆录内容完全展开，不受内部滚动条截断 */
+  .memoir-content {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    padding: 20px 40px !important;
+    margin: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    overflow: visible !important;
   }
-  
-  /* 5. 移除弹窗的遮罩 */
-  .van-overlay {
+
+  /* 5. 隐藏操作按钮 */
+  .memoir-actions {
     display: none !important;
   }
 }
