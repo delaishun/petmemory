@@ -661,4 +661,6 @@ export default {
   vip_sub_f4: 'Get 10,000 bonus points',
 
   pet_chat_heaven_hint: 'Chatting across time and space with your beloved in heaven',
+
+  memoir_cooldown: 'You can only generate one memoir per week. Please wait {n} more days.',
 }

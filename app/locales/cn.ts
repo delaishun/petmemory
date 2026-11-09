@@ -663,4 +663,6 @@ export default {
   vip_sub_f4: '赠送 10000 积分',
 
   pet_chat_heaven_hint: '跨越时空，正在与身处天堂的 ta 对话',
+
+  memoir_cooldown: '每周只能生成一次回忆录，还需等待 {n} 天',
 }

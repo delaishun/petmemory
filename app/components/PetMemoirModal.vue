@@ -33,6 +33,20 @@ async function generate() {
     })
     memoirText.value = res.memoir
   } catch (err: any) {
+    const errorMsg = err?.data?.error || ''
+    
+    // 👇 捕获后端中文提示，提取剩余天数并替换为当前语言
+    if (errorMsg.includes('每周只能生成一次回忆录')) {
+      const match = errorMsg.match(/还需等待 (\d+) 天/)
+      if (match && match[1]) {
+        showToast({ 
+          message: t('memoir_cooldown', { n: match[1] }) 
+        })
+        visible.value = false
+        return
+      }
+    }
+    
     showToast(err?.data?.error || '生成失败，请稍后再试')
     visible.value = false
   } finally {
