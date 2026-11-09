@@ -234,19 +234,12 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 全局生效的纯净打印排版（修复左侧半屏问题） */
+/* 👇 全局生效的纯净打印排版 */
 /* ============================================================ */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 15mm;
-  }
-
-  /* 1. 隐藏多余网页元素 */
-  #__nuxt,
-  .van-overlay,
-  .memoir-actions {
-    display: none !important;
+    margin: 15mm; /* 保留适当的页边距 */
   }
 
   body, html {
@@ -254,46 +247,56 @@ watch(visible, (val) => {
     padding: 0 !important;
     background: #fff !important;
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important;
   }
 
-  /* 2. 强制弹窗铺满整张纸的宽度，而非只占半边 */
-  .memoir-popup {
-    position: static !important;
-    display: block !important;
+  /* 1. 隐藏主页和操作按钮 */
+  #__nuxt, 
+  .van-overlay, 
+  .memoir-actions {
+    display: none !important;
+  }
+
+  /* 2. 彻底重置弹窗外层，强制脱离 Vant 的 fixed 限制，取消一切偏移 */
+  .van-popup {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important; /* 让高度由内容撑开 */
     width: 100% !important;
     max-width: 100% !important;
-    height: auto !important;
-    transform: none !important;
+    transform: none !important; 
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
+    overflow: visible !important; /* 去掉外层滚动条 */
   }
 
-  .memoir-popup .memoir-content {
+  /* 3. 清理内容区，去掉高度限制和滚动条 */
+  .van-popup .memoir-content {
     display: block !important;
-    position: static !important;
     width: 100% !important;
-    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important; /* 去掉内层滚动条 */
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
   }
 
-  /* 3. 核心修复：内层容器撑满 100% 宽度，并居中排版 */
-  .memoir-popup .memoir-inner {
+  /* 4. 核心居中：利用 max-width 和 margin: 0 auto 让内容完美居中 */
+  .van-popup .memoir-inner {
     display: block !important;
     width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
+    max-width: 700px !important; /* 限制最大宽度，防止文字拉得太长 */
+    margin: 0 auto !important;   /* 配合 max-width 实现居中 */
     padding: 0 !important;
-    background: transparent !important;
     box-sizing: border-box !important;
   }
 
-  /* 4. 头部居中 */
-  .memoir-popup .memoir-header {
+  /* 5. 头部排版 */
+  .van-popup .memoir-header {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -303,39 +306,40 @@ watch(visible, (val) => {
     border-bottom: 1px solid #ddd !important;
   }
 
-  .memoir-popup .memoir-avatar {
+  .van-popup .memoir-avatar {
     width: 70px !important;
     height: 70px !important;
     margin-bottom: 8px !important;
   }
   
-  .memoir-popup .memoir-title {
+  .van-popup .memoir-title {
     font-size: 20px !important;
     margin-bottom: 4px !important;
   }
 
-  .memoir-popup .memoir-date {
+  .van-popup .memoir-date {
     font-size: 11px !important;
     color: #888 !important;
   }
 
-  /* 5. 正文宽度拉满，不再偏在左侧半边 */
-  .memoir-popup .memoir-body {
+  /* 6. 正文排版 */
+  .van-popup .memoir-body {
     display: block !important;
     width: 100% !important;
-    text-align: left !important;
+    text-align: justify !important; /* 两端对齐，纸质书效果 */
     font-size: 13pt !important;
     line-height: 1.8 !important;
-    color: #2c2c2c !important;
+    color: #000 !important;
+    page-break-inside: auto !important;
   }
 
-  .memoir-popup .memoir-body p {
+  .van-popup .memoir-body p {
     margin: 0 !important;
     width: 100% !important;
   }
 
-  /* 6. 底部落款居中 */
-  .memoir-popup .memoir-footer {
+  /* 7. 底部落款居中 */
+  .van-popup .memoir-footer {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -345,6 +349,7 @@ watch(visible, (val) => {
     border-top: 1px dashed #ccc !important;
     font-size: 10pt !important;
     color: #666 !important;
+    page-break-inside: avoid !important;
   }
 }
 </style>
