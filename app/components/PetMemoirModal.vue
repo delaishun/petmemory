@@ -77,7 +77,7 @@ watch(visible, (val) => {
 </script>
 
 <template>
-  <!-- 👇 移除了 maxHeight: '90vh'，让弹窗在加载时自然收缩 -->
+  <!-- 👇 移除了 maxHeight 属性，改由内部 CSS 控制高度，避免加载时撑满全屏 -->
   <van-popup
     v-model:show="visible"
     round
@@ -85,10 +85,11 @@ watch(visible, (val) => {
     :style="{ width: 'min(600px, 100%)', left: '50%', right: 'auto', translate: '-50% 0' }"
     teleport="body"
     :close-on-click-overlay="!loading"
-    class="memoir-modal"
+    class="memoir-popup"
   >
-    <div class="memoir-content memoir-print-area">
-      <div class="memoir-inner">
+    <div class="memoir-content">
+      <!-- 新增 memoir-inner 专门负责居中和最大宽度 -->
+      <div class="memoir-inner memoir-print-area">
         <header class="memoir-header">
           <img class="memoir-avatar" :src="petAvatarUrl || defaultPetAvatar" alt="avatar" />
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
@@ -124,15 +125,20 @@ watch(visible, (val) => {
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-/* 外层容器，用于控制最大高度和滚动 */
+/* ============================================================ */
+/* 屏幕显示样式 */
+/* ============================================================ */
+
+/* 外层：控制弹窗背景色和最大高度 */
 .memoir-content {
   background: #faf6f1;
   max-height: 85vh;
   overflow-y: auto;
-  min-height: 200px; /* 防止加载时高度太扁 */
+  /* 最小高度，防止加载时太扁 */
+  min-height: 240px; 
 }
 
-/* 内层容器，用于控制内容宽度和居中 */
+/* 内层：控制内容宽度并居中 */
 .memoir-inner {
   padding: @sp-6 @sp-5;
   max-width: 650px;
@@ -210,67 +216,68 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 最暴力的打印排版覆盖 */
+/* 👇 打印 PDF 专用的排版 */
 /* ============================================================ */
 @media print {
-  /* 1. 把除了 teleports 之外的整个网页物理删除（彻底干掉主页的按钮和页脚） */
-  body > *:not(#teleports) {
+  /* 1. 核心大招：把 Nuxt 的主页框架直接干掉，里面包含所有的主页按钮和页脚 */
+  #__nuxt {
     display: none !important;
   }
 
-  /* 2. 确保 teleports 正常显示 */
+  /* 2. 确保 teleport 的容器可见 */
   #teleports {
     display: block !important;
     position: static !important;
   }
 
-  /* 3. 取消 Vant 弹窗的 fixed 定位和动画，让它回归自然文档流 */
-  .van-popup {
+  /* 3. 解除 Vant 弹窗的 fixed 定位、居中位移和高度限制 */
+  .memoir-popup {
     position: static !important; 
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     max-height: none !important;
-    transform: none !important; /* 去掉 -50% 的居中偏移 */
+    transform: none !important; /* 去掉居中位移 */
     left: auto !important;
     bottom: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: transparent !important;
+    background: #fff !important;
     box-shadow: none !important;
     overflow: visible !important;
   }
 
-  /* 4. 隐藏遮罩层 */
+  /* 4. 隐藏遮罩 */
   .van-overlay {
     display: none !important;
   }
 
-  /* 5. 强制内容区绝对定位在纸张左上角 */
+  /* 5. 去掉滚动条，让内容自然撑开 */
   .memoir-content {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    display: block !important;
+    position: static !important;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
     max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: #fff !important;
+    background: transparent !important;
     box-shadow: none !important;
     overflow: visible !important;
     min-height: 0 !important;
   }
 
-  /* 6. 确保内层内容居中显示并留出页边距 */
+  /* 6. 内层容器：完美居中，留出 A4 纸边距 */
   .memoir-inner {
-    padding: 20px 60px !important; /* 左右 60px 边距 */
+    display: block !important;
+    padding: 40px 60px !important;
     max-width: 800px !important;
     margin: 0 auto !important;
+    background: transparent !important;
   }
 
-  /* 7. 隐藏按钮 */
+  /* 7. 隐藏操作按钮 */
   .memoir-actions {
     display: none !important;
   }
