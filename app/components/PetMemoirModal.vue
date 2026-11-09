@@ -216,70 +216,84 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 打印 PDF 专用的排版 */
+/* 👇 打印 PDF 专用的排版修复 */
 /* ============================================================ */
 @media print {
-  /* 1. 核心大招：把 Nuxt 的主页框架直接干掉，里面包含所有的主页按钮和页脚 */
-  #__nuxt {
-    display: none !important;
+  /* 1. 强制隐藏页面上除回忆录弹窗以外的所有内容（包含主页框架、各种操作按钮） */
+  body * {
+    visibility: hidden !important;
   }
 
-  /* 2. 确保 teleport 的容器可见 */
-  #teleports {
-    display: block !important;
-    position: static !important;
+  /* 2. 只把回忆录弹窗内容及其内部子元素设为可见 */
+  .memoir-popup,
+  .memoir-popup * {
+    visibility: visible !important;
   }
 
-  /* 3. 解除 Vant 弹窗的 fixed 定位、居中位移和高度限制 */
+  /* 3. 重置弹窗在打印页中的绝对定位，使其完全撑满并顶格居中 */
   .memoir-popup {
-    position: static !important; 
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: none !important;
-    transform: none !important; /* 去掉居中位移 */
-    left: auto !important;
-    bottom: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-  }
-
-  /* 4. 隐藏遮罩 */
-  .van-overlay {
-    display: none !important;
-  }
-
-  /* 5. 去掉滚动条，让内容自然撑开 */
-  .memoir-content {
-    display: block !important;
-    position: static !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
     max-height: none !important;
+    transform: none !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
     overflow: visible !important;
-    min-height: 0 !important;
   }
 
-  /* 6. 内层容器：完美居中，留出 A4 纸边距 */
-  .memoir-inner {
-    display: block !important;
-    padding: 40px 60px !important;
-    max-width: 800px !important;
-    margin: 0 auto !important;
-    background: transparent !important;
-  }
-
-  /* 7. 隐藏操作按钮 */
-  .memoir-actions {
+  /* 4. 彻底隐藏遮罩层和底部操作按钮 */
+  .van-overlay,
+  .memoir-actions,
+  .no-print {
     display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 5. 修复 p1 问题：回忆录内容区域完美的 A4 纸居中与打印排版 */
+  .memoir-content {
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .memoir-inner {
+    width: 100% !important;
+    max-width: 700px !important;
+    margin: 0 auto !important;
+    padding: 20px 40px !important;
+    box-sizing: border-box !important;
+  }
+
+  .memoir-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    margin-bottom: 30px !important;
+  }
+
+  .memoir-avatar {
+    margin: 0 auto 12px auto !important;
+  }
+
+  .memoir-title,
+  .memoir-subtitle {
+    text-align: center !important;
+  }
+
+  /* 解决跨页断行体验问题 */
+  .memoir-body {
+    page-break-inside: auto;
+    color: #2c2c2c !important;
   }
 }
 </style>
