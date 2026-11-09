@@ -7,7 +7,8 @@ const { t } = useI18n()
 
 // 获取全局用户状态，判断是用什么渠道支付的
 const user = useState<AuthUser | null>('auth:user', () => null)
-const provider = computed(() => user.value?.payment_provider || 'paddle')
+// 👇 核心修改：默认采用 Dodo 支付（因为目前网站默认是 Dodo）
+const provider = computed(() => user.value?.payment_provider || 'dodo')
 
 interface Props {
   modelValue: boolean
@@ -27,24 +28,25 @@ const visible = computed({
 const steps = computed(() => {
   if (provider.value === 'dodo') {
     return [
-      t('manage_sub_dodo_step_1'),
-      t('manage_sub_dodo_step_2'),
-      t('manage_sub_dodo_step_3'),
-      t('manage_sub_dodo_step_4'),
+      t('manage_sub_dodo_step_1') || '前往您注册时使用的邮箱。',
+      t('manage_sub_dodo_step_2') || '搜索来自 Dodo Payments 的收据邮件。',
+      t('manage_sub_dodo_step_3') || '打开邮件，点击里面的 "Customer Portal" 或 "Manage Subscription" 链接。',
+      t('manage_sub_dodo_step_4') || '在打开的网页中，点击 "Cancel Subscription" 即可取消。',
     ]
   }
+  // Paddle 兜底
   return [
-    t('manage_sub_paddle_step_1'),
-    t('manage_sub_paddle_step_2'),
-    t('manage_sub_paddle_step_3'),
-    t('manage_sub_paddle_step_4'),
+    t('manage_sub_paddle_step_1') || '前往您注册时使用的邮箱。',
+    t('manage_sub_paddle_step_2') || '搜索来自 Paddle 的账单邮件。',
+    t('manage_sub_paddle_step_3') || '打开邮件，点击里面的 "Manage Subscription" 链接。',
+    t('manage_sub_paddle_step_4') || '在打开的网页中，点击 "Cancel Subscription" 即可取消。',
   ]
 })
 
 const descText = computed(() => {
   return provider.value === 'dodo' 
-    ? t('manage_sub_dodo_desc') 
-    : t('manage_sub_paddle_desc')
+    ? (t('manage_sub_dodo_desc') || '您的 VIP 会员通过 Dodo Payments 管理。如需取消自动续费：')
+    : (t('manage_sub_paddle_desc') || '您的 VIP 会员通过 Paddle 管理。如需取消自动续费：')
 })
 </script>
 
@@ -59,8 +61,8 @@ const descText = computed(() => {
     <div class="manage-modal__content">
       <div class="manage-modal__header">
         <van-icon name="setting-o" class="manage-modal__icon" />
-        <h2 class="manage-modal__title">{{ t('manage_sub_title') }}</h2>
-        <p class="manage-modal__subtitle">{{ t('manage_sub_subtitle') }}</p>
+        <h2 class="manage-modal__title">{{ t('manage_sub_title') || '管理订阅' }}</h2>
+        <p class="manage-modal__subtitle">{{ t('manage_sub_subtitle') || '您的订阅正在自动续费中' }}</p>
       </div>
 
       <div class="manage-modal__body">
@@ -72,7 +74,7 @@ const descText = computed(() => {
 
         <div class="manage-modal__tips">
           <van-icon name="info-o" class="tips-icon" />
-          <span>{{ t('manage_sub_tips') }}</span>
+          <span>{{ t('manage_sub_tips') || '取消后，您的 VIP 权益将持续到当前计费周期结束。' }}</span>
         </div>
       </div>
 
@@ -82,7 +84,7 @@ const descText = computed(() => {
           class="btn btn--primary btn--lg manage-modal__btn" 
           @click="visible = false"
         >
-          {{ t('btn_got_it') }}
+          {{ t('btn_got_it') || '我知道了' }}
         </button>
       </div>
     </div>

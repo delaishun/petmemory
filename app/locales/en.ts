@@ -395,7 +395,7 @@ export default {
   year: 'yr',
   vip_album_privilege: 'Unlock pet album uploads',
   vip_terms_tip: 'By subscribing, you agree to our Terms of Service. Cancel anytime via the payment platform.',
-  user_upgrade_vip: 'Upgrade to VIP ($9.9/yr)',
+  user_upgrade_vip: 'Upgrade to VIP',
   user_renew_vip: 'Renew VIP',
   vip_price_yearly: '$9.90 / Year',
   vip_auto_renew_tip: 'Auto-renews, cancel anytime',

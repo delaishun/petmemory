@@ -395,7 +395,7 @@ export default {
   year: '年',
   vip_album_privilege: '解锁宠物相册上传功能',
   vip_terms_tip: '订阅即代表同意服务条款，可随时在支付平台取消续费。',
-  user_upgrade_vip: '升级 VIP ($9.9/年)',
+  user_upgrade_vip: '升级 VIP',
   user_renew_vip: '续费 VIP',
   vip_price_yearly: '$9.90 / 年',
   vip_auto_renew_tip: '支持自动续费，随时可取消',
