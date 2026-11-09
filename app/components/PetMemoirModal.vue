@@ -77,7 +77,6 @@ function updatePrintTime() {
 }
 
 function exportPdf() {
-  // 如果还在加载中或者回忆录文本为空，拦截并提示
   if (loading.value || !memoirText.value) {
     showToast(t('memoir_generating') || '正在生成回忆录，请稍候...')
     return
@@ -97,22 +96,19 @@ function exportPdf() {
           visibility: hidden !important;
         }
 
-        /* 2. 仅让纯净打印核心区及其内部所有文字可见 */
+        /* 2. 仅让纯净打印核心区可见 */
         .memoir-print-area,
         .memoir-print-area * {
           visibility: visible !important;
         }
 
-        /* 3. 让打印区充满 A4 纸页面并顶部居中对齐 */
+        /* 3. 让打印区回归文档流顶部，从 A4 纸最上方顺畅往下排版，绝不留大空白 */
         .memoir-print-area {
-          position: absolute !important;
-          left: 50% !important;
-          top: 0 !important;
-          transform: translateX(-50%) !important;
+          position: static !important;
           width: 100% !important;
-          max-width: 650px !important;
-          margin: 0 !important;
-          padding: 30px 20px !important;
+          max-width: 100% !important;
+          margin: 0 auto !important;
+          padding: 10px 20px !important;
           background: #fff !important;
           box-sizing: border-box !important;
         }
@@ -121,28 +117,28 @@ function exportPdf() {
         .memoir-print-time {
           display: block !important;
           text-align: center !important;
-          font-size: 12px !important;
-          color: #999 !important;
-          margin-bottom: 12px !important;
+          font-size: 11px !important;
+          color: #aaa !important;
+          margin-bottom: 8px !important;
           font-family: monospace !important;
         }
 
-        /* 5. 宠物头像和名字严格居中 */
+        /* 5. 宠物头像和名字居中 */
         .memoir-header {
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           text-align: center !important;
-          margin-bottom: 24px !important;
+          margin-bottom: 20px !important;
           border-bottom: none !important;
           padding-bottom: 0 !important;
         }
 
         .memoir-avatar {
           display: block !important;
-          margin: 0 auto 12px auto !important;
-          width: 80px !important;
-          height: 80px !important;
+          margin: 0 auto 10px auto !important;
+          width: 70px !important;
+          height: 70px !important;
           border-radius: 50% !important;
           object-fit: cover !important;
         }
@@ -150,20 +146,21 @@ function exportPdf() {
         .memoir-title {
           text-align: center !important;
           width: 100% !important;
-          font-size: 22px !important;
+          font-size: 20px !important;
           font-weight: 700 !important;
           color: #2c2c2c !important;
           margin: 0 !important;
         }
 
-        /* 6. 回忆录正文排版（解决不显示和贴左问题） */
+        /* 6. 回忆录正文排版，允许正常分页 */
         .memoir-body {
           display: block !important;
           text-align: left !important;
-          font-size: 15px !important;
-          line-height: 2.2 !important;
+          font-size: 14px !important;
+          line-height: 2 !important;
           color: #2c2c2c !important;
-          margin-top: 16px !important;
+          margin-top: 10px !important;
+          page-break-inside: auto;
         }
 
         .memoir-body p {
@@ -176,14 +173,14 @@ function exportPdf() {
         .memoir-footer {
           display: block !important;
           text-align: center !important;
-          font-size: 12px !important;
-          color: #999 !important;
-          margin-top: 40px !important;
+          font-size: 11px !important;
+          color: #aaa !important;
+          margin-top: 30px !important;
           border-top: none !important;
           font-family: monospace !important;
         }
 
-        /* 8. 彻底干掉操作按钮和遮罩 */
+        /* 8. 隐藏操作按钮和遮罩 */
         .van-overlay,
         .memoir-actions,
         .no-print,
@@ -217,9 +214,7 @@ watch(visible, (val) => {
     class="memoir-popup"
   >
     <div class="memoir-content">
-      <!-- 纯净打印包裹区 -->
       <div class="memoir-inner memoir-print-area">
-        <!-- 打印专属：顶部当前时间 -->
         <div class="memoir-print-time" v-if="currentPrintTime">
           {{ currentPrintTime }}
         </div>
