@@ -233,19 +233,22 @@ watch(visible, (val) => {
 }
 
 /* ============================================================ */
-/* 👇 全局生效的纯净打印排版（已加入水平居中） */
+/* 👇 全局生效的纯净打印排版（终极居中版） */
 /* ============================================================ */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm 15mm;
+    margin: 15mm; /* 留出 A4 纸四周的白边 */
   }
 
+  /* 1. 干掉主页和多余元素 */
   #__nuxt,
-  .van-overlay {
+  .van-overlay,
+  .memoir-actions {
     display: none !important;
   }
 
+  /* 2. 根节点重置 */
   body, html {
     margin: 0 !important;
     padding: 0 !important;
@@ -254,45 +257,49 @@ watch(visible, (val) => {
     height: auto !important;
   }
 
+  /* 3. 核心大招：把弹窗变成一个全屏的居中画板（Flex 布局） */
   .memoir-popup {
-    position: static !important; 
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    max-height: none !important;
-    transform: none !important;
+    position: fixed !important;
+    inset: 0 !important; /* 铺满整个纸张 */
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    justify-content: center !important; /* 水平居中 */
+    align-items: flex-start !important; /* 靠上对齐 */
+    transform: none !important; /* 干掉原本的 -50% 偏移 */
+    left: auto !important;
+    bottom: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: transparent !important;
+    background: #fff !important;
     box-shadow: none !important;
-    overflow: visible !important;
+    z-index: 9999 !important;
   }
 
+  /* 4. 清空内部容器的限制 */
   .memoir-popup .memoir-content {
     display: block !important;
-    position: static !important;
     width: 100% !important;
     height: auto !important;
     max-height: none !important;
+    overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
-    box-shadow: none !important;
-    overflow: visible !important;
   }
 
-  /* 👇 核心修改：通过 margin: 0 auto 和 max-width 强制在 A4 纸页面中居中 */
+  /* 5. 限制内容的实际宽度，配合 flex 在中间显示 */
   .memoir-popup .memoir-inner {
     display: block !important;
     width: 100% !important;
-    max-width: 650px !important;
+    max-width: 600px !important; /* 限制宽度，保证文字不会拉得太长 */
     margin: 0 auto !important;
     padding: 0 !important;
     background: transparent !important;
     box-sizing: border-box !important;
   }
 
+  /* 6. 头部排版 */
   .memoir-popup .memoir-header {
     display: flex !important;
     flex-direction: column !important;
@@ -310,21 +317,22 @@ watch(visible, (val) => {
   }
   
   .memoir-popup .memoir-title {
-    font-size: 18px !important;
-    margin-bottom: 2px !important;
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
   }
 
   .memoir-popup .memoir-date {
-    font-size: 11px !important;
+    font-size: 12px !important;
     color: #888 !important;
   }
 
+  /* 7. 正文排版 */
   .memoir-popup .memoir-body {
     display: block !important;
-    text-align: left !important;
-    font-size: 13.5pt !important;
+    text-align: justify !important; /* 两端对齐，更适合纸质阅读 */
+    font-size: 14pt !important;
     line-height: 1.8 !important;
-    color: #2c2c2c !important;
+    color: #000 !important;
     page-break-inside: auto !important;
   }
 
@@ -332,21 +340,18 @@ watch(visible, (val) => {
     margin: 0 !important;
   }
 
+  /* 8. 页脚排版 */
   .memoir-popup .memoir-footer {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     gap: 2px !important;
-    margin-top: 24px !important;
+    margin-top: 30px !important;
     padding-top: 10px !important;
-    border-top: 1px dashed #ddd !important;
+    border-top: 1px dashed #ccc !important;
     font-size: 10pt !important;
     color: #666 !important;
     page-break-inside: avoid !important;
-  }
-
-  .memoir-popup .memoir-actions {
-    display: none !important;
   }
 }
 </style>
