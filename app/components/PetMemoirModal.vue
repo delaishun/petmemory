@@ -183,15 +183,21 @@ watch(visible, (val) => {
   white-space: pre-wrap;
   word-break: break-word;
   padding: 0 @sp-4;
+  max-width: 650px;
+  margin: 0 auto;
 }
 
 .memoir-footer {
-  text-align: right;
+  text-align: center; /* 也可以改为 left/right，看你的喜好 */
   font-size: 12px;
   color: @ink-3;
   margin-top: 40px;
-  padding-right: @sp-4;
+  padding-top: 15px;
+  border-top: 1px dashed #ddd;
   font-family: @font-mono;
+  max-width: 650px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .memoir-actions {
@@ -203,55 +209,57 @@ watch(visible, (val) => {
 
 /* 👇 打印 PDF 专用的终极 CSS */
 @media print {
-  /* 1. 彻底隐藏 Nuxt 主框架、遮罩层和不需要打印的元素 */
-  #__nuxt,
-  .van-overlay,
-  .site-header,
-  .site-footer,
-  .music-toggle,
-  .festival-layer {
+  /* 1. 彻底干掉除了 teleports 以外的所有节点（把主页、Footer、按钮全物理移除） */
+  body > *:not(#teleports) {
     display: none !important;
   }
 
-  /* 2. 重置 body，防止边距干扰 */
+  /* 2. 重置 body，防止页边距干扰 */
   body {
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
   }
 
-  /* 3. 把 Vant 弹窗从固定定位改为普通文档流，并去掉所有尺寸限制 */
+  /* 3. 解除 Vant 弹窗的 fixed 定位、居中位移和高度限制 */
   .van-popup {
-    position: static !important;
+    position: static !important; 
     display: block !important;
-    background: #fff !important;
-    max-height: none !important;
-    overflow: visible !important;
-    box-shadow: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    transform: none !important; /* 移除居中用的位移 */
+    max-height: none !important;
+    transform: none !important; /* 干掉 -50% 的居中位移 */
     left: auto !important;
     bottom: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
   }
 
-  /* 4. 确保回忆录内容完全展开，不受内部滚动条截断 */
+  /* 4. 隐藏遮罩层 */
+  .van-overlay {
+    display: none !important;
+  }
+
+  /* 5. 让内容区 100% 正常流向纸张，留下舒适的页边距 */
   .memoir-content {
     display: block !important;
     position: static !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
     max-height: none !important;
-    padding: 20px 40px !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
+    padding: 30px 60px !important; /* 左右留白，适合 A4 纸 */
+    box-sizing: border-box !important;
+    overflow: visible !important;
     background: #fff !important;
     box-shadow: none !important;
-    overflow: visible !important;
   }
 
-  /* 5. 隐藏操作按钮 */
+  /* 6. 隐藏操作按钮 */
   .memoir-actions {
     display: none !important;
   }
