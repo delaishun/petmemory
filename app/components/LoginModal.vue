@@ -337,17 +337,19 @@ function initGoogleSDK() {
 // 点击自定义按钮时触发 Google 弹窗
 function handleGoogleLogin() {
   if (loading.value) return
+  initGoogleSDK()
   
-  // 构建 Google OAuth 2.0 授权 URL
-  const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/google/callback`) // 你的后端回调地址
-  const scope = encodeURIComponent('openid email profile')
-  const responseType = 'code'
-  const clientId = googleClientId
-  
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&prompt=select_account`
-  
-  // 直接在当前窗口跳转（Safari 下最不容易被拦截）
-  window.location.href = authUrl
+  if (window.google) {
+    // 使用官方 API 弹出账号选择器
+    window.google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // 如果浏览器拦截了弹窗（或者没有登录任何 Google 账号），给出提示
+        showToast('无法弹出 Google 登录，请检查浏览器设置')
+      }
+    })
+  } else {
+    showToast('Google 登录组件加载中，请稍后再试')
+  }
 }
 
 // Google 认证成功后的回调
