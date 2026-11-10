@@ -366,8 +366,8 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
 }
 
 .memoir-body {
-  font-size: 16px;
-  line-height: 2.2;
+  font-size: 15px;
+  line-height: 2.0;
   color: @ink-1;
   font-family: @font-serif;
   text-align: justify;
