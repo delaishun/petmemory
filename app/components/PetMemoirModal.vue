@@ -310,7 +310,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
 }
 
 .memoir-inner {
-  padding: @sp-6 @sp-5;
+  padding: @sp-4 @sp-5;
   margin: 0 auto;
   width: 100%;
   max-width: 650px;
@@ -322,9 +322,9 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: @sp-6;
+  margin-bottom: @sp-5;
   border-bottom: 1px solid @border;
-  padding-bottom: @sp-4;
+  padding-bottom: @sp-2;
 }
 
 .memoir-avatar-wrap {
@@ -343,7 +343,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
 
 .memoir-title {
   font-family: @font-serif;
-  font-size: @fs-xl;
+  font-size: @fs-lg;
   font-weight: 700;
   color: @ink-1;
   margin: 0 0 @sp-1;
@@ -367,7 +367,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
 
 .memoir-body {
   font-size: 15px;
-  line-height: 2.0;
+  line-height: 1.9;
   color: @ink-1;
   font-family: @font-serif;
   text-align: justify;
@@ -384,8 +384,8 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   text-align: center;
   font-size: 12px;
   color: @ink-3;
-  margin-top: 40px;
-  padding-top: 15px;
+  margin-top: @sp-5;
+  padding-top: @sp-3;
   border-top: 1px dashed #ddd;
   font-family: @font-mono;
 }
