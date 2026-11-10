@@ -185,19 +185,38 @@ async function exportPdf() {
 
     const margin = 10
     const contentWidth = pdfWidth - margin * 2
-    const imgHeight = (canvas.height * contentWidth) / canvas.width
+    const availableHeight = pdfHeight - margin * 2 // A4 页面可用高度（约 277mm）
+
+    let imgWidth = contentWidth
+    let imgHeight = (canvas.height * imgWidth) / canvas.width
     const imgData = canvas.toDataURL('image/jpeg', 0.95)
-    let heightLeft = imgHeight
-    let position = margin
-    
-    pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
-    heightLeft -= (pdfHeight - margin * 2)
-    
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight + margin
-      pdf.addPage()
-      pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
-      heightLeft -= (pdfHeight - margin * 2)
+
+    // 👇 智能缩放防分页逻辑
+    if (imgHeight > availableHeight) {
+      const ratio = availableHeight / imgHeight
+      
+      // 如果内容溢出不多（超出比例在 15% 以内，即 ratio > 0.85），强行等比例缩小塞入一页
+      if (ratio > 0.85) {
+        imgWidth = imgWidth * ratio
+        imgHeight = availableHeight
+        const x = margin + (contentWidth - imgWidth) / 2 // 水平居中
+        pdf.addImage(imgData, 'JPEG', x, margin, imgWidth, imgHeight)
+      } else {
+        // 如果内容实在太长（比如字数翻倍了），只能老实分页
+        let heightLeft = imgHeight
+        let position = margin
+        pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
+        heightLeft -= availableHeight
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight + margin
+          pdf.addPage()
+          pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
+          heightLeft -= availableHeight
+        }
+      }
+    } else {
+      // 刚好放得下，直接渲染
+      pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight)
     }
     
     pdf.save(`${props.petName}-Memoir.pdf`)
@@ -322,7 +341,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: @sp-5;
+  margin-bottom: @sp-4;
   border-bottom: 1px solid @border;
   padding-bottom: @sp-2;
 }
@@ -367,7 +386,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
 
 .memoir-body {
   font-size: 15px;
-  line-height: 1.9;
+  line-height: 1.8;
   color: @ink-1;
   font-family: @font-serif;
   text-align: justify;
@@ -384,8 +403,8 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   text-align: center;
   font-size: 12px;
   color: @ink-3;
-  margin-top: @sp-5;
-  padding-top: @sp-3;
+  margin-top: @sp-4;
+  padding-top: @sp-2;
   border-top: 1px dashed #ddd;
   font-family: @font-mono;
 }
