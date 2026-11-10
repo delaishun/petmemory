@@ -4,6 +4,7 @@ import { showToast } from 'vant'
 import { useI18n } from '~/composables/useI18n'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
+
 const { t } = useI18n()
 const { $api } = useNuxtApp()
 
@@ -13,24 +14,29 @@ interface Props {
   petAvatarUrl?: string | null
   slug: string
 }
+
 const props = withDefaults(defineProps<Props>(), {
   petAvatarUrl: null,
 })
+
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
+
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
 })
+
 const loading = ref(false)
 const exporting = ref(false)
 const memoirText = ref('')
 const currentPrintTime = ref('')
+
 // 头像加载失败时的兜底标识
 const avatarLoadError = ref(false)
 
-// ========== 复制过来的工具函数 ==========
+// ========== 工具函数 ==========
 async function convertUrlToBase64(url: string): Promise<string> {
   if (!url) return "";
   try {
@@ -97,10 +103,10 @@ async function generate() {
       method: 'POST',
     })
 
-    // 自动清洗掉 AI 文本末尾自带的“永远爱你的...”字样，防止与前端落款重复
-    let cleanText = res.memoir || ''
-    cleanText = cleanText.replace(/永远爱你的[\s\S]*$/, '').trim()
-    memoirText.value = cleanText
+    // 👇 修复：直接使用 AI 生成的原始文本，不再做正则截断。
+    // 依靠 deepseek.ts 中的 Prompt 来约束落款。
+    memoirText.value = res.memoir || ''
+    
   } catch (err: any) {
     const errorMsg = err?.data?.error || ''
     if (errorMsg.includes('每周只能生成一次回忆录')) {
@@ -150,18 +156,15 @@ async function exportPdf() {
   }
 
   try {
-    // 等待截图区域图片全部解码 + 字体就绪
     await waitImagesDecoded(target)
     await document.fonts.ready
     await new Promise((resolve) => setTimeout(resolve, 250))
 
-    // 临时解除高度限制，让元素在截图中完全展开
     const originalMaxHeight = target.style.maxHeight
     const originalOverflow = target.style.overflow
     target.style.maxHeight = 'none'
     target.style.overflow = 'visible'
 
-    // 1. 使用 html2canvas 将目标 DOM 转为高清画布
     const canvas = await html2canvas(target, {
       scale: 2,
       useCORS: true,
@@ -173,32 +176,30 @@ async function exportPdf() {
       logging: false,
     })
 
-    // 恢复原来的样式
     target.style.maxHeight = originalMaxHeight
     target.style.overflow = originalOverflow
 
-    // 2. 使用 jsPDF 将画布生成 PDF
     const pdf = new jsPDF('p', 'mm', 'a4')
-
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = pdf.internal.pageSize.getHeight()
 
-    const margin = 10 // 页边距 10mm
+    const margin = 10
     const contentWidth = pdfWidth - margin * 2
     const imgHeight = (canvas.height * contentWidth) / canvas.width
     const imgData = canvas.toDataURL('image/jpeg', 0.95)
     let heightLeft = imgHeight
     let position = margin
-    // 添加第一页
+    
     pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
     heightLeft -= (pdfHeight - margin * 2)
-    // 如果内容超出一页，进行分页渲染
+    
     while (heightLeft > 0) {
       position = heightLeft - imgHeight + margin
       pdf.addPage()
       pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight)
       heightLeft -= (pdfHeight - margin * 2)
     }
+    
     pdf.save(`${props.petName}-Memoir.pdf`)
     loadingToast.close()
   } catch (err) {
@@ -225,6 +226,7 @@ const displayAvatarSrc = computed(async () => {
     return fallbackAvatarSrc
   }
 })
+
 // 同步响应式头像src
 const finalAvatar = ref(fallbackAvatarSrc)
 watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
@@ -232,6 +234,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
 },{immediate:true})
 
 </script>
+
 <template>
   <van-popup
     v-model:show="visible"
@@ -246,7 +249,6 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
       <!-- 截图核心区域 -->
       <div class="memoir-inner memoir-print-area">
         <header class="memoir-header">
-          <!-- 宠物头像：全部使用img标签，不再使用内联svg dom -->
           <div class="memoir-avatar-wrap">
             <img
               class="memoir-avatar"
@@ -259,22 +261,23 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
           <h2 class="memoir-title">{{ petName }}'s Memoir</h2>
           <p class="memoir-date" v-if="currentPrintTime">{{ currentPrintTime }}</p>
         </header>
+        
         <div v-if="loading" class="memoir-loading">
           <van-loading type="spinner" color="#E8A87C" size="32" />
           <p>{{ t('memoir_generating') || '正在翻阅回忆...' }}</p>
         </div>
+        
         <div v-else class="memoir-body">
+          <!-- 👇 修复：完全展示 AI 的多语言内容，前端不再硬塞中文落款 -->
           <p style="white-space: pre-wrap;">{{ memoirText }}</p>
-          <!-- 规范单次落款 -->
-          <div class="memoir-signoff">
-            永远爱你的 {{ petName }}
-          </div>
         </div>
+        
         <!-- 底部落款 -->
         <div v-if="!loading" class="memoir-footer">
           petmemory.me
         </div>
       </div>
+      
       <!-- 按钮区，不在截图区内 -->
       <div class="memoir-actions">
         <button
@@ -293,8 +296,10 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
     </div>
   </van-popup>
 </template>
+
 <style lang="less">
 @import "~/assets/css/common.less";
+
 .memoir-content {
   background: #faf6f1;
   max-height: 85vh;
@@ -303,6 +308,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   display: flex;
   flex-direction: column;
 }
+
 .memoir-inner {
   padding: @sp-6 @sp-5;
   margin: 0 auto;
@@ -310,6 +316,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   max-width: 650px;
   background: #faf6f1;
 }
+
 .memoir-header {
   display: flex;
   flex-direction: column;
@@ -319,11 +326,13 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   border-bottom: 1px solid @border;
   padding-bottom: @sp-4;
 }
+
 .memoir-avatar-wrap {
   width: 80px;
   height: 80px;
   margin-bottom: @sp-3;
 }
+
 .memoir-avatar {
   width: 80px;
   height: 80px;
@@ -331,6 +340,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   object-fit: cover;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .memoir-title {
   font-family: @font-serif;
   font-size: @fs-xl;
@@ -338,12 +348,14 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   color: @ink-1;
   margin: 0 0 @sp-1;
 }
+
 .memoir-date {
   font-size: @fs-xs;
   color: @ink-3;
   font-family: @font-mono;
   margin: @sp-1 0 0;
 }
+
 .memoir-loading {
   display: flex;
   flex-direction: column;
@@ -352,6 +364,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   padding: @sp-8 0;
   color: @ink-2;
 }
+
 .memoir-body {
   font-size: 16px;
   line-height: 2.2;
@@ -360,12 +373,9 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   text-align: justify;
   word-break: break-word;
 }
-.memoir-signoff {
-  margin-top: 24px;
-  text-align: right;
-  font-family: @font-serif;
-  font-weight: 600;
-}
+
+/* 👇 已经移除原有的 .memoir-signoff 样式 */
+
 .memoir-footer {
   display: flex;
   flex-direction: column;
@@ -379,6 +389,7 @@ watch([()=>props.petAvatarUrl, avatarLoadError], async ()=>{
   border-top: 1px dashed #ddd;
   font-family: @font-mono;
 }
+
 .memoir-actions {
   margin-top: @sp-6;
   display: flex;
