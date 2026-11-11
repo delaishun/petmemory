@@ -55,6 +55,8 @@ useSeoMeta({
   description: 'PetMemory terms of service and user agreement.',
   robots: 'noindex, follow',
 })
+
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 </script>
 
 <template>

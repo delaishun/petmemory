@@ -469,9 +469,14 @@ useSeoMeta({
             </button>
           </div>
 
-          <div v-if="displayPoint !== undefined" class="user-hero__points">
-            <van-icon name="gold-coin-o" />
-            <span>{{ t("user_points") }}: {{ displayPoint }}</span>
+          <div v-if="displayPoint !== undefined" class="user-hero__points-wrap">
+            <div class="user-hero__points">
+              <van-icon name="gold-coin-o" />
+              <span>{{ t("user_points") }}: {{ displayPoint }}</span>
+            </div>
+            <p class="user-hero__points-tip">
+              {{ t('user_points_tip') }}
+            </p>
           </div>
 
           <p v-if="user.bio" class="user-hero__bio">{{ user.bio }}</p>
@@ -884,11 +889,18 @@ useSeoMeta({
     }
   }
 
+  // 👇 替换原来的 &__points 样式
+  &__points-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: @sp-3;
+  }
+
   &__points {
     display: inline-flex;
     align-items: center;
     gap: @sp-1;
-    margin-top: @sp-3;
     padding: 4px 14px;
     background: @gold-soft;
     color: darken(@gold, 20%);
@@ -896,6 +908,12 @@ useSeoMeta({
     font-size: @fs-sm;
     font-weight: 600;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  &__points-tip {
+    margin: @sp-1 0 0;
+    font-size: @fs-xs;
+    color: @ink-3;
   }
 
   &__bio {

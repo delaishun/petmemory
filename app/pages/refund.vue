@@ -9,6 +9,8 @@ useSeoMeta({
   description: () => 'Refund & Cancellation Policy for PetMemory',
   robots: 'noindex, follow',
 })
+
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 </script>
 
 <template>

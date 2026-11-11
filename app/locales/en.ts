@@ -663,4 +663,6 @@ export default {
   pet_chat_heaven_hint: 'Chatting across time and space with your beloved in heaven',
 
   memoir_cooldown: 'You can only generate one memoir per week. Please wait {n} more days.',
+
+  user_points_tip: 'Points can be redeemed for gifts', 
 }
