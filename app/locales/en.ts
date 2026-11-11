@@ -656,7 +656,7 @@ export default {
 
   vip_sub_title: 'Subscription VIP Privileges',
   vip_sub_f1: 'Chat with your pet across time and space',
-  vip_sub_f2: 'Receive random gifts every month upon login',
+  vip_sub_f2: 'Receive random gifts every month upon login(Worth $2–$7)',
   vip_sub_f3: 'Generate exclusive memoirs weekly and export as PDF',
   vip_sub_f4: 'Get 10,000 bonus points',
 

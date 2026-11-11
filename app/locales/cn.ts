@@ -658,7 +658,7 @@ export default {
 
   vip_sub_title: '尊享订阅 VIP 权益',
   vip_sub_f1: '宠物跨时空对话',
-  vip_sub_f2: '每月登录获赠随机礼物',
+  vip_sub_f2: '每月登录获赠随机礼物(价值$2-$7)',
   vip_sub_f3: '每周生成专属回忆录并支持导出 PDF',
   vip_sub_f4: '赠送 10000 积分',
 
