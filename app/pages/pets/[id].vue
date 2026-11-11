@@ -3,6 +3,7 @@
 import type { AuthUser, MeResponse } from "~/types/auth";
 import type { EditablePet } from "~/components/EditPetModal.vue";
 import type { PetGiftSummary } from "~/components/GiftModal.vue";
+import UpgradeVipModal from "~/components/UpgradeVipModal.vue";
 import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import { useEffectBackgrounds } from "~/composables/usePetEffect";
@@ -1075,6 +1076,64 @@ async function copyShareLink() {
 }
 
 // ============================================================
+// 👇 新增：回忆录和 VIP 升级逻辑
+// ============================================================
+const upgradeVipModalVisible = ref(false);
+
+// 判断当前用户的“订阅 VIP”是否在有效期内
+const isSubVipActive = computed(() => {
+  if (!me.value) return false;
+  return !!me.value.vipExpiresAt && new Date(me.value.vipExpiresAt) > new Date();
+});
+
+// 处理回忆录点击拦截
+function handleMemoir() {
+  if (!me.value) {
+    showDialog({ message: t("msg_please_login") });
+    return;
+  }
+
+  // 如果不是订阅 VIP
+  if (!isSubVipActive.value) {
+    showToast({
+      message:
+        locale.value === "en"
+          ? "Please upgrade to Subscription VIP first. (请先升级尊享订阅 VIP)"
+          : "请先升级尊享订阅 VIP (Please upgrade to Subscription VIP)",
+      position: "middle",
+      duration: 2500,
+    });
+    upgradeVipModalVisible.value = true;
+    return;
+  }
+
+  // 是订阅 VIP，正常打开回忆录
+  memoirModalVisible.value = true;
+}
+
+// 升级成功后的回调（轮询刷新用户状态）
+async function onUpgradeVipSuccess() {
+  showToast({
+    type: "success",
+    message: t("vip_subscribe_success") || "支付成功！正在同步 VIP 状态...",
+    duration: 3000,
+  });
+
+  let attempts = 0;
+  const timer = setInterval(async () => {
+    attempts++;
+    await refreshMe();
+    if (isSubVipActive.value) {
+      clearInterval(timer);
+      showToast({ type: "success", message: "VIP 特权已生效！" });
+    }
+    if (attempts >= 15) {
+      clearInterval(timer);
+    }
+  }, 2000);
+}
+
+// ============================================================
 // 👇 新增：导出图片与 HTML 逻辑
 // ============================================================
 // 👇 1. 新增：存储转化后的 Base64 图片
@@ -1129,8 +1188,8 @@ const exportingImage = ref(false);
 
 // 👇工具函数：等待容器内全部img解码完成
 async function waitImagesDecoded(container: HTMLElement) {
-  const imgs = Array.from(container.querySelectorAll('img'));
-  const promises = imgs.map(img => {
+  const imgs = Array.from(container.querySelectorAll("img"));
+  const promises = imgs.map((img) => {
     if (img.complete && img.naturalHeight > 0) return Promise.resolve();
     return img.decode().catch(() => Promise.resolve());
   });
@@ -1152,7 +1211,8 @@ async function handleExportImage() {
   try {
     // 【重点】兜底头像转为 dataURL，避免内联svg渲染失败
     const defaultSvgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#F5EEE4" /><circle cx="60" cy="52" r="22" fill="#DCD0BF" /><path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF" /></svg>`;
-    const fallbackAvatar = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(defaultSvgStr)));
+    const fallbackAvatar =
+      "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(defaultSvgStr)));
 
     // 1. 并行把所有图片转成 Base64
     const avatarB64 = await convertUrlToBase64(pet.value?.avatarUrl || fallbackAvatar);
@@ -1178,7 +1238,7 @@ async function handleExportImage() {
     // ✅关键：等待图片解码 + 字体就绪
     await waitImagesDecoded(node);
     await document.fonts.ready;
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // 4. 截图
     const canvas = await html2canvas(node, {
@@ -1211,7 +1271,6 @@ async function handleExportImage() {
     posterBase64.gifts = [];
   }
 }
-
 
 async function handleExportHtml() {
   if (!me.value) {
@@ -1892,17 +1951,12 @@ useHead(() => ({
               <span>{{ t("export_html_btn") }}</span>
             </button>
 
-            <!-- 👇 新增：生成回忆录按钮，只有订阅 VIP 才能看到 -->
+            <!-- 👇 修改：生成回忆录按钮，只要是主人就能看到 -->
             <button
-              v-if="
-                isOwner &&
-                me?.isVip &&
-                (!me?.isLifetimeVip ||
-                  (me?.vipExpiresAt && new Date(me.vipExpiresAt) > new Date()))
-              "
+              v-if="isOwner"
               type="button"
               class="btn btn--lg"
-              @click="memoirModalVisible = true"
+              @click="handleMemoir"
             >
               <van-icon name="bookmark-o" />
               <span>{{ t("generate_memoir") || "专属回忆录" }}</span>
@@ -2093,6 +2147,14 @@ useHead(() => ({
       :pet-name="pet.name"
       :pet-avatar-url="pet.avatarUrl"
       :slug="pet.slug"
+    />
+
+    <!-- 👇 新增：升级 VIP 弹窗 -->
+    <UpgradeVipModal
+      v-if="me"
+      v-model="upgradeVipModalVisible"
+      :user="me"
+      @success="onUpgradeVipSuccess"
     />
 
     <!-- 礼物明细弹窗 -->
