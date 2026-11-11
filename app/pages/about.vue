@@ -71,12 +71,12 @@ const tiers = computed(() => [
     features: locale.value === 'en' ? [
       'Unlimited Cross-Time Pet Chat',
       'Weekly exclusive memoir (PDF)',
-      'Monthly random gifts',
+      'Monthly random gifts(Worth $2–$7)',
       'Get 10,000 bonus points'
     ] : [
       '无限次跨时空宠物对话',
       '每周生成专属回忆录并支持 PDF 导出',
-      '每月登录获赠随机礼物',
+      '每月登录获赠随机礼物(价值$2-$7)',
       '赠送 10000 积分'
     ]
   }
