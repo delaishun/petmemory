@@ -7,6 +7,7 @@ import UpgradeVipModal from "~/components/UpgradeVipModal.vue";
 import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import { useEffectBackgrounds } from "~/composables/usePetEffect";
+import { getPetUrl, parseSlugFromParam } from '~/utils/petUrl'
 import html2canvas from "html2canvas";
 import JSZip from "jszip";
 
@@ -131,7 +132,7 @@ interface PublicChatResponse {
 // ============================================================
 
 const route = useRoute();
-const slug = computed(() => String(route.params.id || ""));
+const slug = computed(() => parseSlugFromParam(String(route.params.id || "")));
 
 const { $api } = useNuxtApp();
 
@@ -995,7 +996,7 @@ const shareModalVisible = ref(false);
 
 const shareUrl = computed(() => {
   if (!pet.value) return "";
-  return `https://www.petmemory.me/pets/${pet.value.slug}`;
+  return `https://www.petmemory.me/pets/${getPetUrl(pet.value)}`;
 });
 
 const shareText = computed(() => {
@@ -1426,9 +1427,17 @@ useSeoMeta({
       : "A memorial page for a beloved pet on PetMemory.",
   twitterImage: () => pet.value?.avatarUrl || "https://music.petmemory.me/og-cover.jpg",
 });
-useHead(() => ({
-  link: [{ rel: "canonical", href: `https://www.petmemory.me/pets/${route.params.id}` }],
-}));
+useHead(() => {
+  let canonicalUrl = `https://www.petmemory.me/pets/${route.params.id}`;
+  if (pet.value) {
+    // 👇 利用工具函数生成带有拼音的标准链接
+    canonicalUrl = `https://www.petmemory.me${getPetUrl(pet.value)}`;
+  }
+  
+  return {
+    link: [{ rel: "canonical", href: canonicalUrl }],
+  }   
+});
 </script>
 
 <template>

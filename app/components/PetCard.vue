@@ -1,6 +1,7 @@
 <!-- app/components/PetCard.vue -->
 <script setup lang="ts">
 import { useEffectBackgrounds } from '~/composables/usePetEffect'
+import { getPetUrl } from '~/utils/petUrl'
 
 // 兼容首页和列表页的 Pet 类型，取交集
 interface Props {
@@ -121,7 +122,7 @@ watch(
 
 <template>
   <NuxtLink
-    :to="`/pets/${pet.slug}`"
+    :to="getPetUrl(pet)"
     class="pet-card"
     :class="{ 'is-vip-panel': pet.owner?.isLifetimeVip }"
     :style="getEffectStyle(pet.owner?.isLifetimeVip)"

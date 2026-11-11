@@ -3,6 +3,7 @@
 import { showToast } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import type { AuthUser } from "~/types/auth";
+import { getPetUrl } from '~/utils/petUrl'
 
 // ============================================================
 // 类型
@@ -455,7 +456,7 @@ useHead({
         <div v-else-if="recentMessages && recentMessages.length" class="msg-list">
           <div v-for="msg in recentMessages" :key="msg.id" class="msg-item">
             <NuxtLink
-              :to="`/pets/${msg.pet.slug}`"
+              :to="getPetUrl(msg.pet)"
               class="msg-item__pet"
               :aria-label="`访问 ${msg.pet.name} 的主页`"
             >
@@ -481,7 +482,7 @@ useHead({
 
                 <span class="msg-item__action">{{ t("msg_to") }}</span>
 
-                <NuxtLink :to="`/pets/${msg.pet.slug}`" class="msg-item__pet-name">
+                <NuxtLink :to="getPetUrl(msg.pet)" class="msg-item__pet-name">
                   {{ msg.pet.name }}
                 </NuxtLink>
 
@@ -639,7 +640,7 @@ useHead({
 
         <p class="gift-record__to">{{ t("gift_record_to") }}</p>
         <NuxtLink
-          :to="`/pets/${currentGift.pet.slug}`"
+          :to="getPetUrl(currentGift.pet)"
           class="gift-record__sender"
           @click="giftModalVisible = false"
         >
