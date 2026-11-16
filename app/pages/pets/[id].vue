@@ -270,13 +270,8 @@ async function handleDownloadVideo(videoId: number) {
       `/api/pets/${slug.value}/videos/${videoId}/download-url`
     );
 
-    const link = document.createElement("a");
-    link.href = res.downloadUrl;
-    link.target = "_blank";
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 👈 修改：直接跳转当前页面触发下载，避免新窗口被拦截
+    window.location.href = res.downloadUrl; 
   } catch (err) {
     showToast("获取下载链接失败，请重试");
   }
