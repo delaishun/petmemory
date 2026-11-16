@@ -86,7 +86,7 @@ const { t, locale } = useI18n();
 
 const { $api } = useNuxtApp();
 
-const HOME_LIMIT = 10;
+const HOME_LIMIT = 8;
 const ARTICLE_LIMIT = 4;
 
 const { data: recentPets, pending: petsPending } = await useAsyncData<HomePet[]>(
