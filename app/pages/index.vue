@@ -4,6 +4,8 @@ import { showToast } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import type { AuthUser } from "~/types/auth";
 import { getPetUrl } from '~/utils/petUrl'
+import VideoCoverCard from "~/components/VideoCoverCard.vue";
+import VideoPlayerModal from "~/components/VideoPlayerModal.vue";
 
 // ============================================================
 // 类型
@@ -75,6 +77,23 @@ interface HomeArticle {
   createdAt: string;
 }
 
+// 👇 新增：视频类型定义
+interface HomeVideo {
+  id: number;
+  videoUrl: string;
+  aspectRatio: string;
+  actionType: string;
+  createdAt: string;
+  pet: {
+    id: number;
+    name: string;
+    slug: string;
+    ownerId: number;
+  };
+}
+
+
+
 // ============================================================
 // 国际化
 // ============================================================
@@ -108,6 +127,11 @@ const { data: recentArticles, pending: articlesPending } = await useAsyncData<{
   total: number;
 }>("home:articles", () =>
   $api<{ items: HomeArticle[]; total: number }>(`/api/articles?limit=${ARTICLE_LIMIT}`)
+);
+
+const { data: recentVideos, pending: videosPending } = await useAsyncData<HomeVideo[]>(
+  "home:videos",
+  () => $api<HomeVideo[]>("/api/home/videos?limit=4")
 );
 
 // ============================================================
@@ -228,6 +252,74 @@ function handleCustomOrder() {
   customOrderModalVisible.value = true;
 }
 
+// 视频
+// 👇 视频播放与弹窗控制
+const activeVideoModal = ref(false);
+const activeVideo = ref<HomeVideo | null>(null);
+
+function handlePlayVideo(video: HomeVideo) {
+  activeVideo.value = video;
+  activeVideoModal.value = true;
+}
+
+// 👇 强制下载逻辑
+async function handleDownloadVideo(url: string, petName: string) {
+  const loadingToast = showToast({
+    type: "loading",
+    message: "正在下载，请稍候...",
+    duration: 0,
+    forbidClick: true,
+  });
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("网络请求失败");
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = `${petName}-memory.mp4`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+    loadingToast.close();
+    showToast({ type: "success", message: "下载成功" });
+  } catch (err) {
+    console.error("下载失败:", err);
+    loadingToast.close();
+    showToast("下载失败，请检查网络或 OSS 跨域配置");
+  }
+}
+
+// 👇 获取视频次数的规则弹窗
+function showVideoRuleDialog() {
+  const isEn = locale.value === 'en';
+  const title = isEn ? 'How to Get Video Credits' : '如何获取视频生成次数';
+  
+  let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.8; padding: 10px 4px; color: #5D4737;">`;
+  msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${isEn ? 'Want to create a Living Memory video? Here’s how to earn credits:' : '您可以通过以下方式获取视频生成次数：'}</p>`;
+  msgHtml += `<ul style="padding-left:18px; margin:0; display:flex; flex-direction:column; gap:6px;">`;
+  
+  if (isEn) {
+    msgHtml += `<li>Get <strong>3 credits</strong> with a Lifetime VIP.</li>`;
+    msgHtml += `<li>Get <strong>1 credit</strong> with a Premium Subscription.</li>`;
+    msgHtml += `<li>Earn <strong>1 credit</strong> for every $5 spent on gifts.</li>`;
+  } else {
+    msgHtml += `<li>开通<strong>终身 VIP</strong>，立赠 3 次</li>`;
+    msgHtml += `<li>开通<strong>尊享订阅 VIP</strong>，立赠 1 次</li>`;
+    msgHtml += `<li>每购买 <strong>$5 美元礼物</strong>，获赠 1 次（满 $10 赠 2 次，以此类推）</li>`;
+  }
+  msgHtml += `</ul></div>`;
+
+  showDialog({
+    title,
+    message: msgHtml,
+    allowHtml: true,
+    confirmButtonText: isEn ? 'Got it' : '知道了',
+  });
+}
+
 // ============================================================
 // 时间格式化
 // ============================================================
@@ -331,6 +423,45 @@ useHead({
         <!-- 空状态 -->
         <div v-else class="home-section__empty">
           <p>{{ t("home_empty_pets") }}</p>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 👇 新增：Living Memories 栏目                 -->
+      <!-- ============================================ -->
+      <section class="home-section" v-if="videosPending || (recentVideos && recentVideos.length > 0)">
+        <div class="section-title">
+          <div class="section-title__left">
+            <h2 class="section-title__main">Living Memories</h2>
+            <!-- 问号图标 -->
+            <van-icon 
+              name="question-o" 
+              class="help-icon"
+              @click="showVideoRuleDialog"
+            />
+          </div>
+          <NuxtLink to="/videos" class="section-title__more">
+            All Videos
+            <van-icon name="arrow" />
+          </NuxtLink>
+        </div>
+
+        <!-- 加载中骨架屏 -->
+        <div v-if="videosPending" class="video-grid-home">
+          <div v-for="i in 4" :key="i" class="skeleton video-card-skeleton" />
+        </div>
+
+        <!-- 视频列表 -->
+        <div v-else class="video-grid-home">
+          <VideoCoverCard
+            v-for="video in recentVideos"
+            :key="video.id"
+            :video-url="video.videoUrl"
+            :aspect-ratio="video.aspectRatio"
+            :pet-name="video.pet.name"
+            @play="handlePlayVideo(video)"
+            @download="() => me?.id === video.pet.ownerId ? handleDownloadVideo(video.videoUrl, video.pet.name) : showToast('仅主人可下载')"
+          />
         </div>
       </section>
 
@@ -677,6 +808,16 @@ useHead({
         </button>
       </div>
     </van-popup>
+
+    <!-- 👇 视频播放弹窗 -->
+    <VideoPlayerModal
+      v-if="activeVideo"
+      v-model="activeVideoModal"
+      :video-url="activeVideo.videoUrl"
+      :aspect-ratio="activeVideo.aspectRatio"
+      :pet-name="activeVideo.pet.name"
+      @download="() => me?.id === activeVideo?.pet.ownerId ? handleDownloadVideo(activeVideo!.videoUrl, activeVideo!.pet.name) : showToast('仅主人可下载')"
+    />
 
     <!-- 定制手绘弹窗 -->
     <CustomOrderModal v-model="customOrderModalVisible" @success="() => {}" />
@@ -1524,5 +1665,40 @@ useHead({
     margin-top: @sp-5;
     width: 100%;
   }
+}
+
+// ============================================================
+// 👇 新增：Living Memories 首页样式
+// ============================================================
+.help-icon {
+  font-size: 18px;
+  color: @ink-3;
+  border: 1px solid @border-strong;
+  border-radius: 50%;
+  padding: 2px;
+  cursor: pointer;
+  transition: all @dur-fast ease;
+
+  &:hover {
+    color: @accent;
+    border-color: @accent;
+  }
+}
+
+.video-grid-home {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: @sp-4;
+  margin-top: @sp-3;
+
+  @media (max-width: @bp-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.video-card-skeleton {
+  aspect-ratio: 1 / 1;
+  border-radius: @radius-lg;
+  width: 100%;
 }
 </style>
