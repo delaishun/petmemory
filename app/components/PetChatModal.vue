@@ -351,10 +351,13 @@ const title = computed(() =>
           v-else-if="messages.length === 0 && !errorMsg"
           class="pet-chat__empty"
         >
-          <img
+          <!-- 👇 替换 1：空状态大头像 -->
+          <OssImg
             class="pet-chat__empty-avatar"
             :src="petAvatarUrl || defaultPetAvatar"
             :alt="petName"
+            :width="80"
+            :height="80"
           />
           <p class="pet-chat__empty-text">
             {{ petName ? t('pet_chat_empty_with_name', { petName }) : t('pet_chat_empty') }}
@@ -369,12 +372,14 @@ const title = computed(() =>
             class="chat-msg"
             :class="`chat-msg--${msg.role}`"
           >
-            <!-- 宠物头像 -->
-            <img
+            <!-- 👇 替换 2：消息气泡宠物头像 -->
+            <OssImg
               v-if="msg.role === 'assistant'"
               class="chat-msg__avatar"
               :src="petAvatarUrl || defaultPetAvatar"
               :alt="petName"
+              :width="32"
+              :height="32"
             />
 
             <div class="chat-msg__bubble">
@@ -388,10 +393,13 @@ const title = computed(() =>
             v-if="sending"
             class="chat-msg chat-msg--assistant"
           >
-            <img
+            <!-- 👇 替换 3：打字中的宠物头像 -->
+            <OssImg
               class="chat-msg__avatar"
               :src="petAvatarUrl || defaultPetAvatar"
               :alt="petName"
+              :width="32"
+              :height="32"
             />
             <div class="chat-msg__bubble chat-msg__bubble--typing">
               <span />
@@ -488,7 +496,6 @@ const title = computed(() =>
     line-height: 1.3;
   }
 
-  // 👇 请把这段新增的样式粘贴到这里
   &__heaven-hint {
     display: flex;
     align-items: center;
@@ -578,7 +585,6 @@ const title = computed(() =>
     text-align: center;
   }
 
-  // 👇 升级引导 Banner 样式
   &__upgrade-banner {
     flex-shrink: 0;
     display: flex;

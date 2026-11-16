@@ -345,10 +345,12 @@ useHead({
         </div>
         <div class="home-about">
           <div class="home-about__image-wrap">
-            <img
-              src="https://music.petmemory.me/cat128.gif"
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/cat128.gif"
               alt="Cat icon"
-              loading="lazy"
+              :width="128"
+              :height="128"
+              :format="undefined"
             />
           </div>
           <p class="home-about__desc">{{ t("home_seo_desc") }}</p>
@@ -409,17 +411,19 @@ useHead({
             "
             @click="handleGiftClick(item)"
           >
-            <img
+            <OssImg
               class="gift-chip__img"
               :src="item.gift.imageUrl"
               :alt="item.gift.name"
-              loading="lazy"
+              :width="64"
+              :height="64"
             />
             <span class="gift-chip__pet">
-              <img
+              <OssImg
                 :src="item.pet.avatarUrl || defaultPetAvatar"
                 :alt="item.pet.name"
-                loading="lazy"
+                :width="22"
+                :height="22"
               />
             </span>
           </button>
@@ -460,10 +464,11 @@ useHead({
               class="msg-item__pet"
               :aria-label="`访问 ${msg.pet.name} 的主页`"
             >
-              <img
+              <OssImg
                 :src="msg.pet.avatarUrl || defaultPetAvatar"
                 :alt="msg.pet.name"
-                loading="lazy"
+                :width="48"
+                :height="48"
               />
             </NuxtLink>
 
@@ -525,15 +530,15 @@ useHead({
           </div>
           <div class="home-drawing__gallery">
             <figure class="home-drawing__item">
-              <img
+              <OssImg
                 src="https://music.petmemory.me/example2.jpg"
                 alt="Hand-drawn example"
-                loading="lazy"
+                :width="180"
               />
               <figcaption>{{ t("home_drawing_example_label") }}</figcaption>
             </figure>
             <figure class="home-drawing__item">
-              <img src="https://music.petmemory.me/66.jpg" alt="Artist" loading="lazy" />
+              <OssImg src="https://music.petmemory.me/66.jpg" alt="Artist" :width="180" />
               <figcaption>{{ t("home_drawing_artist_label") }}</figcaption>
             </figure>
           </div>
@@ -578,10 +583,11 @@ useHead({
             class="article-card-home"
           >
             <div class="article-card-home__img-wrap">
-              <img
+              <OssImg
                 :src="item.imageUrl || defaultArticleCover"
                 :alt="item.title"
-                loading="lazy"
+                :width="400"
+                aspect-ratio="16/9"
               />
             </div>
             <div class="article-card-home__content">
@@ -606,7 +612,7 @@ useHead({
     >
       <div v-if="currentGift" class="gift-record">
         <div class="gift-record__icon">
-          <img :src="currentGift.gift.imageUrl" :alt="currentGift.gift.name" />
+          <OssImg :src="currentGift.gift.imageUrl" :alt="currentGift.gift.name" :width="88" :height="88" />
         </div>
         <p class="gift-record__label">
           {{ t("gift_record_label") }}<strong>{{ currentGift.gift.name }}</strong>
@@ -622,17 +628,19 @@ useHead({
           class="gift-record__sender"
           @click="giftModalVisible = false"
         >
-          <img
+          <OssImg
             class="gift-record__avatar"
             :src="currentGift.sender.avatarUrl || defaultUserAvatar"
             :alt="currentGift.sender.nickname"
+            :width="56"
+            :height="56"
           />
           <span class="gift-record__name">
             {{ currentGift.sender.nickname }}
           </span>
         </NuxtLink>
         <div v-else class="gift-record__sender gift-record__sender--anon">
-          <img class="gift-record__avatar" :src="defaultUserAvatar" alt="anon" />
+          <OssImg class="gift-record__avatar" :src="defaultUserAvatar" alt="anon" :width="56" :height="56" />
           <span class="gift-record__name">
             {{ currentGift.sender.nickname || t("gift_record_anon") }}
           </span>
@@ -644,10 +652,12 @@ useHead({
           class="gift-record__sender"
           @click="giftModalVisible = false"
         >
-          <img
+          <OssImg
             class="gift-record__avatar"
             :src="currentGift.pet.avatarUrl || defaultPetAvatar"
             :alt="currentGift.pet.name"
+            :width="56"
+            :height="56"
           />
           <span class="gift-record__name">
             {{ currentGift.pet.name }}

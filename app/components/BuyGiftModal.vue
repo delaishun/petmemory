@@ -405,7 +405,7 @@ async function handleExchange() {
       <div class="buy-gift__list" v-if="!loading">
         <template v-if="activeTab === 'purchase'">
           <div v-for="gift in gifts" :key="gift.code" class="gift-row">
-            <img :src="gift.imageUrl" :alt="gift.name" class="gift-row__img" />
+            <OssImg :src="gift.imageUrl" :alt="gift.name" class="gift-row__img" :width="48" :height="48" />
             <div class="gift-row__info">
               <span class="gift-row__name">{{ gift.name }}</span>
               <div class="gift-row__meta">
@@ -432,7 +432,7 @@ async function handleExchange() {
             :class="{ 'is-selected': exchangeSelections[gift.code] }"
             @click="toggleExchange(gift.code)"
           >
-            <img :src="gift.imageUrl" :alt="gift.name" class="gift-row__img" />
+            <OssImg :src="gift.imageUrl" :alt="gift.name" class="gift-row__img" :width="48" :height="48" />
             <div class="gift-row__info">
               <span class="gift-row__name">{{ gift.name }}</span>
               <div class="gift-row__meta">

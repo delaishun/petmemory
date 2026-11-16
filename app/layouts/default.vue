@@ -115,11 +115,14 @@ const year = new Date().getFullYear();
             :title="user?.nickname"
             :aria-label="user?.nickname"
           >
-            <img
+            <!-- 👇 替换为 OssImg，尺寸 36x36 -->
+            <OssImg
               v-if="user?.avatarUrl"
               class="avatar__img"
               :src="user.avatarUrl"
               :alt="user.nickname"
+              :width="36"
+              :height="36"
             />
             <span v-else class="avatar__fallback">
               {{ user?.nickname?.charAt(0)?.toUpperCase() || "?" }}

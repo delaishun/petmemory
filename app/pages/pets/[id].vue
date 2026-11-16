@@ -7,7 +7,7 @@ import UpgradeVipModal from "~/components/UpgradeVipModal.vue";
 import { showDialog, showConfirmDialog, showToast, showImagePreview } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import { useEffectBackgrounds } from "~/composables/usePetEffect";
-import { getPetUrl, parseSlugFromParam } from '~/utils/petUrl'
+import { getPetUrl, parseSlugFromParam } from "~/utils/petUrl";
 import html2canvas from "html2canvas";
 import JSZip from "jszip";
 
@@ -1433,10 +1433,10 @@ useHead(() => {
     // 👇 利用工具函数生成带有拼音的标准链接
     canonicalUrl = `https://www.petmemory.me${getPetUrl(pet.value)}`;
   }
-  
+
   return {
     link: [{ rel: "canonical", href: canonicalUrl }],
-  }   
+  };
 });
 </script>
 
@@ -1502,10 +1502,12 @@ useHead(() => {
             class="pet-hero__avatar-wrap avatar-effect"
             :class="getEffectClass(isLifetimeVipPet)"
           >
-            <img
+            <OssImg
               class="pet-hero__avatar"
               :src="pet.avatarUrl || defaultPetAvatar"
               :alt="pet.name"
+              :width="140"
+              :height="140"
             />
           </div>
 
@@ -1635,10 +1637,11 @@ useHead(() => {
               :class="{ 'photo-item--editing': editMode }"
               @click="handlePhotoClick(photo)"
             >
-              <img
+              <OssImg
                 :src="photo.imageUrl"
                 :alt="photo.caption || pet.name"
-                loading="lazy"
+                :width="300"
+                aspect-ratio="1/1"
               />
               <span v-if="photo.caption" class="photo-item__caption">
                 {{ photo.caption }}
@@ -1702,7 +1705,12 @@ useHead(() => {
               :style="{ opacity: getGiftOpacity(item) }"
               @click="handleGiftClick(item)"
             >
-              <img :src="item.giftImageUrl" :alt="item.giftName" loading="lazy" />
+              <OssImg
+                :src="item.giftImageUrl"
+                :alt="item.giftName"
+                :width="56"
+                :height="56"
+              />
             </button>
           </div>
         </section>
@@ -1726,10 +1734,12 @@ useHead(() => {
           <div class="pet-expression" v-if="pet.currentExpressionUrl || pet.isGenerating">
             <div class="pet-expression__top">
               <div class="pet-expression__circle">
-                <img
+                <OssImg
                   v-if="pet.currentExpressionUrl"
                   :src="pet.currentExpressionUrl"
                   alt="Pet Expression"
+                  :width="120"
+                  :height="120"
                 />
                 <van-loading v-else type="spinner" color="#E8A87C" size="24" />
               </div>
@@ -1784,11 +1794,13 @@ useHead(() => {
               class="chat-msg"
               :class="`chat-msg--${msg.role}`"
             >
-              <img
+              <OssImg
                 v-if="msg.role === 'assistant'"
                 class="chat-msg__avatar"
                 :src="pet.avatarUrl || defaultPetAvatar"
                 :alt="pet.name"
+                :width="32"
+                :height="32"
               />
               <div class="chat-msg__bubble">
                 <p class="chat-msg__text">{{ msg.content }}</p>
@@ -1828,19 +1840,22 @@ useHead(() => {
                 class="msg-item__avatar-link"
                 :aria-label="`Visit ${msg.author.nickname}'s profile`"
               >
-                <img
+                <OssImg
                   class="msg-item__avatar"
                   :src="msg.author.avatarUrl || defaultOwnerAvatar"
                   :alt="msg.author.nickname"
+                  :width="48"
+                  :height="48"
                 />
               </NuxtLink>
-              <img
+              <OssImg
                 v-else
                 class="msg-item__avatar"
                 :src="msg.author.avatarUrl || defaultOwnerAvatar"
                 :alt="msg.author.nickname"
+                :width="48"
+                :height="48"
               />
-
               <div class="msg-item__main">
                 <div class="msg-item__head">
                   <NuxtLink
@@ -2086,7 +2101,12 @@ useHead(() => {
         <template v-else>
           <h3 class="expression-modal__title">{{ t("pet_expression_done") }}</h3>
           <div class="expression-modal__circle expression-modal__circle--has-img">
-            <img :src="pet.currentExpressionUrl" alt="expression" />
+            <OssImg
+              :src="pet.currentExpressionUrl"
+              alt="expression"
+              :width="140"
+              :height="140"
+            />
           </div>
           <button
             class="btn btn--primary expression-modal__close"
@@ -2175,7 +2195,12 @@ useHead(() => {
     >
       <div v-if="currentGiftRecord" class="gift-record">
         <div class="gift-record__icon">
-          <img :src="currentGiftRecord.giftImageUrl" :alt="currentGiftRecord.giftName" />
+          <OssImg
+            :src="currentGiftRecord.giftImageUrl"
+            :alt="currentGiftRecord.giftName"
+            :width="88"
+            :height="88"
+          />
         </div>
         <p class="gift-record__label">
           {{ t("gift_record_label") }}<strong>{{ currentGiftRecord.giftName }}</strong>
@@ -2191,10 +2216,12 @@ useHead(() => {
           class="gift-record__sender"
           @click="giftRecordModalVisible = false"
         >
-          <img
+          <OssImg
             class="gift-record__avatar"
             :src="currentGiftRecord.sender.avatarUrl || defaultOwnerAvatar"
             :alt="currentGiftRecord.sender.nickname"
+            :width="56"
+            :height="56"
           />
           <span class="gift-record__name">
             {{ currentGiftRecord.sender.nickname }}
@@ -2202,7 +2229,13 @@ useHead(() => {
         </NuxtLink>
 
         <div v-else class="gift-record__sender gift-record__sender--anon">
-          <img class="gift-record__avatar" :src="defaultOwnerAvatar" alt="anon" />
+          <OssImg
+            class="gift-record__avatar"
+            :src="defaultOwnerAvatar"
+            alt="anon"
+            :width="56"
+            :height="56"
+          />
           <span class="gift-record__name">
             {{ currentGiftRecord.sender.nickname || t("gift_record_anon") }}
           </span>
@@ -2336,10 +2369,11 @@ useHead(() => {
             aria-label="Share to X"
             @click="shareToX"
           >
-            <img
+            <OssImg
               src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/x-50.png"
               alt="X"
-              loading="lazy"
+              :width="52"
+              :height="52"
             />
           </button>
           <button
@@ -2348,10 +2382,11 @@ useHead(() => {
             aria-label="Share to Facebook"
             @click="shareToFacebook"
           >
-            <img
+            <OssImg
               src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/facebook-50.png"
-              alt="Facebook"
-              loading="lazy"
+              alt="X"
+              :width="52"
+              :height="52"
             />
           </button>
           <button
@@ -2360,10 +2395,11 @@ useHead(() => {
             aria-label="Share to Reddit"
             @click="shareToReddit"
           >
-            <img
+            <OssImg
               src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/reddit-50.png"
-              alt="Reddit"
-              loading="lazy"
+              alt="X"
+              :width="52"
+              :height="52"
             />
           </button>
           <button
@@ -2372,10 +2408,11 @@ useHead(() => {
             aria-label="Share to Pinterest"
             @click="shareToPinterest"
           >
-            <img
+            <OssImg
               src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/pinterest-50.png"
-              alt="Pinterest"
-              loading="lazy"
+              alt="X"
+              :width="52"
+              :height="52"
             />
           </button>
           <button
@@ -2384,10 +2421,11 @@ useHead(() => {
             aria-label="Share to Telegram"
             @click="shareToTelegram"
           >
-            <img
+            <OssImg
               src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/telegram-50.png"
-              alt="Telegram"
-              loading="lazy"
+              alt="X"
+              :width="52"
+              :height="52"
             />
           </button>
         </div>

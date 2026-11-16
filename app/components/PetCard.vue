@@ -149,11 +149,13 @@ watch(
 
     <!-- 头像带特效边框 -->
     <div class="pet-card__avatar-wrap avatar-effect" :class="getEffectClass(pet.owner?.isLifetimeVip)">
-      <img
+      <!-- 👇 替换为 OssImg，并传入 80x80 的尺寸 -->
+      <OssImg
         class="pet-card__avatar"
         :src="pet.avatarUrl || defaultPetAvatar"
         :alt="pet.name"
-        loading="lazy"
+        :width="80"
+        :height="80"
       />
     </div>
     

@@ -239,7 +239,7 @@ async function handleOrder() {
           <label class="field__label">{{ t('custom_order_upload') }}</label>
           <div class="uploader">
             <div v-for="(img, i) in images" :key="i" class="uploader__item">
-              <img :src="img" />
+              <OssImg :src="img" :width="64" :height="64" />
             </div>
             <div class="uploader__add" @click="triggerFileInput">
               <van-icon v-if="!uploading" name="plus" size="20" color="#9A8C80" />

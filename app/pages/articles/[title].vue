@@ -1,39 +1,39 @@
 <!-- app/pages/articles/[title].vue -->
 <script setup lang="ts">
-import { useI18n } from '~/composables/useI18n'
-import { showToast, showConfirmDialog } from 'vant'
-import { MdPreview } from 'md-editor-v3'
-import 'md-editor-v3/lib/preview.css'
-import type { AuthUser } from '~/types/auth'
+import { useI18n } from "~/composables/useI18n";
+import { showToast, showConfirmDialog } from "vant";
+import { MdPreview } from "md-editor-v3";
+import "md-editor-v3/lib/preview.css";
+import type { AuthUser } from "~/types/auth";
 
 // ============================================================
 // 初始化与路由参数
 // ============================================================
-const { t } = useI18n()
-const route = useRoute()
-const { $api } = useNuxtApp()
+const { t } = useI18n();
+const route = useRoute();
+const { $api } = useNuxtApp();
 
-const articleSlug = computed(() => String(route.params.title || ''))
+const articleSlug = computed(() => String(route.params.title || ""));
 
 // ============================================================
 // 用户状态与弹窗控制
 // ============================================================
-const me = useState<AuthUser | null>('auth:user', () => null)
-const loginModalVisible = ref(false)
-const addPetModalVisible = ref(false)
+const me = useState<AuthUser | null>("auth:user", () => null);
+const loginModalVisible = ref(false);
+const addPetModalVisible = ref(false);
 
 function handleAddPet() {
   if (!me.value) {
-    loginModalVisible.value = true
+    loginModalVisible.value = true;
   } else {
-    addPetModalVisible.value = true
+    addPetModalVisible.value = true;
   }
 }
 
 function onLoginSuccess() {
-  loginModalVisible.value = false
+  loginModalVisible.value = false;
   if (me.value) {
-    addPetModalVisible.value = true
+    addPetModalVisible.value = true;
   }
 }
 
@@ -41,25 +41,25 @@ function onLoginSuccess() {
 // 类型
 // ============================================================
 interface ArticleDetail {
-  id: number
-  slug: string
-  title: string
-  imageUrl: string
-  content: string
-  createdAt: string
-  updatedAt: string
-  likeCount: number
+  id: number;
+  slug: string;
+  title: string;
+  imageUrl: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  likeCount: number;
 }
 
 interface ArticleComment {
-  id: number
-  content: string
-  createdAt: string
+  id: number;
+  content: string;
+  createdAt: string;
   author: {
-    id: number
-    nickname: string
-    avatarUrl: string | null
-  }
+    id: number;
+    nickname: string;
+    avatarUrl: string | null;
+  };
 }
 
 // ============================================================
@@ -68,76 +68,76 @@ interface ArticleComment {
 const { data: article, pending, error } = await useAsyncData<ArticleDetail>(
   () => `article:${articleSlug.value}`,
   () => $api<ArticleDetail>(`/api/articles/${articleSlug.value}`),
-  { watch: [articleSlug] },
-)
+  { watch: [articleSlug] }
+);
 
 // ============================================================
 // 点赞逻辑
 // ============================================================
-const hasLiked = ref(false)
-const isLiking = ref(false)
+const hasLiked = ref(false);
+const isLiking = ref(false);
 
 async function handleLike() {
-  if (hasLiked.value || isLiking.value || !article.value) return
+  if (hasLiked.value || isLiking.value || !article.value) return;
 
-  isLiking.value = true
+  isLiking.value = true;
   try {
     const res = await $api<{ likeCount: number }>(
       `/api/articles/${articleSlug.value}/like`,
-      { method: 'POST' }
-    )
-    article.value.likeCount = res.likeCount
-    hasLiked.value = true
-    localStorage.setItem(`liked_article_${articleSlug.value}`, 'true')
+      { method: "POST" }
+    );
+    article.value.likeCount = res.likeCount;
+    hasLiked.value = true;
+    localStorage.setItem(`liked_article_${articleSlug.value}`, "true");
   } catch (err: any) {
-    showToast(err?.data?.error || '点赞失败，请稍后重试')
+    showToast(err?.data?.error || "点赞失败，请稍后重试");
   } finally {
-    isLiking.value = false
+    isLiking.value = false;
   }
 }
 
 // ============================================================
 // 评论逻辑
 // ============================================================
-const comments = ref<ArticleComment[]>([])
-const commentTotal = ref(0)
-const commentLoading = ref(false)
-const commentInput = ref('')
-const commentSubmitting = ref(false)
-const COMMENT_PAGE_SIZE = 10
+const comments = ref<ArticleComment[]>([]);
+const commentTotal = ref(0);
+const commentLoading = ref(false);
+const commentInput = ref("");
+const commentSubmitting = ref(false);
+const COMMENT_PAGE_SIZE = 10;
 
-const hasMoreComments = computed(
-  () => comments.value.length < commentTotal.value
-)
+const hasMoreComments = computed(() => comments.value.length < commentTotal.value);
 
 const isMuted = computed(() => {
-  const muteUntil = (me.value as any)?.muteUntil
-  if (!muteUntil) return false
-  return new Date(muteUntil) > new Date()
-})
+  const muteUntil = (me.value as any)?.muteUntil;
+  if (!muteUntil) return false;
+  return new Date(muteUntil) > new Date();
+});
 
 async function loadComments(reset = false) {
-  if (!article.value || commentLoading.value) return
+  if (!article.value || commentLoading.value) return;
   if (reset) {
-    comments.value = []
-    commentTotal.value = 0
+    comments.value = [];
+    commentTotal.value = 0;
   }
-  commentLoading.value = true
+  commentLoading.value = true;
   try {
-    const offset = reset ? 0 : comments.value.length
+    const offset = reset ? 0 : comments.value.length;
     const res = await $api<{ items: ArticleComment[]; total: number }>(
-      `/api/articles/${articleSlug.value}/comments?limit=${COMMENT_PAGE_SIZE}&offset=${offset}&t=${Date.now()}`
-    )
+      `/api/articles/${
+        articleSlug.value
+      }/comments?limit=${COMMENT_PAGE_SIZE}&offset=${offset}&t=${Date.now()}`
+    );
     if (reset) {
-      comments.value = res.items
+      comments.value = res.items;
     } else {
-      comments.value.push(...res.items)
+      comments.value.push(...res.items);
     }
-    commentTotal.value = res.total
+    commentTotal.value = res.total;
   } catch (err) {
-    showToast('加载评论失败')
+    showToast("加载评论失败");
   } finally {
-    commentLoading.value = false
+    commentLoading.value = false;
   }
 }
 
@@ -145,79 +145,83 @@ async function loadComments(reset = false) {
 onMounted(async () => {
   if (import.meta.client && articleSlug.value) {
     // 1. 恢复本地点赞状态
-    const liked = localStorage.getItem(`liked_article_${articleSlug.value}`)
-    if (liked === 'true') {
-      hasLiked.value = true
+    const liked = localStorage.getItem(`liked_article_${articleSlug.value}`);
+    if (liked === "true") {
+      hasLiked.value = true;
     }
-    
+
     // 2. 拉取评论列表
-    loadComments(true)
+    loadComments(true);
 
     // 3. 拉取最新点赞数（绕过 CDN 缓存）
     try {
-      const res = await $api<ArticleDetail>(`/api/articles/${articleSlug.value}?t=${Date.now()}`)
+      const res = await $api<ArticleDetail>(
+        `/api/articles/${articleSlug.value}?t=${Date.now()}`
+      );
       if (article.value) {
-        article.value.likeCount = res.likeCount
+        article.value.likeCount = res.likeCount;
       }
     } catch (err) {
-      console.warn('获取最新点赞数失败', err)
+      console.warn("获取最新点赞数失败", err);
     }
   }
-})
+});
 
 // 监听路由变化重新加载数据
 watch(articleSlug, () => {
   if (import.meta.client) {
-    loadComments(true)
+    loadComments(true);
     // 路由切换时也刷新点赞数
-    $api<ArticleDetail>(`/api/articles/${articleSlug.value}?t=${Date.now()}`).then(res => {
-      if (article.value) article.value.likeCount = res.likeCount
-    }).catch(() => {})
+    $api<ArticleDetail>(`/api/articles/${articleSlug.value}?t=${Date.now()}`)
+      .then((res) => {
+        if (article.value) article.value.likeCount = res.likeCount;
+      })
+      .catch(() => {});
   }
-})
+});
 
 async function submitComment() {
-  const text = commentInput.value.trim()
-  if (!text) return
+  const text = commentInput.value.trim();
+  if (!text) return;
 
-  commentSubmitting.value = true
+  commentSubmitting.value = true;
   try {
     const res = await $api<ArticleComment>(
       `/api/articles/${articleSlug.value}/comments`,
-      { method: 'POST', body: { content: text } }
-    )
-    comments.value.push(res)
-    commentTotal.value++
-    commentInput.value = ''
-    showToast({ type: 'success', message: t('article_comment_success') || '评论成功' })
+      { method: "POST", body: { content: text } }
+    );
+    comments.value.push(res);
+    commentTotal.value++;
+    commentInput.value = "";
+    showToast({ type: "success", message: t("article_comment_success") || "评论成功" });
   } catch (err: any) {
-    showToast(err?.data?.error || '评论失败')
+    showToast(err?.data?.error || "评论失败");
   } finally {
-    commentSubmitting.value = false
+    commentSubmitting.value = false;
   }
 }
 
 async function deleteComment(comment: ArticleComment) {
   try {
     await showConfirmDialog({
-      title: t('article_comment_delete_confirm') || '确定要删除这条评论吗？',
-      confirmButtonText: t('btn_delete') || '删除',
-      cancelButtonText: t('btn_cancel') || '取消',
-      confirmButtonColor: '#C25A5A',
-    })
+      title: t("article_comment_delete_confirm") || "确定要删除这条评论吗？",
+      confirmButtonText: t("btn_delete") || "删除",
+      cancelButtonText: t("btn_cancel") || "取消",
+      confirmButtonColor: "#C25A5A",
+    });
   } catch {
-    return
+    return;
   }
 
   try {
     await $api(`/api/articles/${articleSlug.value}/comments/${comment.id}`, {
-      method: 'DELETE',
-    })
-    comments.value = comments.value.filter((c) => c.id !== comment.id)
-    commentTotal.value--
-    showToast({ type: 'success', message: t('msg_deleted') || '已删除' })
+      method: "DELETE",
+    });
+    comments.value = comments.value.filter((c) => c.id !== comment.id);
+    commentTotal.value--;
+    showToast({ type: "success", message: t("msg_deleted") || "已删除" });
   } catch (err: any) {
-    showToast(err?.data?.error || '删除失败')
+    showToast(err?.data?.error || "删除失败");
   }
 }
 
@@ -225,166 +229,165 @@ async function deleteComment(comment: ArticleComment) {
 // 页面底部展示用的标签
 // ============================================================
 const seoTags = computed(() => [
-  t('seo_tag_memorial'),
-  t('seo_tag_past'),
-  t('seo_tag_memory'),
-  t('seo_tag_heaven'),
-  t('seo_tag_love'),
-])
+  t("seo_tag_memorial"),
+  t("seo_tag_past"),
+  t("seo_tag_memory"),
+  t("seo_tag_heaven"),
+  t("seo_tag_love"),
+]);
 
 // ============================================================
 // SEO 配置
 // ============================================================
 function stripMarkdown(md: string): string {
-  if (!md) return ''
+  if (!md) return "";
   return md
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/`[^`]*`/g, '')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/[*_~>]/g, '')
-    .replace(/^\s*[-+*]\s+/gm, '')
-    .replace(/^\s*\d+\.\s+/gm, '')
-    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
-    .replace(/\s+/g, ' ')
-    .trim()
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`[^`]*`/g, "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/[*_~>]/g, "")
+    .replace(/^\s*[-+*]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/^\s*[-*_]{3,}\s*$/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-const plainText = computed(() => stripMarkdown(article.value?.content || ''))
+const plainText = computed(() => stripMarkdown(article.value?.content || ""));
 
 useSeoMeta({
-  title: () => article.value?.title || t('article_not_found'),
+  title: () => article.value?.title || t("article_not_found"),
   description: () =>
     plainText.value.slice(0, 160) ||
     (article.value
       ? `${article.value.title} - PetMemory`
-      : 'Read pet memorial articles on PetMemory.'),
+      : "Read pet memorial articles on PetMemory."),
   ogTitle: () =>
-    article.value ? `${article.value.title} - PetMemory` : 'Article - PetMemory',
+    article.value ? `${article.value.title} - PetMemory` : "Article - PetMemory",
   ogDescription: () =>
-    plainText.value.slice(0, 200) || 'Read pet memorial articles on PetMemory.',
-  ogImage: () =>
-    article.value?.imageUrl || 'https://music.petmemory.me/og-cover.jpg',
+    plainText.value.slice(0, 200) || "Read pet memorial articles on PetMemory.",
+  ogImage: () => article.value?.imageUrl || "https://music.petmemory.me/og-cover.jpg",
   ogImageWidth: 1200,
   ogImageHeight: 600,
-  ogType: 'article',
+  ogType: "article",
   ogUrl: () => `https://www.petmemory.me/articles/${articleSlug.value}`,
   articlePublishedTime: () => article.value?.createdAt,
   articleModifiedTime: () => article.value?.updatedAt,
-  twitterCard: 'summary_large_image',
+  twitterCard: "summary_large_image",
   twitterTitle: () =>
-    article.value ? `${article.value.title} - PetMemory` : 'Article - PetMemory',
+    article.value ? `${article.value.title} - PetMemory` : "Article - PetMemory",
   twitterDescription: () =>
-    plainText.value.slice(0, 200) || 'Read pet memorial articles on PetMemory.',
+    plainText.value.slice(0, 200) || "Read pet memorial articles on PetMemory.",
   twitterImage: () =>
-    article.value?.imageUrl || 'https://music.petmemory.me/og-cover.jpg',
-  robots: () => (article.value ? 'index, follow' : 'noindex, nofollow'),
-})
+    article.value?.imageUrl || "https://music.petmemory.me/og-cover.jpg",
+  robots: () => (article.value ? "index, follow" : "noindex, nofollow"),
+});
 
 useHead(() => ({
   link: [
     {
-      rel: 'canonical',
+      rel: "canonical",
       href: `https://www.petmemory.me/articles/${articleSlug.value}`,
     },
   ],
-}))
+}));
 
 // ============================================================
 // 日期格式化
 // ============================================================
 function formatDate(iso: string) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate(),
-  ).padStart(2, '0')}`
+  if (!iso) return "";
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
 }
 
 // ============================================================
 // 分享功能
 // ============================================================
-const shareModalVisible = ref(false)
+const shareModalVisible = ref(false);
 
 const shareUrl = computed(() => {
-  if (!articleSlug.value) return ''
-  return `https://www.petmemory.me/articles/${articleSlug.value}`
-})
+  if (!articleSlug.value) return "";
+  return `https://www.petmemory.me/articles/${articleSlug.value}`;
+});
 
 const shareText = computed(() => {
-  if (!article.value) return ''
-  return `Read "${article.value.title}" on PetMemory`
-})
+  if (!article.value) return "";
+  return `Read "${article.value.title}" on PetMemory`;
+});
 
 function handleShare() {
-  shareModalVisible.value = true
+  shareModalVisible.value = true;
 }
 
 function shareToX() {
-  const url = encodeURIComponent(shareUrl.value)
-  const text = encodeURIComponent(shareText.value)
-  window.open(`https://x.com/intent/tweet?url=${url}&text=${text}`, '_blank')
-  shareModalVisible.value = false
+  const url = encodeURIComponent(shareUrl.value);
+  const text = encodeURIComponent(shareText.value);
+  window.open(`https://x.com/intent/tweet?url=${url}&text=${text}`, "_blank");
+  shareModalVisible.value = false;
 }
 
 function shareToFacebook() {
-  const url = encodeURIComponent(shareUrl.value)
-  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
-  shareModalVisible.value = false
+  const url = encodeURIComponent(shareUrl.value);
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+  shareModalVisible.value = false;
 }
 
 function shareToReddit() {
-  const url = encodeURIComponent(shareUrl.value)
-  const title = encodeURIComponent(shareText.value)
-  window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, '_blank')
-  shareModalVisible.value = false
+  const url = encodeURIComponent(shareUrl.value);
+  const title = encodeURIComponent(shareText.value);
+  window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, "_blank");
+  shareModalVisible.value = false;
 }
 
 function shareToPinterest() {
-  const url = encodeURIComponent(shareUrl.value)
-  const media = encodeURIComponent(article.value?.imageUrl || '')
-  const description = encodeURIComponent(shareText.value)
+  const url = encodeURIComponent(shareUrl.value);
+  const media = encodeURIComponent(article.value?.imageUrl || "");
+  const description = encodeURIComponent(shareText.value);
   window.open(
     `https://www.pinterest.com/pin/create/button/?url=${url}&media=${media}&description=${description}`,
-    '_blank'
-  )
-  shareModalVisible.value = false
+    "_blank"
+  );
+  shareModalVisible.value = false;
 }
 
 function shareToTelegram() {
-  const url = encodeURIComponent(shareUrl.value)
-  const text = encodeURIComponent(shareText.value)
-  window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank')
-  shareModalVisible.value = false
+  const url = encodeURIComponent(shareUrl.value);
+  const text = encodeURIComponent(shareText.value);
+  window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank");
+  shareModalVisible.value = false;
 }
 
 async function copyShareLink() {
   try {
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(shareUrl.value)
+      await navigator.clipboard.writeText(shareUrl.value);
       showToast({
-        type: 'success',
-        message: t('share_link_copied') || 'Link copied to clipboard',
-      })
-      return
+        type: "success",
+        message: t("share_link_copied") || "Link copied to clipboard",
+      });
+      return;
     }
   } catch {
     /* 降级 */
   }
   try {
-    const ta = document.createElement('textarea')
-    ta.value = shareUrl.value
-    ta.style.position = 'fixed'
-    ta.style.top = '-9999px'
-    document.body.appendChild(ta)
-    ta.focus()
-    ta.select()
-    const ok = document.execCommand('copy')
-    document.body.removeChild(ta)
-    showToast(ok ? 'Link copied' : 'Copy failed')
+    const ta = document.createElement("textarea");
+    ta.value = shareUrl.value;
+    ta.style.position = "fixed";
+    ta.style.top = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast(ok ? "Link copied" : "Copy failed");
   } catch {
-    showToast('Copy failed')
+    showToast("Copy failed");
   }
 }
 </script>
@@ -394,15 +397,15 @@ async function copyShareLink() {
     <!-- 加载中 -->
     <div v-if="pending" class="status-view">
       <van-loading type="spinner" color="#A66039" size="32" />
-      <p>{{ t('article_loading') }}</p>
+      <p>{{ t("article_loading") }}</p>
     </div>
 
     <!-- 加载失败 -->
     <div v-else-if="error || !article" class="status-view">
       <van-icon name="warning-o" size="48" class="status-icon" />
-      <h1>{{ t('article_not_found') }}</h1>
+      <h1>{{ t("article_not_found") }}</h1>
       <NuxtLink to="/articles" class="btn btn--primary mt-4">
-        {{ t('article_back_to_list') }}
+        {{ t("article_back_to_list") }}
       </NuxtLink>
     </div>
 
@@ -411,17 +414,17 @@ async function copyShareLink() {
       <!-- 头部：标题与时间 + 点赞 -->
       <header class="article-header">
         <h1 class="article-title">{{ article.title }}</h1>
-        
+
         <div class="article-meta">
           <div class="article-meta__left">
             <time>{{ formatDate(article.createdAt) }}</time>
             <span class="dot">·</span>
-            <span>{{ t('seo_tag_memorial') }}</span>
+            <span>{{ t("seo_tag_memorial") }}</span>
           </div>
-          
+
           <!-- 点赞按钮 -->
-          <button 
-            type="button" 
+          <button
+            type="button"
             class="article-like-btn"
             :class="{ 'is-liked': hasLiked }"
             :disabled="isLiking"
@@ -435,7 +438,7 @@ async function copyShareLink() {
 
       <!-- 封面图 -->
       <div class="article-cover" v-if="article.imageUrl">
-        <img :src="article.imageUrl" :alt="article.title" />
+        <OssImg :src="article.imageUrl" :alt="article.title" :width="800" />
       </div>
 
       <!-- 正文内容区 -->
@@ -446,9 +449,9 @@ async function copyShareLink() {
       <!-- 底部 SEO 标签与操作区 -->
       <footer class="article-footer">
         <div class="article-divider">
-          <span>{{ t('article_divider_text') }}</span>
+          <span>{{ t("article_divider_text") }}</span>
         </div>
-        
+
         <div class="article-seo-tags">
           <span v-for="(tag, index) in seoTags" :key="index" class="tag">
             {{ tag }}
@@ -458,28 +461,32 @@ async function copyShareLink() {
         <!-- 按钮并排布局 -->
         <div class="article-actions">
           <NuxtLink to="/articles" class="btn btn--lg">
-            {{ t('article_read_more') }}
+            {{ t("article_read_more") }}
           </NuxtLink>
-          
-          <button 
-            type="button" 
-            class="btn btn--primary btn--lg article-add-pet-btn" 
+
+          <button
+            type="button"
+            class="btn btn--primary btn--lg article-add-pet-btn"
             @click="handleAddPet"
           >
             <van-icon name="plus" />
-            <span>{{ t('add_my_pet') || 'Add My Pet' }}</span>
+            <span>{{ t("add_my_pet") || "Add My Pet" }}</span>
           </button>
 
-          <button type="button" class="btn btn--lg article-share-btn" @click="handleShare">
+          <button
+            type="button"
+            class="btn btn--lg article-share-btn"
+            @click="handleShare"
+          >
             <van-icon name="share-o" />
-            <span>{{ t('pet_share') || 'Share' }}</span>
+            <span>{{ t("pet_share") || "Share" }}</span>
           </button>
         </div>
       </footer>
 
       <!-- 👇 新增：投稿邀请 -->
       <div class="article-contribute">
-        <p>{{ t('article_contribute_text') }}</p>
+        <p>{{ t("article_contribute_text") }}</p>
       </div>
 
       <!-- ============================================ -->
@@ -487,27 +494,43 @@ async function copyShareLink() {
       <!-- ============================================ -->
       <section class="article-comments">
         <div class="article-comments__header">
-          <h3 class="article-comments__title">{{ t('article_comments_title') || 'Comments' }}</h3>
+          <h3 class="article-comments__title">
+            {{ t("article_comments_title") || "Comments" }}
+          </h3>
           <span class="article-comments__count">{{ commentTotal }}</span>
         </div>
 
         <!-- 评论列表 -->
         <div v-if="comments.length" class="comment-list">
           <div v-for="comment in comments" :key="comment.id" class="comment-item">
-            <NuxtLink :to="`/users/${comment.author.id}`" class="comment-item__avatar-link">
-              <img class="comment-item__avatar" :src="comment.author.avatarUrl || 'https://music.petmemory.me/default-avatar.png'" alt="avatar" />
+            <NuxtLink
+              :to="`/users/${comment.author.id}`"
+              class="comment-item__avatar-link"
+            >
+              <OssImg
+                class="comment-item__avatar"
+                :src="
+                  comment.author.avatarUrl ||
+                  'https://music.petmemory.me/default-avatar.png'
+                "
+                alt="avatar"
+                :width="36"
+                :height="36"
+              />
             </NuxtLink>
             <div class="comment-item__main">
               <div class="comment-item__head">
                 <NuxtLink :to="`/users/${comment.author.id}`" class="comment-item__name">
                   {{ comment.author.nickname }}
                 </NuxtLink>
-                <span class="comment-item__time">{{ new Date(comment.createdAt).toLocaleString() }}</span>
-                
+                <span class="comment-item__time">{{
+                  new Date(comment.createdAt).toLocaleString()
+                }}</span>
+
                 <!-- 作者本人或管理员可以删除 -->
-                <button 
-                  v-if="me?.id === comment.author.id || me?.isAdmin" 
-                  class="comment-item__remove" 
+                <button
+                  v-if="me?.id === comment.author.id || me?.isAdmin"
+                  class="comment-item__remove"
                   @click="deleteComment(comment)"
                 >
                   <van-icon name="cross" />
@@ -519,47 +542,67 @@ async function copyShareLink() {
 
           <!-- 加载更多 -->
           <div v-if="hasMoreComments" class="comment-load-more">
-            <button class="btn btn--sm" :disabled="commentLoading" @click="loadComments(false)">
-              {{ commentLoading ? '...' : (t('article_comment_load_more') || 'Load more comments') }}
+            <button
+              class="btn btn--sm"
+              :disabled="commentLoading"
+              @click="loadComments(false)"
+            >
+              {{
+                commentLoading
+                  ? "..."
+                  : t("article_comment_load_more") || "Load more comments"
+              }}
             </button>
           </div>
         </div>
 
         <!-- 空状态 -->
         <div v-else class="comment-empty">
-          <p>{{ t('article_comment_empty') || 'No comments yet. Be the first!' }}</p>
+          <p>{{ t("article_comment_empty") || "No comments yet. Be the first!" }}</p>
         </div>
 
         <!-- 发表评论输入区 -->
         <div class="comment-editor">
           <!-- 未登录 -->
           <div v-if="!me" class="comment-editor__login-tip">
-            <a href="javascript:;" @click.prevent="loginModalVisible = true" class="comment-editor__login-link">
-              {{ t('article_comment_login_tip') || 'Please log in to comment.' }}
+            <a
+              href="javascript:;"
+              @click.prevent="loginModalVisible = true"
+              class="comment-editor__login-link"
+            >
+              {{ t("article_comment_login_tip") || "Please log in to comment." }}
             </a>
           </div>
-          
+
           <!-- 被禁言 -->
           <div v-else-if="isMuted" class="comment-editor__muted">
-            {{ t('article_comment_muted') || 'You are currently muted and cannot comment.' }}
+            {{
+              t("article_comment_muted") || "You are currently muted and cannot comment."
+            }}
           </div>
 
           <!-- 正常输入区 -->
           <template v-else>
-            <textarea 
-              v-model="commentInput" 
-              class="comment-editor__input" 
-              :placeholder="t('article_comment_placeholder') || 'Leave a comment... (Max 600 chars)'"
+            <textarea
+              v-model="commentInput"
+              class="comment-editor__input"
+              :placeholder="
+                t('article_comment_placeholder') || 'Leave a comment... (Max 600 chars)'
+              "
               maxlength="600"
             />
             <div class="comment-editor__footer">
               <span class="comment-editor__count">{{ commentInput.length }}/600</span>
-              <button 
-                class="btn btn--primary btn--sm" 
+              <button
+                class="btn btn--primary btn--sm"
                 :disabled="!commentInput.trim() || commentSubmitting"
                 @click="submitComment"
               >
-                {{ commentSubmitting ? (t('btn_processing') || 'Posting...') : (t('article_comment_submit') || 'Post Comment') }}
+                {{
+                  commentSubmitting
+                    ? t("btn_processing") || "Posting..."
+                    : t("article_comment_submit") || "Post Comment"
+                }}
               </button>
             </div>
           </template>
@@ -576,34 +619,84 @@ async function copyShareLink() {
     >
       <div class="share-popup">
         <h3 class="share-popup__title">
-          {{ t('article_share_title') || 'Share this article' }}
+          {{ t("article_share_title") || "Share this article" }}
         </h3>
         <p class="share-popup__subtitle">
-          {{ t('pet_share_subtitle') || 'Help more people discover this story' }}
+          {{ t("pet_share_subtitle") || "Help more people discover this story" }}
         </p>
 
         <div class="share-popup__icons">
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to X" @click="shareToX">
-            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/x-50.png" alt="X" loading="lazy" />
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to X"
+            @click="shareToX"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/x-50.png"
+              alt="X"
+              :width="52"
+              :height="52"
+            />
           </button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Facebook" @click="shareToFacebook">
-            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/facebook-50.png" alt="Facebook" loading="lazy" />
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Facebook"
+            @click="shareToFacebook"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/facebook-50.png"
+              alt="Facebook"
+              :width="52"
+              :height="52"
+            />
           </button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Reddit" @click="shareToReddit">
-            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/reddit-50.png" alt="Reddit" loading="lazy" />
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Reddit"
+            @click="shareToReddit"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/reddit-50.png"
+              alt="Reddit"
+              :width="52"
+              :height="52"
+            />
           </button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Pinterest" @click="shareToPinterest">
-            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/pinterest-50.png" alt="Pinterest" loading="lazy" />
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Pinterest"
+            @click="shareToPinterest"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/pinterest-50.png"
+              alt="Pinterest"
+              :width="52"
+              :height="52"
+            />
           </button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Telegram" @click="shareToTelegram">
-            <img src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/telegram-50.png" alt="Telegram" loading="lazy" />
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Telegram"
+            @click="shareToTelegram"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/telegram-50.png"
+              alt="Telegram"
+              :width="52"
+              :height="52"
+            />
           </button>
         </div>
 
         <div class="share-popup__divider" />
 
         <p class="share-popup__link-label">
-          {{ t('pet_share_copy_label') || 'Or copy this link' }}
+          {{ t("pet_share_copy_label") || "Or copy this link" }}
         </p>
         <div class="share-popup__link">
           <input
@@ -613,7 +706,7 @@ async function copyShareLink() {
             @focus="($event.target as HTMLInputElement).select()"
           />
           <button type="button" class="btn btn--sm" @click="copyShareLink">
-            {{ t('btn_copy') || 'Copy' }}
+            {{ t("btn_copy") || "Copy" }}
           </button>
         </div>
 
@@ -622,23 +715,20 @@ async function copyShareLink() {
           class="btn btn--primary share-popup__close"
           @click="shareModalVisible = false"
         >
-          {{ t('btn_close') || 'Close' }}
+          {{ t("btn_close") || "Close" }}
         </button>
       </div>
     </van-popup>
 
     <!-- 登录弹窗 -->
-    <LoginModal 
-      v-if="loginModalVisible" 
-      v-model="loginModalVisible" 
-      @success="onLoginSuccess" 
+    <LoginModal
+      v-if="loginModalVisible"
+      v-model="loginModalVisible"
+      @success="onLoginSuccess"
     />
 
     <!-- 添加宠物弹窗 -->
-    <AddPetModal 
-      v-if="addPetModalVisible" 
-      v-model="addPetModalVisible" 
-    />
+    <AddPetModal v-if="addPetModalVisible" v-model="addPetModalVisible" />
   </div>
 </template>
 
@@ -778,9 +868,15 @@ async function copyShareLink() {
 }
 
 @keyframes heart-beat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .article-cover {
@@ -789,7 +885,7 @@ async function copyShareLink() {
   overflow: hidden;
   margin-bottom: @sp-7;
   box-shadow: @shadow-2;
-  
+
   img {
     width: 100%;
     height: auto;
@@ -800,9 +896,9 @@ async function copyShareLink() {
 
 .article-body {
   :deep(.md-editor-preview-wrapper) {
-    padding: 0; 
+    padding: 0;
   }
-  
+
   :deep(.md-editor-preview) {
     font-family: inherit;
     color: @ink-2;
@@ -812,7 +908,9 @@ async function copyShareLink() {
     background: transparent;
   }
 
-  :deep(p) { margin-bottom: 1.5em; }
+  :deep(p) {
+    margin-bottom: 1.5em;
+  }
   :deep(h2) {
     font-family: @font-serif;
     font-size: 24px;
@@ -846,11 +944,14 @@ async function copyShareLink() {
     color: @ink-2;
     font-style: italic;
   }
-  :deep(ul), :deep(ol) {
+  :deep(ul),
+  :deep(ol) {
     margin-bottom: 1.5em;
     padding-left: 1.5em;
   }
-  :deep(li) { margin-bottom: 0.5em; }
+  :deep(li) {
+    margin-bottom: 0.5em;
+  }
   :deep(a) {
     color: @accent;
     text-decoration: underline;

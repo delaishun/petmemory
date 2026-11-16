@@ -230,12 +230,13 @@ watch(visible, async (open) => {
           }"
           @click="handleSelect(gift)"
         >
-          <!-- 礼物图片 -->
-          <img
+          <!-- 👇 替换为 OssImg -->
+          <OssImg
             class="gift-row__img"
             :src="gift.imageUrl"
             :alt="gift.name"
-            loading="lazy"
+            :width="48"
+            :height="48"
           />
           
           <!-- 礼物信息 -->

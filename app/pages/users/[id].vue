@@ -4,6 +4,7 @@ import { showConfirmDialog, showToast, showImagePreview } from "vant";
 import type { AuthUser, MeResponse } from "~/types/auth";
 import { useI18n } from "~/composables/useI18n";
 import ManageSubscriptionModal from "~/components/ManageSubscriptionModal.vue";
+import { getPetUrl } from "~/utils/petUrl";
 
 // ============================================================
 // 国际化
@@ -165,8 +166,8 @@ const displayPoint = computed<number | undefined>(() => {
 // ---------- VIP 权益说明弹窗 ----------
 // const vipModalVisible = ref(false);
 
-const lifetimeVipModalVisible = ref(false) // 终身 VIP 弹窗
-const subVipModalVisible = ref(false)      // 订阅 VIP 弹窗
+const lifetimeVipModalVisible = ref(false); // 终身 VIP 弹窗
+const subVipModalVisible = ref(false); // 订阅 VIP 弹窗
 
 // ---------- VIP 升级 / 续费 ----------
 const upgradeVipModalVisible = ref(false);
@@ -313,37 +314,40 @@ onMounted(async () => {
   if (isSelf.value) {
     loadInventoryAndGifts();
     loadOrders();
-    
-        // 静默检查并领取每月 VIP 礼物
+
+    // 静默检查并领取每月 VIP 礼物
     try {
-      const res = await $api<{ claimed: boolean; gifts: { name: string; imageUrl: string }[] }>(
-        '/api/users/me/claim-vip-gift',
-        { method: 'POST' }
-      )
-      
+      const res = await $api<{
+        claimed: boolean;
+        gifts: { name: string; imageUrl: string }[];
+      }>("/api/users/me/claim-vip-gift", { method: "POST" });
+
       if (res.claimed && res.gifts.length > 0) {
         // 领到了，刷新仓库列表
-        await loadInventoryAndGifts()
-        
+        await loadInventoryAndGifts();
+
         // 弹窗提示（改为双语）
-        let msgHtml = `<div style="text-align:center;font-size:14px;">${t('vip_monthly_gift_desc')}</div>`
-        msgHtml += '<div style="display:flex; justify-content:center; gap:16px; margin-top:16px;">'
-        res.gifts.forEach(g => {
+        let msgHtml = `<div style="text-align:center;font-size:14px;">${t(
+          "vip_monthly_gift_desc"
+        )}</div>`;
+        msgHtml +=
+          '<div style="display:flex; justify-content:center; gap:16px; margin-top:16px;">';
+        res.gifts.forEach((g) => {
           msgHtml += `
             <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
               <img src="${g.imageUrl}" style="width:48px;height:48px;" />
-              <span style="font-size:12px;color:#666;">${g.name.split('/')[0]}</span>
+              <span style="font-size:12px;color:#666;">${g.name.split("/")[0]}</span>
             </div>
-          `
-        })
-        msgHtml += '</div>'
+          `;
+        });
+        msgHtml += "</div>";
 
         showDialog({
-          title: t('vip_monthly_gift_title'),
+          title: t("vip_monthly_gift_title"),
           message: msgHtml,
           allowHtml: true, // 允许渲染 HTML
-          confirmButtonText: t('vip_monthly_gift_accept'),
-        })
+          confirmButtonText: t("vip_monthly_gift_accept"),
+        });
       }
     } catch (err) {
       // 如果是非 VIP 或已经领过，接口会返回 200 或 403，这里直接静默忽略即可
@@ -415,10 +419,12 @@ useSeoMeta({
       <template v-else>
         <header class="user-hero">
           <div class="user-hero__avatar-wrap">
-            <img
+            <OssImg
               class="user-hero__avatar"
               :src="user.avatarUrl || defaultAvatar"
               :alt="user.nickname"
+              :width="120"
+              :height="120"
             />
             <button
               v-if="canEditAvatar"
@@ -442,7 +448,7 @@ useSeoMeta({
                 class="user-hero__vip-icon is-lifetime"
                 title="终身 VIP"
                 @click="lifetimeVipModalVisible = true"
-                style="font-size: 22px; cursor: pointer;"
+                style="font-size: 22px; cursor: pointer"
               >
                 💎
               </span>
@@ -452,7 +458,7 @@ useSeoMeta({
                 class="user-hero__vip-icon is-sub"
                 title="订阅 VIP"
                 @click="subVipModalVisible = true"
-                style="font-size: 22px; cursor: pointer;"
+                style="font-size: 22px; cursor: pointer"
               >
                 🌈
               </span>
@@ -475,7 +481,7 @@ useSeoMeta({
               <span>{{ t("user_points") }}: {{ displayPoint }}</span>
             </div>
             <p class="user-hero__points-tip">
-              {{ t('user_points_tip') }}
+              {{ t("user_points_tip") }}
             </p>
           </div>
 
@@ -491,14 +497,15 @@ useSeoMeta({
             <NuxtLink
               v-for="pet in pets"
               :key="pet.id"
-              :to="`/pets/${pet.slug}`"
+              :to="getPetUrl(pet)"
               class="pet-item"
             >
-              <img
+              <OssImg
                 class="pet-item__avatar"
                 :src="pet.avatarUrl"
                 :alt="pet.name"
-                loading="lazy"
+                :width="120"
+                :height="120"
               />
               <span class="pet-item__name">{{ pet.name }}</span>
             </NuxtLink>
@@ -518,7 +525,12 @@ useSeoMeta({
               :title="`${item.gift!.name} x ${item.quantity}`"
             >
               <div class="inventory-item__img-wrap">
-                <img :src="item.gift!.imageUrl" :alt="item.gift!.name" />
+                <OssImg
+                  :src="item.gift!.imageUrl"
+                  :alt="item.gift!.name"
+                  :width="64"
+                  :height="64"
+                />
                 <span class="inventory-item__count">x{{ item.quantity }}</span>
               </div>
               <span
@@ -573,11 +585,13 @@ useSeoMeta({
                   v-if="order.images && order.images.length"
                   class="order-card__images"
                 >
-                  <img
+                  <OssImg
                     v-for="(img, i) in order.images"
                     :key="i"
                     :src="img"
                     class="order-card__img"
+                    :width="60"
+                    :height="60"
                     @click="showImagePreview({ images: order.images, startPosition: i })"
                   />
                 </div>
@@ -649,7 +663,7 @@ useSeoMeta({
     <!-- 管理订阅弹窗 -->
     <ManageSubscriptionModal v-model="manageSubModalVisible" />
 
-        <!-- 💎 终身 VIP 权益说明弹窗 -->
+    <!-- 💎 终身 VIP 权益说明弹窗 -->
     <van-popup
       v-model:show="lifetimeVipModalVisible"
       round
@@ -658,26 +672,30 @@ useSeoMeta({
     >
       <div class="vip-popup">
         <div class="vip-popup__header">
-          <span class="vip-popup__icon" style="font-size: 44px;">💎</span>
-          <h3 class="vip-popup__title">{{ t('vip_lifetime_title') || '终身 VIP 权益' }}</h3>
+          <span class="vip-popup__icon" style="font-size: 44px">💎</span>
+          <h3 class="vip-popup__title">
+            {{ t("vip_lifetime_title") || "终身 VIP 权益" }}
+          </h3>
         </div>
 
         <ul class="vip-popup__list">
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_lifetime_f1') || '相册照片数量永久提升至 20 张' }}</span>
+            <span>{{ t("vip_lifetime_f1") || "相册照片数量永久提升至 20 张" }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_lifetime_f2') || '永久解锁精美背景、节日特效与专属音乐' }}</span>
+            <span>{{
+              t("vip_lifetime_f2") || "永久解锁精美背景、节日特效与专属音乐"
+            }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_lifetime_f3') || '支持一键导出 HTML 离线网页' }}</span>
+            <span>{{ t("vip_lifetime_f3") || "支持一键导出 HTML 离线网页" }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_lifetime_f4') || '赠送 10000 积分' }}</span>
+            <span>{{ t("vip_lifetime_f4") || "赠送 10000 积分" }}</span>
           </li>
         </ul>
 
@@ -700,26 +718,28 @@ useSeoMeta({
     >
       <div class="vip-popup">
         <div class="vip-popup__header">
-          <span class="vip-popup__icon" style="font-size: 44px;">🌈</span>
-          <h3 class="vip-popup__title">{{ t('vip_sub_title') || '尊享订阅 VIP 权益' }}</h3>
+          <span class="vip-popup__icon" style="font-size: 44px">🌈</span>
+          <h3 class="vip-popup__title">
+            {{ t("vip_sub_title") || "尊享订阅 VIP 权益" }}
+          </h3>
         </div>
 
         <ul class="vip-popup__list">
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_sub_f1') || '使用 AI 模拟与宠物跨时空对话' }}</span>
+            <span>{{ t("vip_sub_f1") || "使用 AI 模拟与宠物跨时空对话" }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_sub_f2') || '每月登录获赠随机礼物' }}</span>
+            <span>{{ t("vip_sub_f2") || "每月登录获赠随机礼物" }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_sub_f3') || '每周生成专属回忆录并支持导出 PDF' }}</span>
+            <span>{{ t("vip_sub_f3") || "每周生成专属回忆录并支持导出 PDF" }}</span>
           </li>
           <li class="vip-popup__item">
             <van-icon name="success" class="vip-popup__item-icon" />
-            <span>{{ t('vip_sub_f4') || '赠送 10000 积分' }}</span>
+            <span>{{ t("vip_sub_f4") || "赠送 10000 积分" }}</span>
           </li>
         </ul>
 

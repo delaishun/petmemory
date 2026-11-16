@@ -145,10 +145,12 @@ useHead({
         class="article-card"
       >
         <div class="article-card__img-wrap">
-          <img 
+          <!-- 👇 替换为 OssImg -->
+          <OssImg 
             :src="item.imageUrl || defaultArticleCover" 
             :alt="item.title" 
-            loading="lazy" 
+            :width="600"
+            aspect-ratio="16/9"
           />
         </div>
         <div class="article-card__content">
