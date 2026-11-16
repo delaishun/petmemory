@@ -257,6 +257,46 @@ async function onVideoGenerated() {
   await refreshMe(); // 刷新用户 vnum
 }
 
+// 处理点击生成视频按钮
+function handleCreateVideo() {
+  if (!me.value) {
+    showDialog({ message: t("msg_please_login") });
+    return;
+  }
+
+  // 如果次数小于等于 0，弹出获取方式的提示
+  if ((me.value.vnum || 0) <= 0) {
+    const isEn = locale.value === 'en';
+    const title = isEn ? 'Insufficient Video Credits' : '视频生成次数不足';
+    
+    let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.8; padding: 10px 4px; color: #5D4737;">`;
+    msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${isEn ? 'Want to create a Living Memory video? Here’s how to earn credits:' : '想要生成专属的动态回忆吗？您可以通过以下方式获取生成次数：'}</p>`;
+    msgHtml += `<ul style="padding-left:18px; margin:0; display:flex; flex-direction:column; gap:6px;">`;
+    
+    if (isEn) {
+      msgHtml += `<li>Get <strong>3 credits</strong> with a Lifetime VIP.</li>`;
+      msgHtml += `<li>Get <strong>1 credit</strong> with a Premium Subscription.</li>`;
+      msgHtml += `<li>Earn <strong>1 credit</strong> for every $5 spent on gifts.</li>`;
+    } else {
+      msgHtml += `<li>开通<strong>终身 VIP</strong>，立赠 3 次</li>`;
+      msgHtml += `<li>开通<strong>尊享订阅 VIP</strong>，立赠 1 次</li>`;
+      msgHtml += `<li>每购买 <strong>$5 美元礼物</strong>，获赠 1 次（满 $10 赠 2 次，以此类推）</li>`;
+    }
+    msgHtml += `</ul></div>`;
+
+    showDialog({
+      title,
+      message: msgHtml,
+      allowHtml: true,
+      confirmButtonText: isEn ? 'Got it' : '知道了',
+    });
+    return;
+  }
+
+  // 有次数，直接打开生成弹窗
+  generateVideoModalVisible.value = true;
+}
+
 // 处理播放视频
 function handlePlayVideo(video: PetVideoPublic) {
   activeVideo.value = video;
@@ -1732,7 +1772,7 @@ useHead(() => {
             <div
               v-if="isOwner"
               class="video-create-card"
-              @click="generateVideoModalVisible = true"
+              @click="handleCreateVideo"
             >
               <van-icon name="plus" class="create-icon" />
               <span>Create Memory Video</span>
