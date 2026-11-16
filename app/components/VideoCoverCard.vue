@@ -1,8 +1,9 @@
 <!-- app/components/VideoCoverCard.vue -->
 <script setup lang="ts">
+// 👇 检查这里：绝对不能有 modelValue！
 interface Props {
   videoUrl: string
-  aspectRatio: string // 保留了 prop 以防父组件传入报错，但不再影响封面形状
+  aspectRatio: string
   petName: string
   customCoverUrl?: string
 }
@@ -11,10 +12,9 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'play', url: string): void
-  (e: 'download', url: string, petName: string): void
+  (e: 'download'): void 
 }>()
 
-// 使用 OSS 截帧参数作为封面（截取第 1 秒，转为 jpg，宽 720）
 const posterUrl = computed(() => {
   if (props.customCoverUrl) return props.customCoverUrl
   if (!props.videoUrl) return ''
@@ -22,30 +22,26 @@ const posterUrl = computed(() => {
   return `${props.videoUrl}${separator}x-oss-process=video/snapshot,t_1000,f_jpg,w_720`
 })
 
-// 处理点击下载（阻止冒泡，避免触发播放）
 function onDownload(e: Event) {
   e.stopPropagation()
-  emit('download', props.videoUrl, props.petName)
+  emit('download')
 }
 </script>
 
 <template>
   <div class="video-cover-card" @click="emit('play', videoUrl)">
-    <!-- 👇 移除 style 中的动态 aspectRatio，靠 CSS 固定 1:1 -->
     <img 
       :src="posterUrl" 
       class="cover-img" 
       loading="lazy"
     />
     
-    <!-- 中央播放按钮蒙层 -->
     <div class="play-overlay">
       <div class="play-icon">
         <van-icon name="play" />
       </div>
     </div>
 
-    <!-- 右下角悬浮下载按钮 -->
     <button 
       type="button" 
       class="download-btn"
@@ -68,8 +64,6 @@ function onDownload(e: Event) {
   cursor: pointer;
   box-shadow: @shadow-1;
   transition: transform @dur-fast ease, box-shadow @dur-fast ease;
-
-  // 👇 关键：强制设置为 1:1 的正方形
   aspect-ratio: 1 / 1;
   width: 100%;
 
@@ -86,14 +80,10 @@ function onDownload(e: Event) {
   .cover-img {
     width: 100%;
     height: 100%;
-    // 👇 关键：cover 会保证图片填满正方形，超出部分自动居中裁剪
     object-fit: cover; 
     object-position: center; 
     display: block;
-    // 👇 加上这几行，实现类似骨架屏的底色效果
     background-color: @surface-2; 
-    // 如果你想要模糊加载过渡效果，还可以加上：
-    transition: filter 0.3s ease;
   }
 
   .play-overlay {
@@ -102,7 +92,7 @@ function onDownload(e: Event) {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.1); // 轻微暗角，突出播放按钮
+    background: rgba(0, 0, 0, 0.1);
   }
 
   .play-icon {
@@ -119,7 +109,7 @@ function onDownload(e: Event) {
 
     :deep(.van-icon) {
       font-size: 20px;
-      margin-left: 4px; // 微调图标居中
+      margin-left: 4px;
     }
   }
 

@@ -4,12 +4,16 @@ interface Props {
   modelValue: boolean
   videoUrl: string
   aspectRatio: string
-  petName: string
+  // 👇 petName 改为可选，因为下载逻辑移交给父组件了
+  petName?: string 
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
+  // 👇 新增：通知父组件去请求后端签名接口
+  (e: 'download'): void 
 }>()
 
 const visible = computed({
@@ -17,19 +21,9 @@ const visible = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
-// 触发浏览器强制下载
 function handleDownload() {
-  if (!props.videoUrl) return
-  const separator = props.videoUrl.includes('?') ? '&' : '?'
-  const downloadUrl = `${props.videoUrl}${separator}response-content-disposition=attachment;filename="${encodeURIComponent(props.petName)}-memory.mp4"`
-  
-  const link = document.createElement('a')
-  link.href = downloadUrl
-  link.target = '_blank'
-  link.style.display = 'none'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  // 👇 核心修改：不再拼接 URL，直接 emit
+  emit('download')
 }
 </script>
 

@@ -10,9 +10,9 @@ import { useEffectBackgrounds } from "~/composables/usePetEffect";
 import { getPetUrl, parseSlugFromParam } from "~/utils/petUrl";
 import html2canvas from "html2canvas";
 import JSZip from "jszip";
-import GenerateVideoModal from '~/components/GenerateVideoModal.vue'
-import VideoCoverCard from '~/components/VideoCoverCard.vue'
-import VideoPlayerModal from '~/components/VideoPlayerModal.vue'
+import GenerateVideoModal from "~/components/GenerateVideoModal.vue";
+import VideoCoverCard from "~/components/VideoCoverCard.vue";
+import VideoPlayerModal from "~/components/VideoPlayerModal.vue";
 
 // ============================================================
 // 国际化 & 特效逻辑
@@ -131,13 +131,13 @@ interface PublicChatResponse {
 }
 
 interface PetVideoPublic {
-  id: number
-  videoUrl: string
-  imageUrl: string
-  bgCode: string
-  actionType: string
-  aspectRatio: string
-  createdAt: string
+  id: number;
+  videoUrl: string;
+  imageUrl: string;
+  bgCode: string;
+  actionType: string;
+  aspectRatio: string;
+  createdAt: string;
 }
 
 // ============================================================
@@ -186,10 +186,12 @@ const {
   () => $api<PublicChatResponse>(`/api/pets/${slug.value}/public-chat`)
 );
 
-const { data: petVideos, refresh: refreshPetVideos } = await useAsyncData<PetVideoPublic[]>(
+const { data: petVideos, refresh: refreshPetVideos } = await useAsyncData<
+  PetVideoPublic[]
+>(
   () => `pet:${slug.value}:videos`,
   () => $api<PetVideoPublic[]>(`/api/pets/${slug.value}/videos`)
-)
+);
 
 const totalGiftCount = computed(
   () => giftSummary.value?.reduce((s, g) => s + g.count, 0) ?? 0
@@ -244,51 +246,57 @@ const myPoint = computed<number | undefined>(() => me.value?.point);
 // ============================================================
 // 👇 新增：视频生成与播放控制
 // ============================================================
-const generateVideoModalVisible = ref(false)
-const activeVideoModal = ref(false)
-const activeVideo = ref<PetVideoPublic | null>(null)
+const generateVideoModalVisible = ref(false);
+const activeVideoModal = ref(false);
+const activeVideo = ref<PetVideoPublic | null>(null);
 
 // 处理视频生成成功的回调
 async function onVideoGenerated() {
-  pendingVideoData.value = null // 清空
-  await refreshPetVideos()
-  await refreshMe() // 刷新用户 vnum
+  pendingVideoData.value = null; // 清空
+  await refreshPetVideos();
+  await refreshMe(); // 刷新用户 vnum
 }
 
 // 处理播放视频
 function handlePlayVideo(video: PetVideoPublic) {
-  activeVideo.value = video
-  activeVideoModal.value = true
+  activeVideo.value = video;
+  activeVideoModal.value = true;
 }
 
 // 处理强制下载视频
-function handleDownloadVideo(url: string, petName: string) {
-  if (!url) return
-  const separator = url.includes('?') ? '&' : '?'
-  const downloadUrl = `${url}${separator}response-content-disposition=attachment;filename="${encodeURIComponent(petName)}-memory.mp4"`
-  
-  const link = document.createElement('a')
-  link.href = downloadUrl
-  link.target = '_blank'
-  link.style.display = 'none'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+async function handleDownloadVideo(videoId: number) {
+  try {
+    const res = await $api<{ downloadUrl: string }>(
+      `/api/pets/${slug.value}/videos/${videoId}/download-url`
+    );
+
+    const link = document.createElement("a");
+    link.href = res.downloadUrl;
+    link.target = "_blank";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (err) {
+    showToast("获取下载链接失败，请重试");
+  }
 }
 
 // 👇 新增：待保存视频状态
-const pendingVideoData = ref<{ id: number, tempUrl: string, aspectRatio: string } | null>(null)
+const pendingVideoData = ref<{ id: number; tempUrl: string; aspectRatio: string } | null>(
+  null
+);
 
 async function checkPendingVideo() {
-  if (!isOwner.value) return
+  if (!isOwner.value) return;
   try {
-    const res = await $api<{ data: any }>(`/api/pets/${slug.value}/videos/pending`)
+    const res = await $api<{ data: any }>(`/api/pets/${slug.value}/videos/pending`);
     if (res?.data) {
-      pendingVideoData.value = res.data
-      generateVideoModalVisible.value = true // 自动弹窗
+      pendingVideoData.value = res.data;
+      generateVideoModalVisible.value = true; // 自动弹窗
     }
   } catch (err) {
-    console.warn('检查待保存视频失败', err)
+    console.warn("检查待保存视频失败", err);
   }
 }
 
@@ -310,8 +318,8 @@ onMounted(() => {
 
   // 👇 等待一下以确保 isOwner 状态已就绪
   setTimeout(() => {
-    checkPendingVideo()
-  }, 1000)
+    checkPendingVideo();
+  }, 1000);
 });
 
 async function handleLike() {
@@ -412,12 +420,15 @@ let hasBoundEvents = false;
 
 function handleUserInteraction() {
   if (!audio.value || isMusicPlaying.value) return;
-  audio.value.play().then(() => {
-    isMusicPlaying.value = true;
-    removeGlobalEvents();
-  }).catch((e) => {
-    console.warn("交互触发播放失败，等待下次操作", e);
-  });
+  audio.value
+    .play()
+    .then(() => {
+      isMusicPlaying.value = true;
+      removeGlobalEvents();
+    })
+    .catch((e) => {
+      console.warn("交互触发播放失败，等待下次操作", e);
+    });
 }
 
 function bindGlobalEvents() {
@@ -464,12 +475,15 @@ function initBackgroundMusic() {
     isMusicEnded.value = true;
   });
 
-  audio.value.play().then(() => {
-    isMusicPlaying.value = true;
-  }).catch((err) => {
-    console.log("等待用户交互以播放背景音乐", err);
-    bindGlobalEvents();
-  });
+  audio.value
+    .play()
+    .then(() => {
+      isMusicPlaying.value = true;
+    })
+    .catch((err) => {
+      console.log("等待用户交互以播放背景音乐", err);
+      bindGlobalEvents();
+    });
 }
 
 function toggleMusic() {
@@ -484,12 +498,15 @@ function toggleMusic() {
       audio.value.currentTime = 0;
       isMusicEnded.value = false;
     }
-    audio.value.play().then(() => {
-      isMusicPlaying.value = true;
-    }).catch((err) => {
-      console.error("播放失败", err);
-      showToast("播放失败，请检查网络或音频源");
-    });
+    audio.value
+      .play()
+      .then(() => {
+        isMusicPlaying.value = true;
+      })
+      .catch((err) => {
+        console.error("播放失败", err);
+        showToast("播放失败，请检查网络或音频源");
+      });
   }
 }
 
@@ -559,7 +576,9 @@ async function toggleChatVisibility() {
     isChatPublic.value = !isChatPublic.value;
     showToast({
       type: "success",
-      message: isChatPublic.value ? t("chat_visibility_public") : t("chat_visibility_private"),
+      message: isChatPublic.value
+        ? t("chat_visibility_public")
+        : t("chat_visibility_private"),
     });
     await refreshPublicChat();
   } catch (err: any) {
@@ -656,7 +675,9 @@ async function handleDeletePhoto(photo: PhotoPublic) {
     photos.value = (photos.value ?? []).filter((p) => p.id !== photo.id);
     showToast({ type: "success", message: t("msg_deleted") });
   } catch (err: any) {
-    showToast(err?.data?.error || err?.data?.message || err?.message || t("msg_delete_failed"));
+    showToast(
+      err?.data?.error || err?.data?.message || err?.message || t("msg_delete_failed")
+    );
   }
 }
 
@@ -721,7 +742,9 @@ async function handleDeleteMessage(message: MessagePublic) {
     }
     showToast({ type: "success", message: t("msg_deleted") });
   } catch (err: any) {
-    showToast(err?.data?.error || err?.data?.message || err?.message || t("msg_delete_failed"));
+    showToast(
+      err?.data?.error || err?.data?.message || err?.message || t("msg_delete_failed")
+    );
   }
 }
 
@@ -731,7 +754,13 @@ const hasMoreMessages = computed(
 );
 
 async function loadMoreMessages() {
-  if (!pet.value || !messages.value || loadingMoreMessages.value || !hasMoreMessages.value) return;
+  if (
+    !pet.value ||
+    !messages.value ||
+    loadingMoreMessages.value ||
+    !hasMoreMessages.value
+  )
+    return;
   loadingMoreMessages.value = true;
   try {
     const more = await $api<MessagePage>(
@@ -893,7 +922,11 @@ const defaultOwnerAvatar =
 // ============================================================
 const genderText = computed(() => {
   if (!pet.value) return "";
-  return pet.value.gender === 1 ? t("gender_boy") : pet.value.gender === 2 ? t("gender_girl") : "";
+  return pet.value.gender === 1
+    ? t("gender_boy")
+    : pet.value.gender === 2
+    ? t("gender_girl")
+    : "";
 });
 
 const introParts = computed(() => {
@@ -902,7 +935,8 @@ const introParts = computed(() => {
   const parts: string[] = [];
 
   if (locale.value === "en") {
-    if (p.species && p.breed) parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")} ${p.breed}`);
+    if (p.species && p.breed)
+      parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")} ${p.breed}`);
     else if (p.species) parts.push(`${t("intro_is_a")} ${p.species}`);
     else if (p.breed) parts.push(`breed ${p.breed}`);
 
@@ -911,7 +945,8 @@ const introParts = computed(() => {
     if (p.birthday) parts.push(`${t("intro_born_on")} ${p.birthday}`);
     if (p.leaveDate) parts.push(`went to heaven on ${p.leaveDate}`);
   } else {
-    if (p.species && p.breed) parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")}${p.breed}`);
+    if (p.species && p.breed)
+      parts.push(`${t("intro_is_a")} ${p.species}${t("intro_breed_is")}${p.breed}`);
     else if (p.species) parts.push(`${t("intro_is_a")} ${p.species}`);
     else if (p.breed) parts.push(`品种是${p.breed}`);
 
@@ -966,7 +1001,10 @@ function shareToPinterest() {
   const url = encodeURIComponent(shareUrl.value);
   const media = encodeURIComponent(pet.value?.avatarUrl || "");
   const description = encodeURIComponent(shareText.value);
-  window.open(`https://www.pinterest.com/pin/create/button/?url=${url}&media=${media}&description=${description}`, "_blank");
+  window.open(
+    `https://www.pinterest.com/pin/create/button/?url=${url}&media=${media}&description=${description}`,
+    "_blank"
+  );
   shareModalVisible.value = false;
 }
 
@@ -981,7 +1019,10 @@ async function copyShareLink() {
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(shareUrl.value);
-      showToast({ type: "success", message: t("share_link_copied") || "Link copied to clipboard" });
+      showToast({
+        type: "success",
+        message: t("share_link_copied") || "Link copied to clipboard",
+      });
       return;
     }
   } catch {}
@@ -1018,7 +1059,10 @@ function handleMemoir() {
   }
   if (!isSubVipActive.value) {
     showToast({
-      message: locale.value === "en" ? "Please upgrade to Subscription VIP first. (请先升级尊享订阅 VIP)" : "请先升级尊享订阅 VIP (Please upgrade to Subscription VIP)",
+      message:
+        locale.value === "en"
+          ? "Please upgrade to Subscription VIP first. (请先升级尊享订阅 VIP)"
+          : "请先升级尊享订阅 VIP (Please upgrade to Subscription VIP)",
       position: "middle",
       duration: 2500,
     });
@@ -1060,7 +1104,9 @@ const posterBase64 = reactive({
 const convertUrlToBase64 = async (url: string): Promise<string> => {
   if (!url) return "";
   try {
-    const timeStampedUrl = url.includes("?") ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
+    const timeStampedUrl = url.includes("?")
+      ? `${url}&_t=${Date.now()}`
+      : `${url}?_t=${Date.now()}`;
     const response = await fetch(timeStampedUrl, { mode: "cors" });
     if (!response.ok) throw new Error("Fetch failed");
     const blob = await response.blob();
@@ -1119,13 +1165,18 @@ async function handleExportImage() {
   });
   try {
     const defaultSvgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#F5EEE4" /><circle cx="60" cy="52" r="22" fill="#DCD0BF" /><path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF" /></svg>`;
-    const fallbackAvatar = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(defaultSvgStr)));
+    const fallbackAvatar =
+      "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(defaultSvgStr)));
 
     const avatarB64 = await convertUrlToBase64(pet.value?.avatarUrl || fallbackAvatar);
     const photosToConvert = photos.value?.slice(0, 3) || [];
-    const photosB64 = await Promise.all(photosToConvert.map((p) => convertUrlToBase64(p.imageUrl)));
+    const photosB64 = await Promise.all(
+      photosToConvert.map((p) => convertUrlToBase64(p.imageUrl))
+    );
     const giftsToConvert = giftItems.value.slice(0, 6);
-    const giftsB64 = await Promise.all(giftsToConvert.map((g) => convertUrlToBase64(g.giftImageUrl)));
+    const giftsB64 = await Promise.all(
+      giftsToConvert.map((g) => convertUrlToBase64(g.giftImageUrl))
+    );
 
     posterBase64.avatar = avatarB64;
     posterBase64.photos = photosB64;
@@ -1182,7 +1233,8 @@ async function handleExportHtml() {
     return;
   }
 
-  let loadingMessage = locale.value === "en" ? "Packing webpage and images..." : "正在打包网页及图片...";
+  let loadingMessage =
+    locale.value === "en" ? "Packing webpage and images..." : "正在打包网页及图片...";
 
   const loadingToast = showToast({
     type: "loading",
@@ -1251,7 +1303,10 @@ async function handleExportHtml() {
     URL.revokeObjectURL(url);
 
     loadingToast.close();
-    let successMessage = locale.value === "en" ? "Export successful! Unzip to view offline." : "导出成功！解压后即可离线查看";
+    let successMessage =
+      locale.value === "en"
+        ? "Export successful! Unzip to view offline."
+        : "导出成功！解压后即可离线查看";
     showToast({ type: "success", message: successMessage });
   } catch (err) {
     console.error("导出 HTML 打包失败", err);
@@ -1273,14 +1328,18 @@ useSeoMeta({
       : "A memorial page for a beloved pet on PetMemory.",
   ogTitle: () => (pet.value ? `${pet.value.name} - PetMemory` : "Pet Memorial"),
   ogDescription: () =>
-    pet.value ? `A memorial page for ${pet.value.name}.` : "A memorial page for a beloved pet on PetMemory.",
+    pet.value
+      ? `A memorial page for ${pet.value.name}.`
+      : "A memorial page for a beloved pet on PetMemory.",
   ogImage: () => pet.value?.avatarUrl || "https://music.petmemory.me/og-cover.jpg",
   ogType: "profile",
   ogUrl: () => `https://www.petmemory.me/pets/${route.params.id}`,
   twitterCard: "summary_large_image",
   twitterTitle: () => (pet.value ? `${pet.value.name} - PetMemory` : "Pet Memorial"),
   twitterDescription: () =>
-    pet.value ? `A memorial page for ${pet.value.name}.` : "A memorial page for a beloved pet on PetMemory.",
+    pet.value
+      ? `A memorial page for ${pet.value.name}.`
+      : "A memorial page for a beloved pet on PetMemory.",
   twitterImage: () => pet.value?.avatarUrl || "https://music.petmemory.me/og-cover.jpg",
 });
 useHead(() => {
@@ -1514,7 +1573,11 @@ useHead(() => {
               {{ isOwner ? t("pet_album_empty_owner") : t("pet_album_empty_guest") }}
             </p>
             <p v-if="isOwner && !me?.isLifetimeVip" class="pet-album__empty-hint">
-              {{ locale === "en" ? "Free users can upload up to 2 photos." : "免费用户最多可上传 2 张照片。" }}
+              {{
+                locale === "en"
+                  ? "Free users can upload up to 2 photos."
+                  : "免费用户最多可上传 2 张照片。"
+              }}
             </p>
             <button
               v-if="isOwner"
@@ -1529,7 +1592,10 @@ useHead(() => {
         </section>
 
         <!-- Living Memories 动态回忆区 -->
-        <section v-if="isOwner || (petVideos && petVideos.length > 0)" class="pet-living-memories">
+        <section
+          v-if="isOwner || (petVideos && petVideos.length > 0)"
+          class="pet-living-memories"
+        >
           <div class="section-title">
             <div class="section-title__left">
               <h2 class="section-title__main">Living Memories</h2>
@@ -1555,7 +1621,7 @@ useHead(() => {
               :aspect-ratio="video.aspectRatio"
               :pet-name="pet.name"
               @play="handlePlayVideo(video)"
-              @download="handleDownloadVideo"
+              @download="() => handleDownloadVideo(video.id)"
             />
           </div>
         </section>
@@ -1628,8 +1694,15 @@ useHead(() => {
                   v-if="isOwner && !pet.personality"
                   class="pet-expression__personality-hint"
                 >
-                  <span>{{ locale === "en" ? "Add personality traits to make chats warmer" : "写下 ta 的小性格，对话会更温暖" }}</span>
-                  <button class="pet-expression__personality-hint__btn" @click="handleEdit">
+                  <span>{{
+                    locale === "en"
+                      ? "Add personality traits to make chats warmer"
+                      : "写下 ta 的小性格，对话会更温暖"
+                  }}</span>
+                  <button
+                    class="pet-expression__personality-hint__btn"
+                    @click="handleEdit"
+                  >
                     {{ locale === "en" ? "Edit" : "去填写" }}
                   </button>
                 </div>
@@ -1677,7 +1750,12 @@ useHead(() => {
 
           <div v-else class="pet-public-chat__empty">
             <p class="pet-public-chat__empty-text">
-              {{ t("pet_public_chat_empty", { petName: publicChat?.petName || "", ownerNickname: publicChat?.ownerNickname || "" }) }}
+              {{
+                t("pet_public_chat_empty", {
+                  petName: publicChat?.petName || "",
+                  ownerNickname: publicChat?.ownerNickname || "",
+                })
+              }}
             </p>
           </div>
         </section>
@@ -1818,7 +1896,9 @@ useHead(() => {
               @click="handleExportImage"
             >
               <van-icon name="down" />
-              <span>{{ exportingImage ? t("export_generating") : t("export_image_btn") }}</span>
+              <span>{{
+                exportingImage ? t("export_generating") : t("export_image_btn")
+              }}</span>
             </button>
             <button
               v-if="isOwner"
@@ -1856,7 +1936,10 @@ useHead(() => {
           />
           <h1 class="ex-name">{{ pet.name }}</h1>
           <p class="ex-intro" v-if="introParts.length">
-            {{ pet.name }}<span v-for="(part, i) in introParts" :key="i">{{ i === 0 ? " " : "，" }}{{ part }}</span>。
+            {{ pet.name
+            }}<span v-for="(part, i) in introParts" :key="i"
+              >{{ i === 0 ? " " : "，" }}{{ part }}</span
+            >。
           </p>
         </div>
         <div class="ex-section" v-if="photos && photos.length > 0">
@@ -1872,8 +1955,16 @@ useHead(() => {
         <div class="ex-section" v-if="giftItems.length > 0">
           <h2 class="ex-title">{{ t("pet_gifts") }}</h2>
           <div class="ex-gifts">
-            <div v-for="(item, index) in giftItems.slice(0, 6)" :key="item.id" class="ex-gift-item">
-              <img :src="posterBase64.gifts[index]" crossorigin="anonymous" style="display: block; width: 100%; height: 100%" />
+            <div
+              v-for="(item, index) in giftItems.slice(0, 6)"
+              :key="item.id"
+              class="ex-gift-item"
+            >
+              <img
+                :src="posterBase64.gifts[index]"
+                crossorigin="anonymous"
+                style="display: block; width: 100%; height: 100%"
+              />
             </div>
           </div>
         </div>
@@ -1889,7 +1980,10 @@ useHead(() => {
             </div>
           </div>
         </div>
-        <div class="ex-section" v-if="publicChat?.hasConversation && publicChat?.messages?.length">
+        <div
+          class="ex-section"
+          v-if="publicChat?.hasConversation && publicChat?.messages?.length"
+        >
           <h2 class="ex-title">{{ t("pet_chat_title") }}</h2>
           <div class="ex-chat-list">
             <div
@@ -1898,7 +1992,9 @@ useHead(() => {
               class="ex-chat"
               :class="msg.role === 'user' ? 'is-user' : 'is-pet'"
             >
-              <span v-if="msg.role === 'assistant'" class="ex-chat-name">{{ pet?.name }}:</span>
+              <span v-if="msg.role === 'assistant'" class="ex-chat-name"
+                >{{ pet?.name }}:</span
+              >
               <span v-else class="ex-chat-name">{{ publicChat?.ownerNickname }}:</span>
               <span>{{ msg.content }}</span>
             </div>
@@ -1929,9 +2025,17 @@ useHead(() => {
         <template v-else>
           <h3 class="expression-modal__title">{{ t("pet_expression_done") }}</h3>
           <div class="expression-modal__circle expression-modal__circle--has-img">
-            <OssImg :src="pet.currentExpressionUrl" alt="expression" :width="140" :height="140" />
+            <OssImg
+              :src="pet.currentExpressionUrl"
+              alt="expression"
+              :width="140"
+              :height="140"
+            />
           </div>
-          <button class="btn btn--primary expression-modal__close" @click="expressionModalVisible = false">
+          <button
+            class="btn btn--primary expression-modal__close"
+            @click="expressionModalVisible = false"
+          >
             {{ t("btn_close") }}
           </button>
         </template>
@@ -1942,7 +2046,11 @@ useHead(() => {
     <EditPetModal
       v-model="editPetModalVisible"
       :pet="editablePet"
-      :key="pet ? `${pet.name}-${pet.bio}-${pet.personality}-${pet.species}-${pet.leaveDate}` : 'no-pet'"
+      :key="
+        pet
+          ? `${pet.name}-${pet.bio}-${pet.personality}-${pet.species}-${pet.leaveDate}`
+          : 'no-pet'
+      "
       @success="onPetUpdated"
     />
 
@@ -2008,6 +2116,7 @@ useHead(() => {
       :video-url="activeVideo.videoUrl"
       :aspect-ratio="activeVideo.aspectRatio"
       :pet-name="pet?.name || ''"
+      @download="() => handleDownloadVideo(activeVideo!.id)"
     />
 
     <!-- 👇 生成视频弹窗 -->
@@ -2032,7 +2141,12 @@ useHead(() => {
     >
       <div v-if="currentGiftRecord" class="gift-record">
         <div class="gift-record__icon">
-          <OssImg :src="currentGiftRecord.giftImageUrl" :alt="currentGiftRecord.giftName" :width="88" :height="88" />
+          <OssImg
+            :src="currentGiftRecord.giftImageUrl"
+            :alt="currentGiftRecord.giftName"
+            :width="88"
+            :height="88"
+          />
         </div>
         <p class="gift-record__label">
           {{ t("gift_record_label") }}<strong>{{ currentGiftRecord.giftName }}</strong>
@@ -2061,7 +2175,13 @@ useHead(() => {
         </NuxtLink>
 
         <div v-else class="gift-record__sender gift-record__sender--anon">
-          <OssImg class="gift-record__avatar" :src="defaultOwnerAvatar" alt="anon" :width="56" :height="56" />
+          <OssImg
+            class="gift-record__avatar"
+            :src="defaultOwnerAvatar"
+            alt="anon"
+            :width="56"
+            :height="56"
+          />
           <span class="gift-record__name">
             {{ currentGiftRecord.sender.nickname || t("gift_record_anon") }}
           </span>
@@ -2071,69 +2191,211 @@ useHead(() => {
           {{ formatFullTime(currentGiftRecord.createdAt) }}
         </p>
 
-        <button type="button" class="btn btn--primary gift-record__close" @click="giftRecordModalVisible = false">
+        <button
+          type="button"
+          class="btn btn--primary gift-record__close"
+          @click="giftRecordModalVisible = false"
+        >
           {{ t("btn_close") }}
         </button>
       </div>
     </van-popup>
 
     <!-- 终身 VIP 权益说明弹窗 -->
-    <van-popup v-model:show="lifetimeVipModalVisible" round :style="{ width: 'min(340px, 85%)' }" teleport="body">
+    <van-popup
+      v-model:show="lifetimeVipModalVisible"
+      round
+      :style="{ width: 'min(340px, 85%)' }"
+      teleport="body"
+    >
       <div class="vip-popup">
         <div class="vip-popup__header">
           <span class="vip-popup__icon" style="font-size: 44px">💎</span>
-          <h3 class="vip-popup__title">{{ t("vip_lifetime_title") || "终身 VIP 权益" }}</h3>
+          <h3 class="vip-popup__title">
+            {{ t("vip_lifetime_title") || "终身 VIP 权益" }}
+          </h3>
         </div>
         <ul class="vip-popup__list">
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_lifetime_f1") || "相册照片数量永久提升至 20 张" }}</span></li>
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_lifetime_f2") || "永久解锁精美背景、节日特效与专属音乐" }}</span></li>
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_lifetime_f3") || "支持一键导出 HTML 离线网页" }}</span></li>
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_lifetime_f4") || "赠送 10000 积分" }}</span></li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_lifetime_f1") || "相册照片数量永久提升至 20 张"
+            }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_lifetime_f2") || "永久解锁精美背景、节日特效与专属音乐"
+            }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_lifetime_f3") || "支持一键导出 HTML 离线网页"
+            }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_lifetime_f4") || "赠送 10000 积分"
+            }}</span>
+          </li>
         </ul>
-        <button type="button" class="btn btn--primary vip-popup__close" @click="lifetimeVipModalVisible = false">
+        <button
+          type="button"
+          class="btn btn--primary vip-popup__close"
+          @click="lifetimeVipModalVisible = false"
+        >
           {{ t("btn_i_know") }}
         </button>
       </div>
     </van-popup>
 
     <!-- 订阅 VIP 权益说明弹窗 -->
-    <van-popup v-model:show="subVipModalVisible" round :style="{ width: 'min(340px, 85%)' }" teleport="body">
+    <van-popup
+      v-model:show="subVipModalVisible"
+      round
+      :style="{ width: 'min(340px, 85%)' }"
+      teleport="body"
+    >
       <div class="vip-popup">
         <div class="vip-popup__header">
           <span class="vip-popup__icon" style="font-size: 44px">🌈</span>
-          <h3 class="vip-popup__title">{{ t("vip_sub_title") || "尊享订阅 VIP 权益" }}</h3>
+          <h3 class="vip-popup__title">
+            {{ t("vip_sub_title") || "尊享订阅 VIP 权益" }}
+          </h3>
         </div>
         <ul class="vip-popup__list">
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_sub_f1") || "使用 AI 模拟与宠物跨时空对话" }}</span></li>
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_sub_f2") || "每月登录获赠随机礼物" }}</span></li>
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_sub_f3") || "每周生成专属回忆录并支持导出 PDF" }}</span></li>
-          <li class="vip-popup__item"><van-icon name="success" class="vip-popup__item-icon" /><span>{{ t("vip_sub_f4") || "赠送 10000 积分" }}</span></li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_sub_f1") || "使用 AI 模拟与宠物跨时空对话"
+            }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_sub_f2") || "每月登录获赠随机礼物"
+            }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_sub_f3") || "每周生成专属回忆录并支持导出 PDF"
+            }}</span>
+          </li>
+          <li class="vip-popup__item">
+            <van-icon name="success" class="vip-popup__item-icon" /><span>{{
+              t("vip_sub_f4") || "赠送 10000 积分"
+            }}</span>
+          </li>
         </ul>
-        <button type="button" class="btn btn--primary vip-popup__close" @click="subVipModalVisible = false">
+        <button
+          type="button"
+          class="btn btn--primary vip-popup__close"
+          @click="subVipModalVisible = false"
+        >
           {{ t("btn_i_know") }}
         </button>
       </div>
     </van-popup>
 
     <!-- 分享弹窗 -->
-    <van-popup v-model:show="shareModalVisible" round :style="{ width: 'min(360px, 90%)' }" teleport="body">
+    <van-popup
+      v-model:show="shareModalVisible"
+      round
+      :style="{ width: 'min(360px, 90%)' }"
+      teleport="body"
+    >
       <div class="share-popup">
-        <h3 class="share-popup__title">{{ t("pet_share_title") || `Share ${pet?.name ?? ""}'s page` }}</h3>
-        <p class="share-popup__subtitle">{{ t("pet_share_subtitle") || "Help more people discover their story" }}</p>
+        <h3 class="share-popup__title">
+          {{ t("pet_share_title") || `Share ${pet?.name ?? ""}'s page` }}
+        </h3>
+        <p class="share-popup__subtitle">
+          {{ t("pet_share_subtitle") || "Help more people discover their story" }}
+        </p>
         <div class="share-popup__icons">
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to X" @click="shareToX"><OssImg src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/x-50.png" alt="X" :width="52" :height="52" /></button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Facebook" @click="shareToFacebook"><OssImg src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/facebook-50.png" alt="Facebook" :width="52" :height="52" /></button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Reddit" @click="shareToReddit"><OssImg src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/reddit-50.png" alt="Reddit" :width="52" :height="52" /></button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Pinterest" @click="shareToPinterest"><OssImg src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/pinterest-50.png" alt="Pinterest" :width="52" :height="52" /></button>
-          <button class="share-popup__icon-btn" type="button" aria-label="Share to Telegram" @click="shareToTelegram"><OssImg src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/telegram-50.png" alt="Telegram" :width="52" :height="52" /></button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to X"
+            @click="shareToX"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/x-50.png"
+              alt="X"
+              :width="52"
+              :height="52"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Facebook"
+            @click="shareToFacebook"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/facebook-50.png"
+              alt="Facebook"
+              :width="52"
+              :height="52"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Reddit"
+            @click="shareToReddit"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/reddit-50.png"
+              alt="Reddit"
+              :width="52"
+              :height="52"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Pinterest"
+            @click="shareToPinterest"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/pinterest-50.png"
+              alt="Pinterest"
+              :width="52"
+              :height="52"
+            />
+          </button>
+          <button
+            class="share-popup__icon-btn"
+            type="button"
+            aria-label="Share to Telegram"
+            @click="shareToTelegram"
+          >
+            <OssImg
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/street/telegram-50.png"
+              alt="Telegram"
+              :width="52"
+              :height="52"
+            />
+          </button>
         </div>
         <div class="share-popup__divider" />
-        <p class="share-popup__link-label">{{ t("pet_share_copy_label") || "Or copy this link" }}</p>
+        <p class="share-popup__link-label">
+          {{ t("pet_share_copy_label") || "Or copy this link" }}
+        </p>
         <div class="share-popup__link">
-          <input class="share-popup__input" :value="shareUrl" readonly @focus="($event.target as HTMLInputElement).select()" />
-          <button type="button" class="btn btn--sm" @click="copyShareLink">{{ t("btn_copy") || "Copy" }}</button>
+          <input
+            class="share-popup__input"
+            :value="shareUrl"
+            readonly
+            @focus="($event.target as HTMLInputElement).select()"
+          />
+          <button type="button" class="btn btn--sm" @click="copyShareLink">
+            {{ t("btn_copy") || "Copy" }}
+          </button>
         </div>
-        <button type="button" class="btn btn--primary share-popup__close" @click="shareModalVisible = false">{{ t("btn_close") || "Close" }}</button>
+        <button
+          type="button"
+          class="btn btn--primary share-popup__close"
+          @click="shareModalVisible = false"
+        >
+          {{ t("btn_close") || "Close" }}
+        </button>
       </div>
     </van-popup>
   </div>
@@ -2187,8 +2449,12 @@ useHead(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // ============================================================
@@ -2216,10 +2482,22 @@ useHead(() => {
 }
 
 @keyframes festival-pop {
-  0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
-  20% { transform: scale(1) rotate(0deg); opacity: 1; }
-  60% { transform: scale(1.4) rotate(8deg); opacity: 1; }
-  100% { transform: scale(2) rotate(0deg); opacity: 0; }
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.4) rotate(8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2) rotate(0deg);
+    opacity: 0;
+  }
 }
 
 // ============================================================
@@ -2306,7 +2584,8 @@ useHead(() => {
     --ring-mask: 64%;
 
     &.effect-valentine::after {
-      text-shadow: 0 -75px 0 #e74c3c, 0 75px 0 #e74c3c, -75px 0 0 #e74c3c, 75px 0 0 #e74c3c;
+      text-shadow: 0 -75px 0 #e74c3c, 0 75px 0 #e74c3c, -75px 0 0 #e74c3c,
+        75px 0 0 #e74c3c;
     }
 
     &.effect-christmas::after {
@@ -2438,8 +2717,12 @@ useHead(() => {
     filter: drop-shadow(0 1px 2px rgba(241, 196, 15, 0.4));
     transition: transform @dur-fast ease;
 
-    &:hover { transform: scale(1.1) rotate(5deg); }
-    &:active { transform: scale(0.95); }
+    &:hover {
+      transform: scale(1.1) rotate(5deg);
+    }
+    &:active {
+      transform: scale(0.95);
+    }
   }
 
   &__hidden-tag {
@@ -2465,10 +2748,24 @@ useHead(() => {
     justify-content: center;
   }
 
-  &--skeleton { gap: @sp-4; }
-  &__avatar-skeleton { width: 140px; height: 140px; border-radius: 50%; }
-  &__name-skeleton { width: 160px; height: 32px; border-radius: @radius-sm; }
-  &__intro-skeleton { width: 260px; height: 20px; border-radius: @radius-sm; }
+  &--skeleton {
+    gap: @sp-4;
+  }
+  &__avatar-skeleton {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+  }
+  &__name-skeleton {
+    width: 160px;
+    height: 32px;
+    border-radius: @radius-sm;
+  }
+  &__intro-skeleton {
+    width: 260px;
+    height: 20px;
+    border-radius: @radius-sm;
+  }
 }
 
 // ============================================================
@@ -2494,8 +2791,12 @@ useHead(() => {
     background: @surface;
   }
 
-  &:active:not(:disabled) { transform: translateY(0) scale(0.96); }
-  &:disabled { cursor: default; }
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.96);
+  }
+  &:disabled {
+    cursor: default;
+  }
 
   .heart-icon {
     font-size: 20px;
@@ -2519,14 +2820,22 @@ useHead(() => {
       filter: none;
       animation: heart-beat 0.5s ease;
     }
-    .like-count { color: #e74c3c; }
+    .like-count {
+      color: #e74c3c;
+    }
   }
 }
 
 @keyframes heart-beat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 // ============================================================
@@ -2642,7 +2951,9 @@ useHead(() => {
     margin-top: @sp-3;
     gap: @sp-1;
 
-    :deep(.van-icon) { font-size: 14px; }
+    :deep(.van-icon) {
+      font-size: 14px;
+    }
   }
 }
 
@@ -2657,7 +2968,8 @@ useHead(() => {
   border-radius: @radius;
   cursor: pointer;
   box-shadow: @shadow-1;
-  transition: box-shadow @dur-base ease, transform @dur-base ease, outline-color @dur-fast ease;
+  transition: box-shadow @dur-base ease, transform @dur-base ease,
+    outline-color @dur-fast ease;
   outline: 2px solid transparent;
   outline-offset: -2px;
 
@@ -2672,14 +2984,18 @@ useHead(() => {
     box-shadow: @shadow-2;
     transform: translateY(-2px);
 
-    img { transform: scale(1.04); }
+    img {
+      transform: scale(1.04);
+    }
   }
 
   &--editing {
     cursor: default;
     &:hover {
       transform: none;
-      img { transform: none; }
+      img {
+        transform: none;
+      }
     }
   }
 
@@ -2715,8 +3031,13 @@ useHead(() => {
     backdrop-filter: blur(4px);
     transition: background @dur-fast ease, transform @dur-fast ease;
 
-    &:hover { background: @danger; transform: scale(1.1); }
-    &:active { transform: scale(0.94); }
+    &:hover {
+      background: @danger;
+      transform: scale(1.1);
+    }
+    &:active {
+      transform: scale(0.94);
+    }
   }
 }
 
@@ -2817,7 +3138,8 @@ useHead(() => {
   border: 1px solid @border;
   border-radius: 50%;
   cursor: pointer;
-  transition: transform @dur-fast ease, box-shadow @dur-fast ease, border-color @dur-fast ease;
+  transition: transform @dur-fast ease, box-shadow @dur-fast ease,
+    border-color @dur-fast ease;
 
   img {
     width: 100%;
@@ -2912,10 +3234,14 @@ useHead(() => {
     &:hover:not(&--anon) {
       background: @accent-soft;
 
-      .gift-record__name { color: @accent; }
+      .gift-record__name {
+        color: @accent;
+      }
     }
 
-    &--anon { cursor: default; }
+    &--anon {
+      cursor: default;
+    }
   }
 
   &__avatar {
@@ -3006,7 +3332,9 @@ useHead(() => {
       box-shadow: 0 0 0 3px @accent-soft;
     }
 
-    &:active { transform: scale(0.97); }
+    &:active {
+      transform: scale(0.97);
+    }
   }
 
   &__name--link {
@@ -3014,7 +3342,9 @@ useHead(() => {
     text-decoration: none;
     transition: color @dur-fast ease;
 
-    &:hover { color: @accent; }
+    &:hover {
+      color: @accent;
+    }
   }
 
   &__tag {
@@ -3053,7 +3383,9 @@ useHead(() => {
       border-color: fade(@danger, 30%);
     }
 
-    &:active { transform: scale(0.94); }
+    &:active {
+      transform: scale(0.94);
+    }
   }
 }
 
@@ -3196,7 +3528,9 @@ useHead(() => {
       text-underline-offset: 2px;
       transition: color @dur-fast ease;
 
-      &:hover { color: @accent-hover; }
+      &:hover {
+        color: @accent-hover;
+      }
     }
   }
 
@@ -3298,7 +3632,9 @@ useHead(() => {
   &__chat {
     gap: @sp-1;
 
-    :deep(.van-icon) { font-size: 16px; }
+    :deep(.van-icon) {
+      font-size: 16px;
+    }
   }
 
   @media (max-width: @bp-sm) {
@@ -3306,7 +3642,9 @@ useHead(() => {
     padding-left: @sp-3;
     padding-right: @sp-3;
 
-    &__row { gap: @sp-2; }
+    &__row {
+      gap: @sp-2;
+    }
 
     .btn {
       padding-left: @sp-4;
@@ -3426,7 +3764,9 @@ useHead(() => {
     color: @ink-2;
     line-height: @lh-base;
 
-    & + & { margin-top: @sp-3; }
+    & + & {
+      margin-top: @sp-3;
+    }
   }
 
   &__item-icon {
@@ -3447,7 +3787,9 @@ useHead(() => {
 .pet-actions__share {
   gap: @sp-1;
 
-  :deep(.van-icon) { font-size: 16px; }
+  :deep(.van-icon) {
+    font-size: 16px;
+  }
 }
 
 .share-popup {
@@ -3492,7 +3834,8 @@ useHead(() => {
     border: 1px solid @border;
     border-radius: 50%;
     cursor: pointer;
-    transition: transform @dur-fast ease, border-color @dur-fast ease, box-shadow @dur-fast ease;
+    transition: transform @dur-fast ease, border-color @dur-fast ease,
+      box-shadow @dur-fast ease;
 
     img {
       width: 100%;
@@ -3547,7 +3890,9 @@ useHead(() => {
     outline: none;
     cursor: pointer;
 
-    &:focus { border-color: @accent; }
+    &:focus {
+      border-color: @accent;
+    }
   }
 
   &__close {
@@ -3566,7 +3911,8 @@ useHead(() => {
   width: 600px;
   background: #f9f7f3;
   color: #3d332c;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
   pointer-events: none;
 }
 
@@ -3718,7 +4064,9 @@ useHead(() => {
     &.is-user {
       background: #fef8f5;
       border-color: #fce4d8;
-      .ex-chat-name { color: #5b8a72; }
+      .ex-chat-name {
+        color: #5b8a72;
+      }
     }
   }
 }
