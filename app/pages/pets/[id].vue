@@ -310,6 +310,44 @@ async function handleDownloadVideo(videoId: number) {
   }
 }
 
+// ============================================================
+// 👇 新增：送礼后视频播放逻辑
+// ============================================================
+// 计算当前要播放的视频（优先开心，否则随机）
+const targetGiftVideo = computed(() => {
+  if (!petVideos.value || petVideos.value.length === 0) return null
+  
+  // 1. 优先寻找动作类型为“开心”的视频 (根据你的动作ID joyful_sweet 匹配)
+  const happyVideo = petVideos.value.find(
+    v => v.actionType === 'joyful_sweet' || v.actionType.includes('开心')
+  )
+  if (happyVideo) return happyVideo
+  
+  // 2. 没有开心的，则随机选一个
+  const randomIndex = Math.floor(Math.random() * petVideos.value.length)
+  return petVideos.value[randomIndex]
+})
+
+// 预加载视频到浏览器缓存
+function preloadGiftVideo() {
+  const video = targetGiftVideo.value
+  if (!video || !video.videoUrl) return
+  
+  // 创建一个隐藏的 video 标签，让浏览器提前拉取数据
+  const preloadPlayer = document.createElement('video')
+  preloadPlayer.src = video.videoUrl
+  preloadPlayer.preload = 'auto'
+  preloadPlayer.muted = true // 静音预加载，防止自动播放声音
+  preloadPlayer.style.display = 'none'
+  document.body.appendChild(preloadPlayer)
+  preloadPlayer.load()
+  
+  // 预热完成后清理 DOM（数据已进缓存）
+  setTimeout(() => {
+    document.body.removeChild(preloadPlayer)
+  }, 10000) // 10秒后清理，给足下载时间
+}
+
 // 👇 新增：待保存视频状态
 const pendingVideoData = ref<{ id: number; tempUrl: string; aspectRatio: string } | null>(
   null
@@ -813,6 +851,8 @@ function handleGift() {
     showDialog({ message: t("msg_please_login") });
     return;
   }
+  // 👇 点击赠礼按钮时，立刻开始后台缓存视频
+  preloadGiftVideo()
   giftModalVisible.value = true;
 }
 
@@ -844,6 +884,7 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
   ]);
   showToast({ type: "success", message: t("gift_bonus_points") });
 
+  // 播放宠物叫声
   if (pet.value?.soundEffect) {
     const soundUrl = `https://music.petmemory.me/${pet.value.soundEffect}.mp3`;
     const soundAudio = new Audio(soundUrl);
@@ -851,6 +892,62 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
     soundAudio.play().catch((err) => {
       console.warn("播放宠物叫声失败 (可能是浏览器自动播放策略限制):", err);
     });
+  }
+
+  // 👇 新增：判断是否有视频
+  const hasVideos = petVideos.value && petVideos.value.length > 0;
+
+  if (hasVideos) {
+    // 如果有视频，走之前的逻辑：弹出并播放视频
+    const videoToPlay = targetGiftVideo.value;
+    if (videoToPlay) {
+      setTimeout(() => {
+        activeVideo.value = videoToPlay;
+        activeVideoModal.value = true;
+      }, 600);
+    }
+  } else {
+    // 👇 如果还没有视频，弹出情感化提示语
+    const title = locale.value === 'en' ? 'Gift Received!' : '收到礼物啦！';
+    let msgHtml = `<div style="text-align:center; font-size: 15px; line-height: 1.6; padding: 10px 0;">`;
+    
+    if (locale.value === 'en') {
+      msgHtml += `<p><strong>${pet.value?.name}</strong> received your gift and is wagging their tail happily!</p>`;
+      if (isOwner.value) {
+        msgHtml += `<p style="margin-top:12px; font-size:13px; color:#7A6C61;">Generate a Living Memory to see them react to your love in motion!</p>`;
+      }
+    } else {
+      msgHtml += `<p><strong>${pet.value?.name}</strong> 收到了你的礼物，开心地摇了摇尾巴！</p>`;
+      if (isOwner.value) {
+        msgHtml += `<p style="margin-top:12px; font-size:13px; color:#7A6C61;">如果生成专属动态视频，就能看到 ta 为你欢快互动的模样啦！</p>`;
+      }
+    }
+    msgHtml += `</div>`;
+
+    const confirmBtnText = isOwner.value 
+      ? (locale.value === 'en' ? 'Create Video' : '去生成视频')
+      : (locale.value === 'en' ? 'OK' : '知道了');
+      
+    const cancelBtnText = locale.value === 'en' ? 'Cancel' : '取消';
+
+    // 👇 使用 showDialog 替代原生弹窗
+    showDialog({
+      title,
+      message: msgHtml,
+      allowHtml: true,
+      showCancelButton: isOwner.value, // 如果是主人，显示取消按钮
+      confirmButtonText: confirmBtnText,
+      cancelButtonText: cancelBtnText,
+    })
+      .then(() => {
+        // 👇 只有主人点击了“去生成视频”，才打开生成弹窗
+        if (isOwner.value) {
+          generateVideoModalVisible.value = true;
+        }
+      })
+      .catch(() => {
+        // 用户点击了取消或关闭弹窗，静默处理
+      });
   }
 }
 
