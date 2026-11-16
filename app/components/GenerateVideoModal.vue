@@ -22,6 +22,7 @@ interface Props {
   avatarUrl: string
   photos: Photo[]
   userVnum?: number
+  resumeData?: { id: number, tempUrl: string, aspectRatio: string } | null // 👈 新增
 }
 
 const props = defineProps<Props>()
@@ -98,14 +99,19 @@ let pollTimer: any = null
 // 初始化默认选项
 watch(visible, (open) => {
   if (open) {
-    // 1. 默认选中第一张相册照片，没有则选头像
+    if (props.resumeData) {
+      // 👈 如果有恢复数据，直接跳到预览步骤
+      videoId.value = props.resumeData.id
+      tempVideoUrl.value = props.resumeData.tempUrl
+      selectedRatio.value = props.resumeData.aspectRatio
+      step.value = 'preview'
+      return
+    }
+
+    // 正常初始化
     selectedImage.value = photoList.value[0]?.imageUrl || ''
-    
-    // 2. 随机选一个背景
     const randomIdx = Math.floor(Math.random() * BACKGROUNDS.length)
     selectedBg.value = BACKGROUNDS[randomIdx]?.code || 'heaven'
-
-    // 3. 重置其他状态
     selectedAction.value = ACTIONS[0]?.id || 'joyful_sweet'
     selectedRatio.value = '9:16'
     step.value = 'config'
@@ -245,6 +251,23 @@ async function handleSave() {
   }
 }
 
+async function handleAbandon() {
+  if (!videoId.value) {
+    visible.value = false
+    return
+  }
+  try {
+    await $api(`/api/pets/${props.slug}/videos/${videoId.value}`, {
+      method: 'PATCH',
+      body: { abandon: true }
+    })
+  } catch (err) {
+    console.warn('标记废弃失败', err)
+  }
+  emit('success') // 👈 通知父组件刷新并清空数据
+  visible.value = false
+}
+
 // 暴露给模板使用
 const bgImgUrl = (code: string) => `https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/bg_${code}.jpg`
 
@@ -356,7 +379,7 @@ onBeforeUnmount(() => stopPolling())
           :style="{ aspectRatio: selectedRatio.replace(':', '/') }"
         ></video>
         <div class="preview-actions">
-          <button class="btn btn--lg" :disabled="saving" @click="visible = false">放弃</button>
+          <button class="btn btn--lg" :disabled="saving" @click="handleAbandon">放弃</button>
           <button class="btn btn--primary btn--lg" :disabled="saving" @click="handleSave">
             {{ saving ? '保存中...' : '保存到回忆' }}
           </button>

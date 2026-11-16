@@ -250,6 +250,7 @@ const activeVideo = ref<PetVideoPublic | null>(null)
 
 // 处理视频生成成功的回调
 async function onVideoGenerated() {
+  pendingVideoData.value = null // 清空
   await refreshPetVideos()
   await refreshMe() // 刷新用户 vnum
 }
@@ -275,6 +276,22 @@ function handleDownloadVideo(url: string, petName: string) {
   document.body.removeChild(link)
 }
 
+// 👇 新增：待保存视频状态
+const pendingVideoData = ref<{ id: number, tempUrl: string, aspectRatio: string } | null>(null)
+
+async function checkPendingVideo() {
+  if (!isOwner.value) return
+  try {
+    const res = await $api<{ data: any }>(`/api/pets/${slug.value}/videos/pending`)
+    if (res?.data) {
+      pendingVideoData.value = res.data
+      generateVideoModalVisible.value = true // 自动弹窗
+    }
+  } catch (err) {
+    console.warn('检查待保存视频失败', err)
+  }
+}
+
 // ============================================================
 // 👇 新增：点赞逻辑
 // ============================================================
@@ -290,6 +307,11 @@ onMounted(() => {
       hasLiked.value = true;
     }
   }
+
+  // 👇 等待一下以确保 isOwner 状态已就绪
+  setTimeout(() => {
+    checkPendingVideo()
+  }, 1000)
 });
 
 async function handleLike() {
@@ -1988,7 +2010,7 @@ useHead(() => {
       :pet-name="pet?.name || ''"
     />
 
-    <!-- 👇 新增：生成视频弹窗 -->
+    <!-- 👇 生成视频弹窗 -->
     <GenerateVideoModal
       v-if="pet"
       v-model="generateVideoModalVisible"
@@ -1997,6 +2019,7 @@ useHead(() => {
       :avatar-url="pet.avatarUrl"
       :photos="photos || []"
       :user-vnum="me?.vnum || 0"
+      :resume-data="pendingVideoData"
       @success="onVideoGenerated"
     />
 
