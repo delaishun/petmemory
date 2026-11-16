@@ -2,9 +2,8 @@
 <script setup lang="ts">
 interface Props {
   videoUrl: string
-  aspectRatio: string
+  aspectRatio: string // 保留了 prop 以防父组件传入报错，但不再影响封面形状
   petName: string
-  // 可选：如果不想用截帧，可以传自定义封面图
   customCoverUrl?: string
 }
 
@@ -32,12 +31,11 @@ function onDownload(e: Event) {
 
 <template>
   <div class="video-cover-card" @click="emit('play', videoUrl)">
-    <!-- 封面图（利用原生 img 配合截帧 URL 即可实现秒开） -->
+    <!-- 👇 移除 style 中的动态 aspectRatio，靠 CSS 固定 1:1 -->
     <img 
       :src="posterUrl" 
       class="cover-img" 
       loading="lazy"
-      :style="{ aspectRatio: aspectRatio.replace(':', '/') }"
     />
     
     <!-- 中央播放按钮蒙层 -->
@@ -71,6 +69,10 @@ function onDownload(e: Event) {
   box-shadow: @shadow-1;
   transition: transform @dur-fast ease, box-shadow @dur-fast ease;
 
+  // 👇 关键：强制设置为 1:1 的正方形
+  aspect-ratio: 1 / 1;
+  width: 100%;
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: @shadow-2;
@@ -83,8 +85,15 @@ function onDownload(e: Event) {
 
   .cover-img {
     width: 100%;
-    object-fit: cover;
+    height: 100%;
+    // 👇 关键：cover 会保证图片填满正方形，超出部分自动居中裁剪
+    object-fit: cover; 
+    object-position: center; 
     display: block;
+    // 👇 加上这几行，实现类似骨架屏的底色效果
+    background-color: @surface-2; 
+    // 如果你想要模糊加载过渡效果，还可以加上：
+    transition: filter 0.3s ease;
   }
 
   .play-overlay {
