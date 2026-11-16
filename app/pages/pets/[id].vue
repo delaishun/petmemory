@@ -265,15 +265,48 @@ function handlePlayVideo(video: PetVideoPublic) {
 
 // 处理强制下载视频
 async function handleDownloadVideo(videoId: number) {
-  try {
-    const res = await $api<{ downloadUrl: string }>(
-      `/api/pets/${slug.value}/videos/${videoId}/download-url`
-    );
+  if (!pet.value) return;
+  const video = petVideos.value?.find(v => v.id === videoId);
+  if (!video || !video.videoUrl) {
+    showToast('视频不存在');
+    return;
+  }
 
-    // 👈 修改：直接跳转当前页面触发下载，避免新窗口被拦截
-    window.location.href = res.downloadUrl; 
+  const loadingToast = showToast({
+    type: 'loading',
+    message: '正在下载，请稍候...',
+    duration: 0,
+    forbidClick: true,
+  });
+
+  try {
+    // 1. 直接用 fetch 请求 OSS 的原始视频地址（不需要之前后端的签名 URL 了）
+    const response = await fetch(video.videoUrl);
+    if (!response.ok) throw new Error('网络请求失败');
+    
+    // 2. 将视频数据转为 Blob 二进制大对象
+    const blob = await response.blob();
+    
+    // 3. 创建一个指向内存的临时 URL
+    const blobUrl = URL.createObjectURL(blob);
+    
+    // 4. 模拟 a 标签点击触发下载
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = `${pet.value.name}-memory.mp4`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // 5. 释放内存
+    URL.revokeObjectURL(blobUrl);
+    
+    loadingToast.close();
+    showToast({ type: 'success', message: '下载成功' });
   } catch (err) {
-    showToast("获取下载链接失败，请重试");
+    console.error('下载失败:', err);
+    loadingToast.close();
+    showToast('下载失败，请检查网络或 OSS 跨域配置');
   }
 }
 
