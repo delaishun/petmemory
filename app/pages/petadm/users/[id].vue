@@ -52,6 +52,9 @@ const minVipDate = new Date()
 // 积分输入框
 const pointAmount = ref<number | ''>('')
 
+// 视频次数输入框
+const vnumAmount = ref<number | ''>('')
+
 // 赠送礼物相关
 const gifts = ref<GiftItem[]>([])
 const selectedGiftId = ref<number | ''>('')
