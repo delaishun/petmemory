@@ -22,6 +22,7 @@ interface AdminUserDetail {
   vipExpiresAt: string | null
   muteUntil: string | null
   point: number
+  vnum: number
   createdAt: string
 }
 
@@ -220,6 +221,28 @@ async function handleAddPoints() {
 }
 
 // ============================================================
+// 4. 视频生成次数控制
+// ============================================================
+async function handleAddVnum() {
+  if (!vnumAmount.value || isNaN(Number(vnumAmount.value))) return showToast('请输入有效次数')
+  if (updating.value) return
+  updating.value = true
+  try {
+    await $api(`/api/users/admin/${userId}/vnum`, {
+      method: 'PATCH',
+      body: { amount: Number(vnumAmount.value) },
+    })
+    showToast({ type: 'success', message: '视频次数已更新' })
+    vnumAmount.value = ''
+    await loadUser()
+  } catch (err: any) {
+    showToast(err?.data?.error || '操作失败')
+  } finally {
+    updating.value = false
+  }
+}
+
+// ============================================================
 // 4. 赠送礼物
 // ============================================================
 async function handleSendGift() {
@@ -281,7 +304,7 @@ const defaultAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmln
             <span v-if="user.status === 0" class="status-badge is-disabled">已禁用</span>
             <span v-else-if="user.isVip" class="status-badge is-vip">VIP</span>
           </h2>
-          <p>ID: {{ user.id }} · 当前积分: <strong class="text-accent">{{ user.point }}</strong></p>
+          <p>ID: {{ user.id }} · 当前积分: <strong class="text-accent">{{ user.point }}</strong> · 视频次数: <strong class="text-accent">{{ user.vnum }}</strong></p>
           <p>邮箱: {{ user.email || '未绑定' }}</p>
           <p>注册时间: {{ formatDateTime(user.createdAt) }}</p>
         </div>
@@ -365,7 +388,30 @@ const defaultAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmln
 
       <div class="divider"></div>
 
-      <!-- 4. 赠送礼物区 -->
+      <!-- 4. 视频生成次数管理区 -->
+      <div class="manage-section">
+        <div class="section-title">
+          <h3>视频生成次数</h3>
+          <span class="section-desc">增加或扣除用户视频生成次数（输入负数即可扣除）。</span>
+        </div>
+
+        <div class="action-group point-group">
+          <input 
+            v-model="vnumAmount"
+            type="number"
+            class="input point-input" 
+            placeholder="如：5 或 -3" 
+            :disabled="updating"
+          />
+          <button class="btn btn--primary" :disabled="updating || !vnumAmount" @click="handleAddVnum">
+            确认调整
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 5. 赠送礼物区 -->
       <div class="manage-section">
         <div class="section-title">
           <h3>赠送礼物</h3>
