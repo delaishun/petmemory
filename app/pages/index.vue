@@ -439,12 +439,7 @@ useHead({
             :aspect-ratio="video.aspectRatio"
             :pet-name="video.pet.name"
             @play="handlePlayVideo(video)"
-            @download="
-              () =>
-                me?.id === video.pet.ownerId
-                  ? handleDownloadVideo(video.videoUrl, video.pet.name)
-                  : showToast(t("only_owner_can_download"))
-            "
+            @download="() => me?.id === video.pet.ownerId ? handleDownloadVideo(video.videoUrl, video.pet.name) : showToast(t('only_owner_can_download'))"
           />
         </div>
       </section>
