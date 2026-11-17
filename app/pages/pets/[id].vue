@@ -265,6 +265,19 @@ function handleCreateVideo() {
     return;
   }
 
+  // 先检查相册照片（头像太小，千问不认）
+  if (!photos.value || photos.value.length === 0) {
+    const isEn = locale.value === "en";
+    showDialog({
+      title: isEn ? "No Album Photos Yet" : "还没有相册照片",
+      message: isEn
+        ? "Please upload at least one clear photo of your pet to the album first. Photos should be at least 500×500 pixels for AI video generation."
+        : "请先上传至少一张清晰的宠物照片到相册。建议照片长宽不小于 500×500 像素，以获得更好的 AI 生成效果。",
+      confirmButtonText: isEn ? "Got it" : "知道了",
+    });
+    return;
+  }
+
   // 如果次数小于等于 0，弹出获取方式的提示
   if ((me.value.vnum || 0) <= 0) {
     const isEn = locale.value === "en";

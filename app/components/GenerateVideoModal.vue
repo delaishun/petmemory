@@ -74,12 +74,9 @@ const RATIOS = [
 // ============================================================
 // 可选的图片列表（相册在前，头像在后）
 const photoList = computed(() => {
-  const list: { id: string | number; imageUrl: string; isAvatar: boolean }[] = []
+  const list: { id: string | number; imageUrl: string }[] = []
   if (props.photos && props.photos.length > 0) {
-    props.photos.forEach(p => list.push({ id: p.id, imageUrl: p.imageUrl, isAvatar: false }))
-  }
-  if (props.avatarUrl) {
-    list.push({ id: 'avatar', imageUrl: props.avatarUrl, isAvatar: true })
+    props.photos.forEach(p => list.push({ id: p.id, imageUrl: p.imageUrl }))
   }
   return list
 })
@@ -303,10 +300,7 @@ onBeforeUnmount(() => stopPolling())
               :class="{ 'is-selected': selectedImage === p.imageUrl }"
               @click="selectedImage = p.imageUrl"
             >
-              <!-- 头像是小图，不需要缩略；相册用 OssImg -->
-              <OssImg v-if="!p.isAvatar" :src="p.imageUrl" :width="80" :height="80" aspect-ratio="1/1" />
-              <img v-else :src="p.imageUrl" class="avatar-thumb" />
-              <span v-if="p.isAvatar" class="photo-label">头像</span>
+              <OssImg :src="p.imageUrl" :width="80" :height="80" aspect-ratio="1/1" />
             </div>
           </div>
         </div>
