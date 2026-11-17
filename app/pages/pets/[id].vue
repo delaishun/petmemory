@@ -2297,6 +2297,9 @@ useHead(() => {
       :video-id="activeVideo.id"
       :video-status="activeVideo.status"
       :is-owner="isOwner"
+      :pet-slug="slug"
+      :pet-owner-id="pet?.owner.id"
+      :pet-avatar-url="pet?.avatarUrl"
       @download="() => handleDownloadVideo(activeVideo!.id)"
       @refresh="refreshPetVideos"
     />

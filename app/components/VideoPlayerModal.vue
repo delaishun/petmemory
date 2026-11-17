@@ -1,7 +1,7 @@
 <!-- app/components/VideoPlayerModal.vue -->
 <script setup lang="ts">
 import { showToast } from 'vant'
-import { parseSlugFromParam } from "~/utils/petUrl";
+import { parseSlugFromParam, getPetUrl } from "~/utils/petUrl";
 
 interface Props {
   modelValue: boolean
@@ -11,6 +11,11 @@ interface Props {
   videoId?: number
   videoStatus?: number // 2=正常, 4=隐藏, 5=封禁
   isOwner?: boolean
+  // 👇 新增：用于判断当前用户是否是主人
+  petOwnerId?: number 
+  // 👇 新增：用于非主人点击头像时跳转
+  petSlug?: string 
+  petAvatarUrl?: string | null
 }
 
 const props = defineProps<Props>()
@@ -26,26 +31,34 @@ const visible = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
+// 获取当前全局登录用户
+const me = useState<any>("auth:user", () => null)
+
+// 计算当前用户是否是该宠物的主人（如果父组件没传，这里作为兜底）
+const actualIsOwner = computed(() => {
+  if (props.isOwner !== undefined) return props.isOwner
+  if (!me.value || !props.petOwnerId) return false
+  return me.value.id === props.petOwnerId
+})
+
 function handleDownload() {
   emit('download')
 }
 
-// 👇 新增隐藏操作逻辑
+// 👇 隐藏操作逻辑
 const operating = ref(false)
 const { $api } = useNuxtApp()
 const route = useRoute()
 
-// 👇 修改点 1：只有当前路由是 /pets/xxx 时，才去解析 slug
 const slug = computed(() => {
   if (route.path.includes('/pets/')) {
     return parseSlugFromParam(String(route.params.id || ""))
   }
-  return ""
+  return props.petSlug || "" // 首页兜底使用传入的 slug
 })
 
 async function toggleVisibility() {
-  // 👇 修改点 2：如果没有 slug（说明在首页），或者没有视频 id、不是主人，就不执行
-  if (!slug.value || !props.videoId || !props.isOwner || operating.value) return
+  if (!slug.value || !props.videoId || !actualIsOwner.value || operating.value) return
   
   operating.value = true
   try {
@@ -55,14 +68,28 @@ async function toggleVisibility() {
       body: { hidden: !isHidden }
     })
     showToast({ type: 'success', message: isHidden ? '已取消隐藏' : '已隐藏' })
-    visible.value = false // 关闭弹窗
-    emit('refresh') // 通知父页面重新拉取数据
+    visible.value = false
+    emit('refresh')
   } catch (err: any) {
     showToast(err?.data?.error || '操作失败')
   } finally {
     operating.value = false
   }
 }
+
+// 👇 非主人点击跳转
+const router = useRouter()
+function goToPetPage() {
+  if (!slug.value) return
+  const url = getPetUrl({ name: props.petName || "", slug: slug.value })
+  visible.value = false
+  router.push(url)
+}
+
+// 兜底头像
+const defaultPetAvatar = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#F5EEE4"/><circle cx="60" cy="52" r="22" fill="#DCD0BF"/><path d="M20 110c0-22 18-36 40-36s40 14 40 36z" fill="#DCD0BF"/></svg>`
+)
 </script>
 
 <template>
@@ -97,21 +124,35 @@ async function toggleVisibility() {
 
       <!-- 底部操作区 -->
       <div class="modal-footer">
-        <!-- 👇 新增隐藏按钮：加上 slug 判断，首页时自动隐藏 -->
-        <button
-          v-if="slug && isOwner && videoStatus !== 5"
-          class="btn btn--lg"
-          :disabled="operating"
-          @click="toggleVisibility"
-        >
-          <van-icon :name="videoStatus === 4 ? 'eye-o' : 'closed-eye'" />
-          <span>{{ videoStatus === 4 ? '取消隐藏' : '隐藏' }}</span>
-        </button>
+        <!-- 主人：显示隐藏和保存视频 -->
+        <template v-if="actualIsOwner">
+          <button
+            v-if="slug && videoStatus !== 5"
+            class="btn btn--lg"
+            :disabled="operating"
+            @click="toggleVisibility"
+          >
+            <van-icon :name="videoStatus === 4 ? 'eye-o' : 'closed-eye'" />
+            <span>{{ videoStatus === 4 ? '取消隐藏' : '隐藏' }}</span>
+          </button>
 
-        <button class="btn btn--primary btn--lg download-btn" @click="handleDownload">
-          <van-icon name="down" />
-          <span>保存视频</span>
-        </button>
+          <button class="btn btn--primary btn--lg download-btn" @click="handleDownload">
+            <van-icon name="down" />
+            <span>保存视频</span>
+          </button>
+        </template>
+
+        <!-- 非主人：显示宠物头像和“去主页”按钮 -->
+        <template v-else>
+          <button class="btn btn--lg guest-action-btn" @click="goToPetPage">
+            <img 
+              class="guest-avatar" 
+              :src="petAvatarUrl || defaultPetAvatar" 
+              alt="avatar" 
+            />
+            <span>去 {{ petName || '宠物' }} 主页</span>
+          </button>
+        </template>
       </div>
     </div>
   </van-popup>
@@ -187,6 +228,28 @@ async function toggleVisibility() {
     :deep(.van-icon) {
       font-size: 18px;
     }
+  }
+}
+
+/* 👇 新增：非主人操作按钮样式 */
+.guest-action-btn {
+  max-width: 280px !important;
+  background: #fff;
+  color: @ink-1;
+  border: 1px solid @border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .guest-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  &:hover {
+    background: @surface-2;
   }
 }
 </style>

@@ -3,7 +3,7 @@
 import { showToast } from "vant";
 import { useI18n } from "~/composables/useI18n";
 import type { AuthUser } from "~/types/auth";
-import { getPetUrl } from '~/utils/petUrl'
+import { getPetUrl } from "~/utils/petUrl";
 import VideoCoverCard from "~/components/VideoCoverCard.vue";
 import VideoPlayerModal from "~/components/VideoPlayerModal.vue";
 
@@ -26,7 +26,7 @@ interface HomePet {
     nickname: string;
     avatarUrl: string | null;
     isVip?: boolean;
-    isLifetimeVip?: boolean;      // 👈 必须补上
+    isLifetimeVip?: boolean; // 👈 必须补上
     vipExpiresAt?: string | null; // 👈 必须补上
   };
 }
@@ -84,15 +84,15 @@ interface HomeVideo {
   aspectRatio: string;
   actionType: string;
   createdAt: string;
+  videoStatus: number;
   pet: {
     id: number;
     name: string;
     slug: string;
     ownerId: number;
+    avatarUrl: string;
   };
 }
-
-
 
 // ============================================================
 // 国际化
@@ -139,56 +139,65 @@ const { data: recentVideos, pending: videosPending } = await useAsyncData<HomeVi
 // ============================================================
 const homeTiers = computed(() => [
   {
-    id: 'free',
-    icon: 'smile-o',
-    title: locale.value === 'en' ? 'Free Explorer' : '免费体验版',
-    features: locale.value === 'en' ? [
-      'Create pet memorial page',
-      'Upload up to 2 photos',
-      'Unlimited messages & gifts',
-      '3 free interactions with pets'
-    ] : [
-      '建立专属宠物主页',
-      '上传最多 2 张相片',
-      '无限次留言与赠礼',
-      '3 次免费宠物对话体验'
-    ]
+    id: "free",
+    icon: "smile-o",
+    title: locale.value === "en" ? "Free Explorer" : "免费体验版",
+    features:
+      locale.value === "en"
+        ? [
+            "Create pet memorial page",
+            "Upload up to 2 photos",
+            "Unlimited messages & gifts",
+            "3 free interactions with pets",
+          ]
+        : [
+            "建立专属宠物主页",
+            "上传最多 2 张相片",
+            "无限次留言与赠礼",
+            "3 次免费宠物对话体验",
+          ],
   },
   {
-    id: 'lifetime',
-    icon: '💎',
-    title: locale.value === 'en' ? 'Lifetime Keepsake' : '终身珍藏版',
-    price: '$8.9',
-    features: locale.value === 'en' ? [
-      'Permanently unlock 20 photos limit',
-      'Premium backgrounds, effects & music',
-      'Export offline HTML webpage',
-      'Get 1-Year Subscription FREE'
-    ] : [
-      '永久解锁 20 张相册空间',
-      '解锁精美背景、特效与音乐',
-      '一键导出离线 HTML 网页',
-      '赠送 1 年订阅 VIP'
-    ]
+    id: "lifetime",
+    icon: "💎",
+    title: locale.value === "en" ? "Lifetime Keepsake" : "终身珍藏版",
+    price: "$8.9",
+    features:
+      locale.value === "en"
+        ? [
+            "Permanently unlock 20 photos limit",
+            "Premium backgrounds, effects & music",
+            "Export offline HTML webpage",
+            "Get 1-Year Subscription FREE",
+          ]
+        : [
+            "永久解锁 20 张相册空间",
+            "解锁精美背景、特效与音乐",
+            "一键导出离线 HTML 网页",
+            "赠送 1 年订阅 VIP",
+          ],
   },
   {
-    id: 'subscription',
-    icon: '🌈',
-    title: locale.value === 'en' ? 'Premium Subscription' : '尊享订阅版',
-    price: '$5.9 / yr',
-    features: locale.value === 'en' ? [
-      'Unlimited Cross-Time Pet Chat',
-      'Weekly exclusive memoir (PDF)',
-      'Monthly random gifts(Worth $2–$7)',
-      'Get 10,000 bonus points'
-    ] : [
-      '无限次跨时空宠物对话',
-      '每周生成专属回忆录',
-      '每月登录获赠随机礼物(价值$2-$7)',
-      '赠送 10000 积分'
-    ]
-  }
-])
+    id: "subscription",
+    icon: "🌈",
+    title: locale.value === "en" ? "Premium Subscription" : "尊享订阅版",
+    price: "$5.9 / yr",
+    features:
+      locale.value === "en"
+        ? [
+            "Unlimited Cross-Time Pet Chat",
+            "Weekly exclusive memoir (PDF)",
+            "Monthly random gifts(Worth $2–$7)",
+            "Get 10,000 bonus points",
+          ]
+        : [
+            "无限次跨时空宠物对话",
+            "每周生成专属回忆录",
+            "每月登录获赠随机礼物(价值$2-$7)",
+            "赠送 10000 积分",
+          ],
+  },
+]);
 
 // ============================================================
 // 兜底图（宠物/用户/文章）
@@ -294,13 +303,17 @@ async function handleDownloadVideo(url: string, petName: string) {
 
 // 👇 获取视频次数的规则弹窗
 function showVideoRuleDialog() {
-  const isEn = locale.value === 'en';
-  const title = isEn ? 'How to Get Video Credits' : '如何获取视频生成次数';
-  
+  const isEn = locale.value === "en";
+  const title = isEn ? "How to Get Video Credits" : "如何获取视频生成次数";
+
   let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.8; padding: 10px 4px; color: #5D4737;">`;
-  msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${isEn ? 'Want to create a Living Memory video? Here’s how to earn credits:' : '您可以通过以下方式获取视频生成次数：'}</p>`;
+  msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${
+    isEn
+      ? "Want to create a Living Memory video? Here’s how to earn credits:"
+      : "您可以通过以下方式获取视频生成次数："
+  }</p>`;
   msgHtml += `<ul style="padding-left:18px; margin:0; display:flex; flex-direction:column; gap:6px;">`;
-  
+
   if (isEn) {
     msgHtml += `<li>Get <strong>3 credits</strong> with a Lifetime VIP.</li>`;
     msgHtml += `<li>Get <strong>1 credit</strong> with a Premium Subscription.</li>`;
@@ -316,7 +329,7 @@ function showVideoRuleDialog() {
     title,
     message: msgHtml,
     allowHtml: true,
-    confirmButtonText: isEn ? 'Got it' : '知道了',
+    confirmButtonText: isEn ? "Got it" : "知道了",
   });
 }
 
@@ -364,26 +377,24 @@ function formatDate(iso: string) {
 // SEO（改为响应式，支持中英双语）
 // ============================================================
 useSeoMeta({
-  title: () => `${t('app_name')} - Pet Memorial | Virtual Pet Sanctuary`,
-  description: () => t('home_seo_desc'),
-  ogTitle: () => `${t('app_name')} - Virtual Pet Memorial & Sanctuary`,
-  ogDescription: () => t('home_seo_desc'),
+  title: () => `${t("app_name")} - Pet Memorial | Virtual Pet Sanctuary`,
+  description: () => t("home_seo_desc"),
+  ogTitle: () => `${t("app_name")} - Virtual Pet Memorial & Sanctuary`,
+  ogDescription: () => t("home_seo_desc"),
   ogImage: "https://music.petmemory.me/og-cover.jpg",
   ogImageWidth: 1200,
   ogImageHeight: 600,
   ogType: "website",
   ogUrl: "https://www.petmemory.me/",
   twitterCard: "summary_large_image",
-  twitterTitle: () => `${t('app_name')} - Virtual Pet Memorial & Sanctuary`,
-  twitterDescription: () => t('home_seo_desc'),
+  twitterTitle: () => `${t("app_name")} - Virtual Pet Memorial & Sanctuary`,
+  twitterDescription: () => t("home_seo_desc"),
   twitterImage: "https://music.petmemory.me/og-cover.jpg",
 });
 
 useHead({
-  link: [
-    { rel: 'canonical', href: 'https://www.petmemory.me/' }
-  ]
-})
+  link: [{ rel: "canonical", href: "https://www.petmemory.me/" }],
+});
 </script>
 
 <template>
@@ -429,16 +440,15 @@ useHead({
       <!-- ============================================ -->
       <!-- 👇 新增：Living Memories 栏目                 -->
       <!-- ============================================ -->
-      <section class="home-section" v-if="videosPending || (recentVideos && recentVideos.length > 0)">
+      <section
+        class="home-section"
+        v-if="videosPending || (recentVideos && recentVideos.length > 0)"
+      >
         <div class="section-title">
           <div class="section-title__left">
             <h2 class="section-title__main">Living Memories</h2>
             <!-- 问号图标 -->
-            <van-icon 
-              name="question-o" 
-              class="help-icon"
-              @click="showVideoRuleDialog"
-            />
+            <van-icon name="question-o" class="help-icon" @click="showVideoRuleDialog" />
           </div>
           <NuxtLink to="/videos" class="section-title__more">
             All Videos
@@ -460,7 +470,12 @@ useHead({
             :aspect-ratio="video.aspectRatio"
             :pet-name="video.pet.name"
             @play="handlePlayVideo(video)"
-            @download="() => me?.id === video.pet.ownerId ? handleDownloadVideo(video.videoUrl, video.pet.name) : showToast('仅主人可下载')"
+            @download="
+              () =>
+                me?.id === video.pet.ownerId
+                  ? handleDownloadVideo(video.videoUrl, video.pet.name)
+                  : showToast('仅主人可下载')
+            "
           />
         </div>
       </section>
@@ -489,15 +504,17 @@ useHead({
 
         <!-- 👇 新增：首页三列权益卡片 -->
         <div class="tiers-grid">
-          <div 
-            v-for="tier in homeTiers" 
-            :key="tier.id" 
+          <div
+            v-for="tier in homeTiers"
+            :key="tier.id"
             class="tier-card"
             :class="`tier-card--${tier.id}`"
           >
             <div class="tier-card__header">
               <div class="tier-card__icon">
-                <span v-if="tier.id !== 'free'" style="font-size: 24px;">{{ tier.icon }}</span>
+                <span v-if="tier.id !== 'free'" style="font-size: 24px">{{
+                  tier.icon
+                }}</span>
                 <van-icon v-else :name="tier.icon" />
               </div>
               <div class="tier-card__info">
@@ -743,7 +760,12 @@ useHead({
     >
       <div v-if="currentGift" class="gift-record">
         <div class="gift-record__icon">
-          <OssImg :src="currentGift.gift.imageUrl" :alt="currentGift.gift.name" :width="88" :height="88" />
+          <OssImg
+            :src="currentGift.gift.imageUrl"
+            :alt="currentGift.gift.name"
+            :width="88"
+            :height="88"
+          />
         </div>
         <p class="gift-record__label">
           {{ t("gift_record_label") }}<strong>{{ currentGift.gift.name }}</strong>
@@ -771,7 +793,13 @@ useHead({
           </span>
         </NuxtLink>
         <div v-else class="gift-record__sender gift-record__sender--anon">
-          <OssImg class="gift-record__avatar" :src="defaultUserAvatar" alt="anon" :width="56" :height="56" />
+          <OssImg
+            class="gift-record__avatar"
+            :src="defaultUserAvatar"
+            alt="anon"
+            :width="56"
+            :height="56"
+          />
           <span class="gift-record__name">
             {{ currentGift.sender.nickname || t("gift_record_anon") }}
           </span>
@@ -815,7 +843,12 @@ useHead({
       v-model="activeVideoModal"
       :video-url="activeVideo.videoUrl"
       :aspect-ratio="activeVideo.aspectRatio"
+      :video-id="activeVideo.id"
+      :video-status="activeVideo.videoStatus"
       :pet-name="activeVideo.pet.name"
+      :pet-slug="activeVideo.pet.slug"
+      :pet-owner-id="activeVideo.pet.ownerId"
+      :pet-avatar-url="activeVideo.pet.avatarUrl"
       @download="() => me?.id === activeVideo?.pet.ownerId ? handleDownloadVideo(activeVideo!.videoUrl, activeVideo!.pet.name) : showToast('仅主人可下载')"
     />
 
@@ -1210,7 +1243,7 @@ useHead({
   border: 1px solid @border;
   border-radius: @radius-lg;
   box-shadow: @shadow-1;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1241,10 +1274,10 @@ useHead({
     font-size: @fs-base;
     color: @ink-2;
     line-height: @lh-loose;
-    white-space: pre-line; 
-    text-align: justify; 
+    white-space: pre-line;
+    text-align: justify;
     text-justify: inter-ideograph;
-    
+
     @media (max-width: @bp-sm) {
       text-align: left;
     }
@@ -1281,21 +1314,32 @@ useHead({
   }
 
   &--free {
-    .tier-card__icon { color: @ink-2; background: @surface-2; }
+    .tier-card__icon {
+      color: @ink-2;
+      background: @surface-2;
+    }
   }
 
   &--lifetime {
     border-color: fade(#00bfff, 30%);
     background: linear-gradient(180deg, fade(#00bfff, 3%) 0%, @surface 100%);
-    .tier-card__icon { background: fade(#00bfff, 10%); }
-    .check-icon { color: #00bfff; }
+    .tier-card__icon {
+      background: fade(#00bfff, 10%);
+    }
+    .check-icon {
+      color: #00bfff;
+    }
   }
 
   &--subscription {
     border-color: fade(#f1c40f, 30%);
     background: linear-gradient(180deg, fade(#f1c40f, 3%) 0%, @surface 100%);
-    .tier-card__icon { background: fade(#f1c40f, 10%); }
-    .check-icon { color: #f1c40f; }
+    .tier-card__icon {
+      background: fade(#f1c40f, 10%);
+    }
+    .check-icon {
+      color: #f1c40f;
+    }
   }
 
   &__header {
