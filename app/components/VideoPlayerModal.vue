@@ -26,6 +26,8 @@ const emit = defineEmits<{
   (e: 'refresh'): void 
 }>()
 
+const { t } = useI18n()
+
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
@@ -67,11 +69,11 @@ async function toggleVisibility() {
       method: 'PATCH',
       body: { hidden: !isHidden }
     })
-    showToast({ type: 'success', message: isHidden ? '已取消隐藏' : '已隐藏' })
+    showToast({ type: 'success', message: isHidden ? t('video_unhidden_success') : t('video_hidden_success') })
     visible.value = false
     emit('refresh')
   } catch (err: any) {
-    showToast(err?.data?.error || '操作失败')
+    showToast(err?.data?.error || t('operation_failed'))
   } finally {
     operating.value = false
   }
@@ -133,12 +135,12 @@ const defaultPetAvatar = "data:image/svg+xml;utf8," + encodeURIComponent(
             @click="toggleVisibility"
           >
             <van-icon :name="videoStatus === 4 ? 'eye-o' : 'closed-eye'" />
-            <span>{{ videoStatus === 4 ? '取消隐藏' : '隐藏' }}</span>
+            <span>{{ videoStatus === 4 ? t('video_unhide') : t('video_hide') }}</span>
           </button>
 
           <button class="btn btn--primary btn--lg download-btn" @click="handleDownload">
             <van-icon name="down" />
-            <span>保存视频</span>
+            <span>{{ t('video_save') }}</span>
           </button>
         </template>
 
@@ -150,7 +152,7 @@ const defaultPetAvatar = "data:image/svg+xml;utf8," + encodeURIComponent(
               :src="petAvatarUrl || defaultPetAvatar" 
               alt="avatar" 
             />
-            <span>去 {{ petName || '宠物' }} 主页</span>
+            <span>{{ t('go_to_pet_home', { name: petName || t('go_to_pet_home_default') }) }}</span>
           </button>
         </template>
       </div>

@@ -669,4 +669,94 @@ export default {
   user_points_tip: '积分可以兑换礼物', 
 
   nav_videos: '动态回忆',
+
+  // 在 L671 `nav_videos: '动态回忆',` 后面、L672 `}` 前面追加：
+
+  downloading: '正在下载，请稍候...',
+  download_success: '下载成功',
+  download_failed: '下载失败，请检查网络或 OSS 跨域配置',
+  only_owner_can_download: '仅主人可下载',
+  video_not_found: '视频不存在',
+
+  video_hide: '隐藏',
+  video_unhide: '取消隐藏',
+  video_hidden_success: '已隐藏',
+  video_unhidden_success: '已取消隐藏',
+  video_save: '保存视频',
+  go_to_pet_home: '去 {name} 主页',
+  go_to_pet_home_default: '去宠物主页',
+  operation_failed: '操作失败',
+
+  no_album_photos_title: '还没有相册照片',
+  no_album_photos_msg: '请先上传至少一张清晰的宠物照片到相册。建议照片长宽不小于 500×500 像素，以获得更好的 AI 生成效果。',
+
+  video_credits_insufficient_title: '视频生成次数不足',
+  video_credits_how_to_get_title: '如何获取视频生成次数',
+  video_credits_not_purchasable: '视频生成次数无法购买，由平台免费赠送。',
+  video_credits_ways_to_earn: '您可以通过以下方式获取：',
+  video_credits_lifetime: '开通终身 VIP，立赠 3 次',
+  video_credits_subscription: '开通尊享订阅 VIP，立赠 1 次',
+  video_credits_gift: '每购买 $5 美元礼物，获赠 1 次（满 $10 赠 2 次，以此类推）',
+
+  gift_received_title: '收到礼物啦！',
+  gift_received_msg: '{name} 收到了你的礼物，开心地摇了摇尾巴！',
+  gift_received_hint: '如果生成专属动态视频，就能看到 ta 为你欢快互动的模样啦！',
+  go_generate_video: '去生成视频',
+
+  vip_upgrade_subscribe_required: '请先升级尊享订阅 VIP',
+  vip_pay_success: '支付成功！正在同步 VIP 状态...',
+  vip_privilege_activated: 'VIP 特权已生效！',
+
+  like_failed: '点赞失败，请稍后重试',
+  audio_play_failed: '播放失败，请检查网络或音频源',
+  copy_failed: '复制失败',
+  video_credits_confirm_btn: '知道了',
+
+  living_memories: '动态回忆',
+  all_videos: '全部视频',
+
+  music_play: '播放音乐',
+  music_pause: '暂停音乐',
+  music_replay: '重新播放',
+
+  title_lifetime_vip: '终身 VIP',
+  title_subscription_vip: '订阅 VIP',
+
+  album_edit: '编辑相册',
+  album_exit_edit: '退出编辑',
+
+  create_memory_video: '创建回忆视频',
+  video_status_hidden: '已隐藏',
+  video_status_banned: '已封禁',
+
+  personality_hint: '写下 ta 的小性格，对话会更温暖',
+  go_edit: '去填写',
+  edit_btn: '编辑',
+  visit_profile: '访问 {name} 的主页',
+
+  free_user_photo_limit: '免费用户最多可上传 2 张照片。',
+
+  packing_html: '正在打包网页及图片...',
+  export_html_success: '导出成功！解压后即可离线查看',
+
+  loading_dots: 'loading...',
+  pet_memory_name: 'Pet Memory',
+
+  tier_free_title: '免费体验版',
+  tier_free_f1: '建立专属宠物主页',
+  tier_free_f2: '上传最多 2 张相片',
+  tier_free_f3: '无限次留言与赠礼',
+  tier_free_f4: '3 次免费宠物对话体验',
+  tier_lifetime_title: '终身珍藏版',
+  tier_lifetime_f1: '永久解锁 20 张相册空间',
+  tier_lifetime_f2: '解锁精美背景、特效与音乐',
+  tier_lifetime_f3: '一键导出离线 HTML 网页',
+  tier_lifetime_f4: '赠送 1 年订阅 VIP',
+  tier_lifetime_f5: '赠送 3 次视频生成',
+  tier_subscription_title: '尊享订阅版',
+  tier_subscription_f1: '无限次跨时空宠物对话',
+  tier_subscription_f2: '每周生成专属回忆录',
+  tier_subscription_f3: '每月登录获赠随机礼物(价值$2-$7)',
+  tier_subscription_f4: '赠送 10000 积分',
+  tier_subscription_f5: '赠送 1 次视频生成',
 }

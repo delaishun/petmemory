@@ -43,9 +43,9 @@ export const useI18n = () => {
   }
 
   // 翻译函数，支持简单的 {xx} 占位符替换
-  const t = (key: keyof typeof en, params?: Record<string, any>) => {
+  const t = (key: string, params?: Record<string, any>) => {
     const dict = locale.value === 'cn' ? cn : en
-    let text = dict[key] || key
+    let text = dict[key as keyof typeof en] || key
     
     if (params) {
       Object.keys(params).forEach((k) => {

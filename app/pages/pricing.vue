@@ -45,13 +45,15 @@ const vipPlans = computed(() => [
       'Premium backgrounds, effects & music',
       'Export offline HTML webpage',
       'Get 1-Year Subscription FREE (Includes Cross-Time Messaging)',
-      'Get 10,000 bonus points'
+      'Get 10,000 bonus points',
+      '3 video credits included'
     ] : [
       '永久解锁 20 张相册空间',
       '解锁精美背景、节日特效与专属音乐',
       '一键导出离线 HTML 网页',
       '限时赠送 1 年订阅 VIP（含宠物对话）',
-      '赠送 10000 积分'
+      '赠送 10000 积分',
+      '赠送 3 次视频生成'
     ]
   },
   {
@@ -65,12 +67,14 @@ const vipPlans = computed(() => [
       'Unlimited Cross-Time Pet Chat',
       'Weekly exclusive memoir (PDF)',
       'Monthly random gifts(Worth $2–$7)',
-      'Get 10,000 bonus points'
+      'Get 10,000 bonus points',
+      '1 video credit included'
     ] : [
       '无限次跨时空宠物对话',
       '每周生成专属回忆录并支持 PDF 导出',
       '每月登录获赠随机礼物(价值$2-$7)',
-      '赠送 10000 积分'
+      '赠送 10000 积分',
+      '赠送 1 次视频生成'
     ]
   }
 ])

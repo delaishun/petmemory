@@ -267,46 +267,33 @@ function handleCreateVideo() {
 
   // 先检查相册照片（头像太小，千问不认）
   if (!photos.value || photos.value.length === 0) {
-    const isEn = locale.value === "en";
     showDialog({
-      title: isEn ? "No Album Photos Yet" : "还没有相册照片",
-      message: isEn
-        ? "Please upload at least one clear photo of your pet to the album first. Photos should be at least 500×500 pixels for AI video generation."
-        : "请先上传至少一张清晰的宠物照片到相册。建议照片长宽不小于 500×500 像素，以获得更好的 AI 生成效果。",
-      confirmButtonText: isEn ? "Got it" : "知道了",
+      title: t("no_album_photos_title"),
+      message: t("no_album_photos_msg"),
+      confirmButtonText: t("btn_i_know"),
     });
     return;
   }
 
-  // 如果次数小于等于 0，弹出获取方式的提示
   if ((me.value.vnum || 0) <= 0) {
-    const isEn = locale.value === "en";
-    const title = isEn ? "Insufficient Video Credits" : "视频生成次数不足";
+    let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.9; padding: 6px 2px; color: #5D4737;">`;
 
-    let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.8; padding: 10px 4px; color: #5D4737;">`;
-    msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${
-      isEn
-        ? "Want to create a Living Memory video? Here’s how to earn credits:"
-        : "想要生成专属的动态回忆吗？您可以通过以下方式获取生成次数："
-    }</p>`;
-    msgHtml += `<ul style="padding-left:18px; margin:0; display:flex; flex-direction:column; gap:6px;">`;
+    msgHtml += `<div style="background:#FFF5EB; border:1px solid #F5D7B8; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:#A85A1A; line-height:1.6;">`;
+    msgHtml += `<span style="font-size:15px;">💡</span> ${t("video_credits_not_purchasable")}`;
+    msgHtml += `</div>`;
+    msgHtml += `<p style="margin:0 0 10px 0; font-weight:600; color:#3B2E24;">${t("video_credits_ways_to_earn")}</p>`;
+    msgHtml += `<ul style="padding:0; margin:0; list-style:none; display:flex; flex-direction:column; gap:10px;">`;
 
-    if (isEn) {
-      msgHtml += `<li>Get <strong>3 credits</strong> with a Lifetime VIP.</li>`;
-      msgHtml += `<li>Get <strong>1 credit</strong> with a Premium Subscription.</li>`;
-      msgHtml += `<li>Earn <strong>1 credit</strong> for every $5 spent on gifts.</li>`;
-    } else {
-      msgHtml += `<li>开通<strong>终身 VIP</strong>，立赠 3 次</li>`;
-      msgHtml += `<li>开通<strong>尊享订阅 VIP</strong>，立赠 1 次</li>`;
-      msgHtml += `<li>每购买 <strong>$5 美元礼物</strong>，获赠 1 次（满 $10 赠 2 次，以此类推）</li>`;
-    }
+    msgHtml += `<li style="display:flex; align-items:flex-start; gap:10px;"><span style="flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#FFE4CC; color:#C46B2C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;">1</span><span>${t("video_credits_lifetime")}</span></li>`;
+    msgHtml += `<li style="display:flex; align-items:flex-start; gap:10px;"><span style="flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#FFE4CC; color:#C46B2C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;">2</span><span>${t("video_credits_subscription")}</span></li>`;
+    msgHtml += `<li style="display:flex; align-items:flex-start; gap:10px;"><span style="flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#FFE4CC; color:#C46B2C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;">3</span><span>${t("video_credits_gift")}</span></li>`;
     msgHtml += `</ul></div>`;
 
     showDialog({
-      title,
+      title: t("video_credits_insufficient_title"),
       message: msgHtml,
       allowHtml: true,
-      confirmButtonText: isEn ? "Got it" : "知道了",
+      confirmButtonText: t("btn_i_know"),
     });
     return;
   }
@@ -326,45 +313,37 @@ async function handleDownloadVideo(videoId: number) {
   if (!pet.value) return;
   const video = petVideos.value?.find((v) => v.id === videoId);
   if (!video || !video.videoUrl) {
-    showToast("视频不存在");
+    showToast(t("video_not_found"));
     return;
   }
 
   const loadingToast = showToast({
     type: "loading",
-    message: "正在下载，请稍候...",
+    message: t("downloading"),
     duration: 0,
     forbidClick: true,
   });
 
   try {
-    // 1. 直接用 fetch 请求 OSS 的原始视频地址（不需要之前后端的签名 URL 了）
     const response = await fetch(video.videoUrl);
-    if (!response.ok) throw new Error("网络请求失败");
+    if (!response.ok) throw new Error("Network error");
 
-    // 2. 将视频数据转为 Blob 二进制大对象
     const blob = await response.blob();
-
-    // 3. 创建一个指向内存的临时 URL
     const blobUrl = URL.createObjectURL(blob);
-
-    // 4. 模拟 a 标签点击触发下载
     const link = document.createElement("a");
     link.href = blobUrl;
     link.download = `${pet.value.name}-memory.mp4`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    // 5. 释放内存
     URL.revokeObjectURL(blobUrl);
 
     loadingToast.close();
-    showToast({ type: "success", message: "下载成功" });
+    showToast({ type: "success", message: t("download_success") });
   } catch (err) {
-    console.error("下载失败:", err);
+    console.error("Download failed:", err);
     loadingToast.close();
-    showToast("下载失败，请检查网络或 OSS 跨域配置");
+    showToast(t("download_failed"));
   }
 }
 
@@ -458,7 +437,7 @@ async function handleLike() {
     hasLiked.value = true;
     localStorage.setItem(`liked_pet_${slug.value}`, "true");
   } catch (err: any) {
-    showToast(err?.data?.error || "点赞失败，请稍后重试");
+    showToast(err?.data?.error || t("like_failed"));
   } finally {
     isLiking.value = false;
   }
@@ -629,7 +608,7 @@ function toggleMusic() {
       })
       .catch((err) => {
         console.error("播放失败", err);
-        showToast("播放失败，请检查网络或音频源");
+        showToast(t("audio_play_failed"));
       });
   }
 }
@@ -966,31 +945,17 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
     }
   } else {
     // 👇 如果还没有视频，弹出情感化提示语
-    const title = locale.value === "en" ? "Gift Received!" : "收到礼物啦！";
+    const title = t("gift_received_title");
     let msgHtml = `<div style="text-align:center; font-size: 15px; line-height: 1.6; padding: 10px 0;">`;
 
-    if (locale.value === "en") {
-      msgHtml += `<p><strong>${pet.value?.name}</strong> received your gift and is wagging their tail happily!</p>`;
-      if (isOwner.value) {
-        msgHtml += `<p style="margin-top:12px; font-size:13px; color:#7A6C61;">Generate a Living Memory to see them react to your love in motion!</p>`;
-      }
-    } else {
-      msgHtml += `<p><strong>${pet.value?.name}</strong> 收到了你的礼物，开心地摇了摇尾巴！</p>`;
-      if (isOwner.value) {
-        msgHtml += `<p style="margin-top:12px; font-size:13px; color:#7A6C61;">如果生成专属动态视频，就能看到 ta 为你欢快互动的模样啦！</p>`;
-      }
+    msgHtml += `<p>${t("gift_received_msg", { name: pet.value?.name || '' })}</p>`;
+    if (isOwner.value) {
+      msgHtml += `<p style="margin-top:12px; font-size:13px; color:#7A6C61;">${t("gift_received_hint")}</p>`;
     }
     msgHtml += `</div>`;
 
-    const confirmBtnText = isOwner.value
-      ? locale.value === "en"
-        ? "Create Video"
-        : "去生成视频"
-      : locale.value === "en"
-      ? "OK"
-      : "知道了";
-
-    const cancelBtnText = locale.value === "en" ? "Cancel" : "取消";
+    const confirmBtnText = isOwner.value ? t("go_generate_video") : t("btn_i_know");
+    const cancelBtnText = t("btn_cancel");
 
     // 👇 使用 showDialog 替代原生弹窗
     showDialog({
@@ -1223,9 +1188,9 @@ async function copyShareLink() {
     ta.select();
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
-    showToast(ok ? "Link copied" : "Copy failed");
+    showToast(ok ? t("share_link_copied") : t("copy_failed"));
   } catch {
-    showToast("Copy failed");
+    showToast(t("copy_failed"));
   }
 }
 
@@ -1246,10 +1211,7 @@ function handleMemoir() {
   }
   if (!isSubVipActive.value) {
     showToast({
-      message:
-        locale.value === "en"
-          ? "Please upgrade to Subscription VIP first. (请先升级尊享订阅 VIP)"
-          : "请先升级尊享订阅 VIP (Please upgrade to Subscription VIP)",
+      message: t("vip_upgrade_subscribe_required"),
       position: "middle",
       duration: 2500,
     });
@@ -1420,12 +1382,9 @@ async function handleExportHtml() {
     return;
   }
 
-  let loadingMessage =
-    locale.value === "en" ? "Packing webpage and images..." : "正在打包网页及图片...";
-
   const loadingToast = showToast({
     type: "loading",
-    message: loadingMessage,
+    message: t("packing_html"),
     duration: 0,
     forbidClick: true,
   });
@@ -1490,11 +1449,7 @@ async function handleExportHtml() {
     URL.revokeObjectURL(url);
 
     loadingToast.close();
-    let successMessage =
-      locale.value === "en"
-        ? "Export successful! Unzip to view offline."
-        : "导出成功！解压后即可离线查看";
-    showToast({ type: "success", message: successMessage });
+    showToast({ type: "success", message: t("export_html_success") });
   } catch (err) {
     console.error("导出 HTML 打包失败", err);
     loadingToast.close();
@@ -1569,7 +1524,7 @@ useHead(() => {
       class="music-toggle"
       :class="{ 'is-playing': isMusicPlaying }"
       @click.stop="toggleMusic"
-      :title="isMusicPlaying ? '暂停音乐' : isMusicEnded ? '重新播放' : '播放音乐'"
+      :title="isMusicPlaying ? t('music_pause') : isMusicEnded ? t('music_replay') : t('music_play')"
     >
       <van-icon :name="isMusicPlaying ? 'music-o' : 'volume-o'" />
     </button>
@@ -1619,7 +1574,7 @@ useHead(() => {
                 v-if="pet.status === 2"
                 class="pet-hero__hidden-tag pet-hero__hidden-tag--banned"
               >
-                {{ t("pet_banned") || "已封禁" }}
+                {{ t("pet_banned") }}
               </span>
               <span v-else-if="pet.status === 0" class="pet-hero__hidden-tag">
                 {{ t("pet_hidden") }}
@@ -1668,7 +1623,7 @@ useHead(() => {
               >
                 <span
                   v-if="pet.owner.isLifetimeVip"
-                  title="终身 VIP"
+                  :title="t('title_lifetime_vip')"
                   style="font-size: 16px; cursor: pointer"
                   @click="lifetimeVipModalVisible = true"
                   >💎</span
@@ -1678,7 +1633,7 @@ useHead(() => {
                     pet.owner.vipExpiresAt &&
                     new Date(pet.owner.vipExpiresAt) > new Date()
                   "
-                  title="订阅 VIP"
+                  :title="t('title_subscription_vip')"
                   style="font-size: 16px; cursor: pointer"
                   @click="subVipModalVisible = true"
                   >🌈</span
@@ -1712,7 +1667,7 @@ useHead(() => {
                 type="button"
                 class="pet-album__edit-btn"
                 :class="{ 'is-active': editMode }"
-                :aria-label="editMode ? 'Exit Edit' : 'Edit Album'"
+                :aria-label="editMode ? t('album_exit_edit') : t('album_edit')"
                 @click="toggleEditMode"
               >
                 <van-icon :name="editMode ? 'cross' : 'edit'" />
@@ -1760,11 +1715,7 @@ useHead(() => {
               {{ isOwner ? t("pet_album_empty_owner") : t("pet_album_empty_guest") }}
             </p>
             <p v-if="isOwner && !me?.isLifetimeVip" class="pet-album__empty-hint">
-              {{
-                locale === "en"
-                  ? "Free users can upload up to 2 photos."
-                  : "免费用户最多可上传 2 张照片。"
-              }}
+              {{ t("free_user_photo_limit") }}
             </p>
             <button
               v-if="isOwner"
@@ -1785,7 +1736,7 @@ useHead(() => {
         >
           <div class="section-title">
             <div class="section-title__left">
-              <h2 class="section-title__main">Living Memories</h2>
+              <h2 class="section-title__main">{{ t("living_memories") }}</h2>
             </div>
           </div>
 
@@ -1793,7 +1744,7 @@ useHead(() => {
             <!-- 生成按钮（仅主人可见） -->
             <div v-if="isOwner" class="video-create-card" @click="handleCreateVideo">
               <van-icon name="plus" class="create-icon" />
-              <span>Create Memory Video</span>
+              <span>{{ t('create_memory_video') }}</span>
             </div>
 
             <!-- 视频列表（使用组件） -->
@@ -1811,8 +1762,8 @@ useHead(() => {
                 @download="() => handleDownloadVideo(video.id)"
               />
               <!-- 👇 现在这里的 video 就能正常访问了 -->
-              <div v-if="video.status === 4" class="status-badge status-hidden">已隐藏</div>
-              <div v-if="video.status === 5" class="status-badge status-banned">已封禁</div>
+              <div v-if="video.status === 4" class="status-badge status-hidden">{{ t('video_status_hidden') }}</div>
+              <div v-if="video.status === 5" class="status-badge status-banned">{{ t('video_status_banned') }}</div>
             </div>
           </div>
         </section>
@@ -1885,16 +1836,12 @@ useHead(() => {
                   v-if="isOwner && !pet.personality"
                   class="pet-expression__personality-hint"
                 >
-                  <span>{{
-                    locale === "en"
-                      ? "Add personality traits to make chats warmer"
-                      : "写下 ta 的小性格，对话会更温暖"
-                  }}</span>
+                  <span>{{ t("personality_hint") }}</span>
                   <button
                     class="pet-expression__personality-hint__btn"
                     @click="handleEdit"
                   >
-                    {{ locale === "en" ? "Edit" : "去填写" }}
+                    {{ t("go_edit") }}
                   </button>
                 </div>
               </div>

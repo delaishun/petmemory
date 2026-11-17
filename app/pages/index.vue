@@ -141,61 +141,39 @@ const homeTiers = computed(() => [
   {
     id: "free",
     icon: "smile-o",
-    title: locale.value === "en" ? "Free Explorer" : "免费体验版",
-    features:
-      locale.value === "en"
-        ? [
-            "Create pet memorial page",
-            "Upload up to 2 photos",
-            "Unlimited messages & gifts",
-            "3 free interactions with pets",
-          ]
-        : [
-            "建立专属宠物主页",
-            "上传最多 2 张相片",
-            "无限次留言与赠礼",
-            "3 次免费宠物对话体验",
-          ],
+    title: t("tier_free_title"),
+    features: [
+      t("tier_free_f1"),
+      t("tier_free_f2"),
+      t("tier_free_f3"),
+      t("tier_free_f4"),
+    ],
   },
   {
     id: "lifetime",
     icon: "💎",
-    title: locale.value === "en" ? "Lifetime Keepsake" : "终身珍藏版",
+    title: t("tier_lifetime_title"),
     price: "$8.9",
-    features:
-      locale.value === "en"
-        ? [
-            "Permanently unlock 20 photos limit",
-            "Premium backgrounds, effects & music",
-            "Export offline HTML webpage",
-            "Get 1-Year Subscription FREE",
-          ]
-        : [
-            "永久解锁 20 张相册空间",
-            "解锁精美背景、特效与音乐",
-            "一键导出离线 HTML 网页",
-            "赠送 1 年订阅 VIP",
-          ],
+    features: [
+      t("tier_lifetime_f1"),
+      t("tier_lifetime_f2"),
+      t("tier_lifetime_f3"),
+      t("tier_lifetime_f4"),
+      t("tier_lifetime_f5"),
+    ],
   },
   {
     id: "subscription",
     icon: "🌈",
-    title: locale.value === "en" ? "Premium Subscription" : "尊享订阅版",
+    title: t("tier_subscription_title"),
     price: "$5.9 / yr",
-    features:
-      locale.value === "en"
-        ? [
-            "Unlimited Cross-Time Pet Chat",
-            "Weekly exclusive memoir (PDF)",
-            "Monthly random gifts(Worth $2–$7)",
-            "Get 10,000 bonus points",
-          ]
-        : [
-            "无限次跨时空宠物对话",
-            "每周生成专属回忆录",
-            "每月登录获赠随机礼物(价值$2-$7)",
-            "赠送 10000 积分",
-          ],
+    features: [
+      t("tier_subscription_f1"),
+      t("tier_subscription_f2"),
+      t("tier_subscription_f3"),
+      t("tier_subscription_f4"),
+      t("tier_subscription_f5"),
+    ],
   },
 ]);
 
@@ -275,14 +253,14 @@ function handlePlayVideo(video: HomeVideo) {
 async function handleDownloadVideo(url: string, petName: string) {
   const loadingToast = showToast({
     type: "loading",
-    message: "正在下载，请稍候...",
+    message: t("downloading"),
     duration: 0,
     forbidClick: true,
   });
 
   try {
     const response = await fetch(url);
-    if (!response.ok) throw new Error("网络请求失败");
+    if (!response.ok) throw new Error("Network error");
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -293,43 +271,34 @@ async function handleDownloadVideo(url: string, petName: string) {
     document.body.removeChild(link);
     URL.revokeObjectURL(blobUrl);
     loadingToast.close();
-    showToast({ type: "success", message: "下载成功" });
+    showToast({ type: "success", message: t("download_success") });
   } catch (err) {
-    console.error("下载失败:", err);
+    console.error("Download failed:", err);
     loadingToast.close();
-    showToast("下载失败，请检查网络或 OSS 跨域配置");
+    showToast(t("download_failed"));
   }
 }
 
-// 👇 获取视频次数的规则弹窗
 function showVideoRuleDialog() {
-  const isEn = locale.value === "en";
-  const title = isEn ? "How to Get Video Credits" : "如何获取视频生成次数";
+  let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.9; padding: 6px 2px; color: #5D4737;">`;
 
-  let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.8; padding: 10px 4px; color: #5D4737;">`;
-  msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${
-    isEn
-      ? "Want to create a Living Memory video? Here’s how to earn credits:"
-      : "您可以通过以下方式获取视频生成次数："
-  }</p>`;
-  msgHtml += `<ul style="padding-left:18px; margin:0; display:flex; flex-direction:column; gap:6px;">`;
+  msgHtml += `<div style="background:#FFF5EB; border:1px solid #F5D7B8; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:#A85A1A; line-height:1.6;">`;
+  msgHtml += `<span style="font-size:15px;">💡</span> ${t("video_credits_not_purchasable")}`;
+  msgHtml += `</div>`;
 
-  if (isEn) {
-    msgHtml += `<li>Get <strong>3 credits</strong> with a Lifetime VIP.</li>`;
-    msgHtml += `<li>Get <strong>1 credit</strong> with a Premium Subscription.</li>`;
-    msgHtml += `<li>Earn <strong>1 credit</strong> for every $5 spent on gifts.</li>`;
-  } else {
-    msgHtml += `<li>开通<strong>终身 VIP</strong>，立赠 3 次</li>`;
-    msgHtml += `<li>开通<strong>尊享订阅 VIP</strong>，立赠 1 次</li>`;
-    msgHtml += `<li>每购买 <strong>$5 美元礼物</strong>，获赠 1 次（满 $10 赠 2 次，以此类推）</li>`;
-  }
+  msgHtml += `<p style="margin:0 0 10px 0; font-weight:600; color:#3B2E24;">${t("video_credits_ways_to_earn")}</p>`;
+
+  msgHtml += `<ul style="padding:0; margin:0; list-style:none; display:flex; flex-direction:column; gap:10px;">`;
+  msgHtml += `<li style="display:flex; align-items:flex-start; gap:10px;"><span style="flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#FFE4CC; color:#C46B2C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;">1</span><span>${t("video_credits_lifetime")}</span></li>`;
+  msgHtml += `<li style="display:flex; align-items:flex-start; gap:10px;"><span style="flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#FFE4CC; color:#C46B2C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;">2</span><span>${t("video_credits_subscription")}</span></li>`;
+  msgHtml += `<li style="display:flex; align-items:flex-start; gap:10px;"><span style="flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#FFE4CC; color:#C46B2C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;">3</span><span>${t("video_credits_gift")}</span></li>`;
   msgHtml += `</ul></div>`;
 
   showDialog({
-    title,
+    title: t("video_credits_how_to_get_title"),
     message: msgHtml,
     allowHtml: true,
-    confirmButtonText: isEn ? "Got it" : "知道了",
+    confirmButtonText: t("video_credits_confirm_btn"),
   });
 }
 
@@ -446,12 +415,12 @@ useHead({
       >
         <div class="section-title">
           <div class="section-title__left">
-            <h2 class="section-title__main">Living Memories</h2>
+            <h2 class="section-title__main">{{ t("living_memories") }}</h2>
             <!-- 问号图标 -->
             <van-icon name="question-o" class="help-icon" @click="showVideoRuleDialog" />
           </div>
           <NuxtLink to="/videos" class="section-title__more">
-            All Videos
+            {{ t("all_videos") }}
             <van-icon name="arrow" />
           </NuxtLink>
         </div>
@@ -474,7 +443,7 @@ useHead({
               () =>
                 me?.id === video.pet.ownerId
                   ? handleDownloadVideo(video.videoUrl, video.pet.name)
-                  : showToast('仅主人可下载')
+                  : showToast(t("only_owner_can_download"))
             "
           />
         </div>
@@ -610,7 +579,7 @@ useHead({
             <NuxtLink
               :to="getPetUrl(msg.pet)"
               class="msg-item__pet"
-              :aria-label="`访问 ${msg.pet.name} 的主页`"
+              :aria-label="t('visit_profile', { name: msg.pet.name })"
             >
               <OssImg
                 :src="msg.pet.avatarUrl || defaultPetAvatar"
@@ -849,7 +818,7 @@ useHead({
       :pet-slug="activeVideo.pet.slug"
       :pet-owner-id="activeVideo.pet.ownerId"
       :pet-avatar-url="activeVideo.pet.avatarUrl"
-      @download="() => me?.id === activeVideo?.pet.ownerId ? handleDownloadVideo(activeVideo!.videoUrl, activeVideo!.pet.name) : showToast('仅主人可下载')"
+      @download="() => me?.id === activeVideo?.pet.ownerId ? handleDownloadVideo(activeVideo!.videoUrl, activeVideo!.pet.name) : showToast(t('only_owner_can_download'))"
     />
 
     <!-- 定制手绘弹窗 -->

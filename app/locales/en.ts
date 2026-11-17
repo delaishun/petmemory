@@ -667,4 +667,94 @@ export default {
   user_points_tip: 'Points can be redeemed for gifts',
   
   nav_videos: 'Living Memories',
+
+  // 在 L669 `nav_videos: 'Living Memories',` 后面、L670 `}` 前面追加：
+
+  downloading: 'Downloading, please wait...',
+  download_success: 'Downloaded successfully',
+  download_failed: 'Download failed. Please check your network or OSS CORS config',
+  only_owner_can_download: 'Only the owner can download',
+  video_not_found: 'Video not found',
+
+  video_hide: 'Hide',
+  video_unhide: 'Unhide',
+  video_hidden_success: 'Hidden',
+  video_unhidden_success: 'Unhidden',
+  video_save: 'Save Video',
+  go_to_pet_home: "Go to {name}'s page",
+  go_to_pet_home_default: 'Go to pet page',
+  operation_failed: 'Operation failed',
+
+  no_album_photos_title: 'No Album Photos Yet',
+  no_album_photos_msg: 'Please upload at least one clear photo of your pet to the album first. Photos should be at least 500×500 pixels for AI video generation.',
+
+  video_credits_insufficient_title: 'Insufficient Video Credits',
+  video_credits_how_to_get_title: 'How to Get Video Credits',
+  video_credits_not_purchasable: 'Video credits cannot be purchased — they are gifted by the platform.',
+  video_credits_ways_to_earn: 'Ways to earn credits:',
+  video_credits_lifetime: 'Lifetime VIP — 3 credits on sign-up',
+  video_credits_subscription: 'Premium Subscription — 1 credit on sign-up',
+  video_credits_gift: 'Every $5 spent on gifts earns 1 credit ($10 → 2, $15 → 3, …)',
+
+  gift_received_title: 'Gift Received!',
+  gift_received_msg: '{name} received your gift and happily wagged its tail!',
+  gift_received_hint: 'Generate a Living Memory video to see them interact joyfully with you!',
+  go_generate_video: 'Generate Video',
+
+  vip_upgrade_subscribe_required: 'Please upgrade to Subscription VIP first',
+  vip_pay_success: 'Payment successful! Syncing VIP status...',
+  vip_privilege_activated: 'VIP privileges activated!',
+
+  like_failed: 'Like failed. Please try again later',
+  audio_play_failed: 'Playback failed. Please check your network or audio source',
+  copy_failed: 'Copy failed',
+  video_credits_confirm_btn: 'Got it',
+
+  living_memories: 'Living Memories',
+  all_videos: 'All Videos',
+
+  music_play: 'Play music',
+  music_pause: 'Pause music',
+  music_replay: 'Replay',
+
+  title_lifetime_vip: 'Lifetime VIP',
+  title_subscription_vip: 'Subscription VIP',
+
+  album_edit: 'Edit Album',
+  album_exit_edit: 'Exit Edit',
+
+  create_memory_video: 'Create Memory Video',
+  video_status_hidden: 'Hidden',
+  video_status_banned: 'Banned',
+
+  personality_hint: 'Add personality traits to make chats warmer',
+  go_edit: 'Go fill in',
+  edit_btn: 'Edit',
+  visit_profile: "Visit {name}'s profile",
+
+  free_user_photo_limit: 'Free users can upload up to 2 photos.',
+
+  packing_html: 'Packing webpage and images...',
+  export_html_success: 'Export successful! Unzip to view offline.',
+
+  loading_dots: 'loading...',
+  pet_memory_name: 'Pet Memory',
+
+  tier_free_title: 'Free Plan',
+  tier_free_f1: 'Create your pet memory page',
+  tier_free_f2: 'Upload up to 2 photos',
+  tier_free_f3: 'Unlimited messages & gifts',
+  tier_free_f4: '3 free pet chat credits',
+  tier_lifetime_title: 'Lifetime Edition',
+  tier_lifetime_f1: 'Permanent 20-photo album',
+  tier_lifetime_f2: 'Premium backgrounds, effects & music',
+  tier_lifetime_f3: 'One-click offline HTML export',
+  tier_lifetime_f4: '1 year Subscription VIP included',
+  tier_lifetime_f5: '3 video credits included',
+  tier_subscription_title: 'Subscription Edition',
+  tier_subscription_f1: 'Unlimited cross-time pet chat',
+  tier_subscription_f2: 'Weekly auto memoir generation',
+  tier_subscription_f3: 'Monthly login gift ($2–$7 value)',
+  tier_subscription_f4: '10,000 bonus points included',
+  tier_subscription_f5: '1 video credit included',
 }
