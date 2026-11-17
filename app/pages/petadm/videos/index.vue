@@ -6,17 +6,16 @@ import { useI18n } from '~/composables/useI18n'
 const { t } = useI18n()
 const { $api } = useNuxtApp()
 
-const searchSlug = ref('')
+const searchKeyword = ref('')
 const loading = ref(false)
 const videos = ref<any[]>([])
 
 async function handleSearch() {
-  if (!searchSlug.value.trim()) return
+  if (!searchKeyword.value.trim()) return
   loading.value = true
   videos.value = []
   try {
-    // 👇 修改点 1：搜索接口路径
-    videos.value = await $api(`/api/pets/admin/videos/search?slug=${searchSlug.value.trim()}`)
+    videos.value = await $api(`/api/pets/admin/videos/search?keyword=${searchKeyword.value.trim()}`)
   } catch (err: any) {
     showToast(err?.data?.error || '搜索失败')
   } finally {
@@ -43,7 +42,7 @@ async function toggleStatus(video: any) {
 <template>
   <div class="admin-videos">
     <div class="search-bar">
-      <input v-model="searchSlug" placeholder="输入宠物 Slug (如 hason_tMb-KezX)" @keyup.enter="handleSearch" />
+      <input v-model="searchKeyword" placeholder="输入宠物名称或 Slug 关键词（模糊搜索）" @keyup.enter="handleSearch" />
       <button class="btn btn--primary" @click="handleSearch">搜索</button>
     </div>
 
@@ -58,6 +57,10 @@ async function toggleStatus(video: any) {
             {{ video.status === 2 ? '正常' : video.status === 4 ? '已隐藏' : '已封禁' }}
           </span>
         </div>
+        <div class="video-pet">
+          <span class="pet-name">{{ video.petName }}</span>
+          <span class="pet-slug">@{{ video.petSlug }}</span>
+        </div>
         <button 
           class="btn btn--sm" 
           :class="video.status === 5 ? 'btn--primary' : 'btn--danger'"
@@ -68,8 +71,8 @@ async function toggleStatus(video: any) {
       </div>
     </div>
 
-    <div v-else-if="searchSlug && !loading" class="empty">
-      该宠物暂无视频
+    <div v-else-if="searchKeyword && !loading" class="empty">
+      未找到匹配的视频
     </div>
   </div>
 </template>
@@ -129,5 +132,19 @@ async function toggleStatus(video: any) {
 .btn--danger {
   background: @danger;
   color: #fff;
+}
+.video-pet {
+  display: flex;
+  align-items: center;
+  gap: @sp-2;
+  font-size: @fs-xs;
+}
+.pet-name {
+  font-weight: bold;
+  color: @ink-1;
+}
+.pet-slug {
+  color: @ink-3;
+  font-size: 11px;
 }
 </style>
