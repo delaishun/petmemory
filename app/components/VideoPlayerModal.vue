@@ -1,19 +1,24 @@
 <!-- app/components/VideoPlayerModal.vue -->
 <script setup lang="ts">
+import { showToast } from 'vant'
+import { parseSlugFromParam } from "~/utils/petUrl";
+
 interface Props {
   modelValue: boolean
   videoUrl: string
   aspectRatio: string
-  // 👇 petName 改为可选，因为下载逻辑移交给父组件了
   petName?: string 
+  videoId?: number
+  videoStatus?: number // 2=正常, 4=隐藏, 5=封禁
+  isOwner?: boolean
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
-  // 👇 新增：通知父组件去请求后端签名接口
   (e: 'download'): void 
+  (e: 'refresh'): void 
 }>()
 
 const visible = computed({
@@ -22,8 +27,41 @@ const visible = computed({
 })
 
 function handleDownload() {
-  // 👇 核心修改：不再拼接 URL，直接 emit
   emit('download')
+}
+
+// 👇 新增隐藏操作逻辑
+const operating = ref(false)
+const { $api } = useNuxtApp()
+const route = useRoute()
+
+// 👇 修改点 1：只有当前路由是 /pets/xxx 时，才去解析 slug
+const slug = computed(() => {
+  if (route.path.includes('/pets/')) {
+    return parseSlugFromParam(String(route.params.id || ""))
+  }
+  return ""
+})
+
+async function toggleVisibility() {
+  // 👇 修改点 2：如果没有 slug（说明在首页），或者没有视频 id、不是主人，就不执行
+  if (!slug.value || !props.videoId || !props.isOwner || operating.value) return
+  
+  operating.value = true
+  try {
+    const isHidden = props.videoStatus === 4
+    await $api(`/api/pets/${slug.value}/videos/${props.videoId}/visibility`, {
+      method: 'PATCH',
+      body: { hidden: !isHidden }
+    })
+    showToast({ type: 'success', message: isHidden ? '已取消隐藏' : '已隐藏' })
+    visible.value = false // 关闭弹窗
+    emit('refresh') // 通知父页面重新拉取数据
+  } catch (err: any) {
+    showToast(err?.data?.error || '操作失败')
+  } finally {
+    operating.value = false
+  }
 }
 </script>
 
@@ -59,6 +97,17 @@ function handleDownload() {
 
       <!-- 底部操作区 -->
       <div class="modal-footer">
+        <!-- 👇 新增隐藏按钮：加上 slug 判断，首页时自动隐藏 -->
+        <button
+          v-if="slug && isOwner && videoStatus !== 5"
+          class="btn btn--lg"
+          :disabled="operating"
+          @click="toggleVisibility"
+        >
+          <van-icon :name="videoStatus === 4 ? 'eye-o' : 'closed-eye'" />
+          <span>{{ videoStatus === 4 ? '取消隐藏' : '隐藏' }}</span>
+        </button>
+
         <button class="btn btn--primary btn--lg download-btn" @click="handleDownload">
           <van-icon name="down" />
           <span>保存视频</span>
@@ -122,6 +171,13 @@ function handleDownload() {
   padding: @sp-5 @sp-5 @sp-6;
   display: flex;
   justify-content: center;
+  gap: @sp-3;
+
+  .btn {
+    flex: 1;
+    max-width: 200px;
+    gap: @sp-2;
+  }
 
   .download-btn {
     width: 100%;

@@ -13,6 +13,7 @@ const menuItems = computed(() => [
   { key: 'pets', label: '宠物管理', icon: 'friends-o', to: '/petadm/pets' },
   { key: 'users', label: '用户管理', icon: 'manager-o', to: '/petadm/users' },
   { key: 'orders', label: '订单管理', icon: 'orders-o', to: '/petadm/orders' },
+  { key: 'videos', label: '视频管理', icon: 'video-o', to: '/petadm/videos' }, // 👈 新增这一行
   { key: 'promo', label: '推广管理', icon: 'photo-o', to: '/petadm/promo' }, // 👈 新增
 ])
 
@@ -20,6 +21,7 @@ const route = useRoute()
 
 // 👇 优化当前激活菜单的判断逻辑，加入 promo
 const currentMenu = computed(() => {
+  if (route.path.includes('/petadm/videos')) return 'videos'
   if (route.path.includes('/petadm/promo')) return 'promo' // 👈 新增
   if (route.path.includes('/petadm/orders')) return 'orders'
   if (route.path.includes('/petadm/users')) return 'users'

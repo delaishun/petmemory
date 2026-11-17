@@ -137,6 +137,7 @@ interface PetVideoPublic {
   bgCode: string;
   actionType: string;
   aspectRatio: string;
+  status: number; // 👈 新增
   createdAt: string;
 }
 
@@ -266,13 +267,17 @@ function handleCreateVideo() {
 
   // 如果次数小于等于 0，弹出获取方式的提示
   if ((me.value.vnum || 0) <= 0) {
-    const isEn = locale.value === 'en';
-    const title = isEn ? 'Insufficient Video Credits' : '视频生成次数不足';
-    
+    const isEn = locale.value === "en";
+    const title = isEn ? "Insufficient Video Credits" : "视频生成次数不足";
+
     let msgHtml = `<div style="text-align:left; font-size:14px; line-height:1.8; padding: 10px 4px; color: #5D4737;">`;
-    msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${isEn ? 'Want to create a Living Memory video? Here’s how to earn credits:' : '想要生成专属的动态回忆吗？您可以通过以下方式获取生成次数：'}</p>`;
+    msgHtml += `<p style="margin-bottom:10px; font-weight:600;">${
+      isEn
+        ? "Want to create a Living Memory video? Here’s how to earn credits:"
+        : "想要生成专属的动态回忆吗？您可以通过以下方式获取生成次数："
+    }</p>`;
     msgHtml += `<ul style="padding-left:18px; margin:0; display:flex; flex-direction:column; gap:6px;">`;
-    
+
     if (isEn) {
       msgHtml += `<li>Get <strong>3 credits</strong> with a Lifetime VIP.</li>`;
       msgHtml += `<li>Get <strong>1 credit</strong> with a Premium Subscription.</li>`;
@@ -288,7 +293,7 @@ function handleCreateVideo() {
       title,
       message: msgHtml,
       allowHtml: true,
-      confirmButtonText: isEn ? 'Got it' : '知道了',
+      confirmButtonText: isEn ? "Got it" : "知道了",
     });
     return;
   }
@@ -306,15 +311,15 @@ function handlePlayVideo(video: PetVideoPublic) {
 // 处理强制下载视频
 async function handleDownloadVideo(videoId: number) {
   if (!pet.value) return;
-  const video = petVideos.value?.find(v => v.id === videoId);
+  const video = petVideos.value?.find((v) => v.id === videoId);
   if (!video || !video.videoUrl) {
-    showToast('视频不存在');
+    showToast("视频不存在");
     return;
   }
 
   const loadingToast = showToast({
-    type: 'loading',
-    message: '正在下载，请稍候...',
+    type: "loading",
+    message: "正在下载，请稍候...",
     duration: 0,
     forbidClick: true,
   });
@@ -322,31 +327,31 @@ async function handleDownloadVideo(videoId: number) {
   try {
     // 1. 直接用 fetch 请求 OSS 的原始视频地址（不需要之前后端的签名 URL 了）
     const response = await fetch(video.videoUrl);
-    if (!response.ok) throw new Error('网络请求失败');
-    
+    if (!response.ok) throw new Error("网络请求失败");
+
     // 2. 将视频数据转为 Blob 二进制大对象
     const blob = await response.blob();
-    
+
     // 3. 创建一个指向内存的临时 URL
     const blobUrl = URL.createObjectURL(blob);
-    
+
     // 4. 模拟 a 标签点击触发下载
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = blobUrl;
     link.download = `${pet.value.name}-memory.mp4`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // 5. 释放内存
     URL.revokeObjectURL(blobUrl);
-    
+
     loadingToast.close();
-    showToast({ type: 'success', message: '下载成功' });
+    showToast({ type: "success", message: "下载成功" });
   } catch (err) {
-    console.error('下载失败:', err);
+    console.error("下载失败:", err);
     loadingToast.close();
-    showToast('下载失败，请检查网络或 OSS 跨域配置');
+    showToast("下载失败，请检查网络或 OSS 跨域配置");
   }
 }
 
@@ -355,37 +360,37 @@ async function handleDownloadVideo(videoId: number) {
 // ============================================================
 // 计算当前要播放的视频（优先开心，否则随机）
 const targetGiftVideo = computed(() => {
-  if (!petVideos.value || petVideos.value.length === 0) return null
-  
+  if (!petVideos.value || petVideos.value.length === 0) return null;
+
   // 1. 优先寻找动作类型为“开心”的视频 (根据你的动作ID joyful_sweet 匹配)
   const happyVideo = petVideos.value.find(
-    v => v.actionType === 'joyful_sweet' || v.actionType.includes('开心')
-  )
-  if (happyVideo) return happyVideo
-  
+    (v) => v.actionType === "joyful_sweet" || v.actionType.includes("开心")
+  );
+  if (happyVideo) return happyVideo;
+
   // 2. 没有开心的，则随机选一个
-  const randomIndex = Math.floor(Math.random() * petVideos.value.length)
-  return petVideos.value[randomIndex]
-})
+  const randomIndex = Math.floor(Math.random() * petVideos.value.length);
+  return petVideos.value[randomIndex];
+});
 
 // 预加载视频到浏览器缓存
 function preloadGiftVideo() {
-  const video = targetGiftVideo.value
-  if (!video || !video.videoUrl) return
-  
+  const video = targetGiftVideo.value;
+  if (!video || !video.videoUrl) return;
+
   // 创建一个隐藏的 video 标签，让浏览器提前拉取数据
-  const preloadPlayer = document.createElement('video')
-  preloadPlayer.src = video.videoUrl
-  preloadPlayer.preload = 'auto'
-  preloadPlayer.muted = true // 静音预加载，防止自动播放声音
-  preloadPlayer.style.display = 'none'
-  document.body.appendChild(preloadPlayer)
-  preloadPlayer.load()
-  
+  const preloadPlayer = document.createElement("video");
+  preloadPlayer.src = video.videoUrl;
+  preloadPlayer.preload = "auto";
+  preloadPlayer.muted = true; // 静音预加载，防止自动播放声音
+  preloadPlayer.style.display = "none";
+  document.body.appendChild(preloadPlayer);
+  preloadPlayer.load();
+
   // 预热完成后清理 DOM（数据已进缓存）
   setTimeout(() => {
-    document.body.removeChild(preloadPlayer)
-  }, 10000) // 10秒后清理，给足下载时间
+    document.body.removeChild(preloadPlayer);
+  }, 10000); // 10秒后清理，给足下载时间
 }
 
 // 👇 新增：待保存视频状态
@@ -892,7 +897,7 @@ function handleGift() {
     return;
   }
   // 👇 点击赠礼按钮时，立刻开始后台缓存视频
-  preloadGiftVideo()
+  preloadGiftVideo();
   giftModalVisible.value = true;
 }
 
@@ -948,10 +953,10 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
     }
   } else {
     // 👇 如果还没有视频，弹出情感化提示语
-    const title = locale.value === 'en' ? 'Gift Received!' : '收到礼物啦！';
+    const title = locale.value === "en" ? "Gift Received!" : "收到礼物啦！";
     let msgHtml = `<div style="text-align:center; font-size: 15px; line-height: 1.6; padding: 10px 0;">`;
-    
-    if (locale.value === 'en') {
+
+    if (locale.value === "en") {
       msgHtml += `<p><strong>${pet.value?.name}</strong> received your gift and is wagging their tail happily!</p>`;
       if (isOwner.value) {
         msgHtml += `<p style="margin-top:12px; font-size:13px; color:#7A6C61;">Generate a Living Memory to see them react to your love in motion!</p>`;
@@ -964,11 +969,15 @@ async function onGiftsSent(summary: PetGiftSummary[]) {
     }
     msgHtml += `</div>`;
 
-    const confirmBtnText = isOwner.value 
-      ? (locale.value === 'en' ? 'Create Video' : '去生成视频')
-      : (locale.value === 'en' ? 'OK' : '知道了');
-      
-    const cancelBtnText = locale.value === 'en' ? 'Cancel' : '取消';
+    const confirmBtnText = isOwner.value
+      ? locale.value === "en"
+        ? "Create Video"
+        : "去生成视频"
+      : locale.value === "en"
+      ? "OK"
+      : "知道了";
+
+    const cancelBtnText = locale.value === "en" ? "Cancel" : "取消";
 
     // 👇 使用 showDialog 替代原生弹窗
     showDialog({
@@ -1769,25 +1778,29 @@ useHead(() => {
 
           <div class="video-grid">
             <!-- 生成按钮（仅主人可见） -->
-            <div
-              v-if="isOwner"
-              class="video-create-card"
-              @click="handleCreateVideo"
-            >
+            <div v-if="isOwner" class="video-create-card" @click="handleCreateVideo">
               <van-icon name="plus" class="create-icon" />
               <span>Create Memory Video</span>
             </div>
 
             <!-- 视频列表（使用组件） -->
-            <VideoCoverCard
+            <!-- 👇 核心修改：把 v-for 循环放在最外层的包裹 div 上 -->
+            <div
               v-for="video in petVideos"
               :key="video.id"
-              :video-url="video.videoUrl"
-              :aspect-ratio="video.aspectRatio"
-              :pet-name="pet.name"
-              @play="handlePlayVideo(video)"
-              @download="() => handleDownloadVideo(video.id)"
-            />
+              class="video-item-wrapper"
+            >
+              <VideoCoverCard
+                :video-url="video.videoUrl"
+                :aspect-ratio="video.aspectRatio"
+                :pet-name="pet.name"
+                @play="handlePlayVideo(video)"
+                @download="() => handleDownloadVideo(video.id)"
+              />
+              <!-- 👇 现在这里的 video 就能正常访问了 -->
+              <div v-if="video.status === 4" class="status-badge status-hidden">已隐藏</div>
+              <div v-if="video.status === 5" class="status-badge status-banned">已封禁</div>
+            </div>
           </div>
         </section>
 
@@ -2281,7 +2294,11 @@ useHead(() => {
       :video-url="activeVideo.videoUrl"
       :aspect-ratio="activeVideo.aspectRatio"
       :pet-name="pet?.name || ''"
+      :video-id="activeVideo.id"
+      :video-status="activeVideo.status"
+      :is-owner="isOwner"
       @download="() => handleDownloadVideo(activeVideo!.id)"
+      @refresh="refreshPetVideos"
     />
 
     <!-- 👇 生成视频弹窗 -->
@@ -3257,6 +3274,31 @@ useHead(() => {
 
   .create-icon {
     font-size: 24px;
+  }
+}
+
+.video-item-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.status-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 4px;
+  pointer-events: none;
+
+  &.status-hidden {
+    background: rgba(0, 0, 0, 0.6);
+  }
+  &.status-banned {
+    background: #C25A5A;
   }
 }
 
