@@ -1738,6 +1738,9 @@ useHead({
   @media (max-width: @bp-md) {
     grid-template-columns: repeat(2, 1fr);
   }
+  @media (max-width: @bp-sm) {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
 
 .video-card-skeleton {
