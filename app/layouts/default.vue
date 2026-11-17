@@ -63,6 +63,7 @@ const year = new Date().getFullYear();
           <NuxtLink to="/articles" class="site-header__link">{{
             t("articles_title")
           }}</NuxtLink>
+          <NuxtLink to="/videos" class="site-header__link">{{ t("nav_videos") }}</NuxtLink>
           <NuxtLink to="/about" class="site-header__link">{{ t("nav_about") }}</NuxtLink>
         </nav>
 

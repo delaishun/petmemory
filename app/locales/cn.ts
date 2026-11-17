@@ -667,4 +667,6 @@ export default {
   memoir_cooldown: '每周只能生成一次回忆录，还需等待 {n} 天',
 
   user_points_tip: '积分可以兑换礼物', 
+
+  nav_videos: '动态回忆',
 }

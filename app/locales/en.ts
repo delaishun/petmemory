@@ -664,5 +664,7 @@ export default {
 
   memoir_cooldown: 'You can only generate one memoir per week. Please wait {n} more days.',
 
-  user_points_tip: 'Points can be redeemed for gifts', 
+  user_points_tip: 'Points can be redeemed for gifts',
+  
+  nav_videos: 'Living Memories',
 }
