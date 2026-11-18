@@ -26,7 +26,7 @@ export default {
   home_drawing_example_label: '手绘示例',
   home_drawing_artist_label: '画师',
   home_drawing_cta: '定制宠物手绘',
-  home_seo_desc: '「宠忆」是一个专为心爱宠物打造的纪念与陪伴平台。在这里，您可以免费建立宠物主页、上传相册、留言纪念，还能体验与宠物跨越时空的温馨互动，留下最温暖的回忆。',
+  home_seo_desc: 'Pet Memory「宠忆」是一个永恒的家园，旨在纪念您挚爱的宠物，让您与它们始终保持联结。您可以为宠物创建档案、分享相册、一键生成纪念视频、送出礼物，甚至与您的宠物“对话”——跨越时空，感受它们那份温暖的陪伴。',
 
   // 宠物列表页
   pets_title: '全部宠物',
@@ -306,6 +306,8 @@ export default {
   about_interact_desc: '随时来看看它、给它留言、分享回忆，或是送上一份小礼物。收到礼物的 ta 心情值会偷偷上涨，开心很久哦。',
   about_drawing_title: '专属手绘',
   about_drawing_desc: '为您与爱宠定制纯手工画作，绘画过程将录制简短视频，见证这份温暖记忆的诞生。',
+  about_video_title: '一键怀念视频',
+  about_video_desc: '基于相册照片，一键为宠物生成专属怀念视频，让美好回忆以动态方式长久留存。',
   about_vip_title: '会员尊享',
   about_vip_desc: '成为 VIP，宠物主页将解锁精美动态背景面板，并随节日更替变幻；同时，主页还会伴随轻柔的专属背景音乐，让每一次探望都充满温度。开通 VIP 即赠积分。',
 

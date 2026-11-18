@@ -26,7 +26,7 @@ export default {
   home_drawing_example_label: 'Example',
   home_drawing_artist_label: 'Artist',
   home_drawing_cta: 'Custom Pet Portrait',
-  home_seo_desc: 'Pet Memory is a dedicated platform for commemorating and accompanying your beloved pets. You can freely create pet profiles, upload photo albums, leave messages, and experience heartwarming interactions with them across time and space.',
+  home_seo_desc: 'Pet Memory is a forever home to honor and stay connected with your beloved pets. Create profiles, share photo albums, generate tribute videos in one click, send gifts, chat with your pet, and feel their warm presence across time and space.',
 
   // 宠物列表页
   pets_title: 'All Pets',
@@ -306,6 +306,8 @@ export default {
   about_interact_desc: 'Visit anytime to leave a message, share a memory, or send a little gift. Every gift warms their heart and boosts their mood score!',
   about_drawing_title: 'Custom Hand-Drawn',
   about_drawing_desc: 'Commission a custom, 100% hand-drawn portrait. A short video of the drawing process will be recorded to witness the creation.',
+  about_video_title: 'One-Click Tribute Video',
+  about_video_desc: 'Generate a personalized memorial video for your pet from their album photos, preserving beautiful memories in motion.',
   about_vip_title: 'VIP Privileges',
   about_vip_desc: 'VIP pets enjoy beautifully themed background panels that change with festivals, accompanied by soothing exclusive background music to make every visit heartwarming. Get bonus points with VIP.',
 

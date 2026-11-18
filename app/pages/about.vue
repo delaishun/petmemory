@@ -132,6 +132,17 @@ const tiers = computed(() => [
           </div>
         </section>
 
+        <!-- 4. 核心功能：一键怀念视频 -->
+        <section class="feature-card">
+          <div class="feature-card__icon">
+            <van-icon name="video-o" />
+          </div>
+          <div class="feature-card__content">
+            <h2 class="feature-card__title">{{ t('about_video_title') }}</h2>
+            <p class="feature-card__desc">{{ t('about_video_desc') }}</p>
+          </div>
+        </section>
+
         <!-- 👇 新增：用户权益对比区 -->
         <div class="tiers-title">
           <h2>{{ locale === 'en' ? 'Membership Privileges' : '会员权益对比' }}</h2>
