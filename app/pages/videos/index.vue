@@ -21,6 +21,7 @@ interface VideoItem {
     name: string
     slug: string
     ownerId: number
+    avatarUrl?: string | null
   }
 }
 
@@ -210,6 +211,9 @@ useSeoMeta({
       :video-url="activeVideo.videoUrl"
       :aspect-ratio="activeVideo.aspectRatio"
       :pet-name="activeVideo.pet.name"
+      :pet-slug="activeVideo.pet.slug"
+      :pet-owner-id="activeVideo.pet.ownerId"
+      :pet-avatar-url="activeVideo.pet.avatarUrl"
       @download="() => handleDownloadClick(activeVideo!)"
     />
   </div>
