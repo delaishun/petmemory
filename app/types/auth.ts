@@ -33,6 +33,8 @@ export interface AuthUser {
   createdAt: string
   payment_provider?: 'paddle' | 'dodo' | null
   vnum?: number
+  /** 当前用户的已公开宠物数量（由 /api/auth/me 返回） */
+  petCount?: number
 }
 
 // ============================================================

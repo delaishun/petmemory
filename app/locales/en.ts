@@ -17,6 +17,9 @@ export default {
   home_recent_gifts: 'Recent Gifts',
   home_recent_messages: 'Recent Messages',
   home_empty_pets: 'No pets yet',
+  home_add_pet_title: 'Let your pet move in',
+  home_add_pet_desc: 'Create a memorial page for them, cherish every warm moment together.',
+  home_add_pet_cta: 'Add a Pet',
   home_empty_gifts: 'No gifts sent yet',
   home_empty_messages: 'No messages yet',
   home_about_title: 'About Pet Memory',
@@ -159,6 +162,8 @@ export default {
   placeholder_hometown: 'Where are they from? (Optional)',
   placeholder_birthday: 'Select birthday (Optional)',
   btn_confirm: 'Confirm',
+  btn_go_fill: 'Fill now',
+  btn_later: 'Later',
   btn_processing: 'Processing...',
   date_picker_title: 'Select Birthday',
 
@@ -168,6 +173,8 @@ export default {
   err_avatar_required: 'Please upload pet avatar',
   err_species_required: 'Please enter pet species',
   err_please_fill: 'Please fill in required fields',
+  profile_complete_title: 'Complete Pet Profile',
+  profile_complete_msg: 'There {count, plural, one {is} other {are}} {count} item(s) missing. Help others know more about your pet!',
   err_create_failed: 'Creation failed, please try again later',
   msg_pet_created: 'Pet profile created',
 

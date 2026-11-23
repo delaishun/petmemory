@@ -422,6 +422,7 @@ onMounted(() => {
   // 👇 等待一下以确保 isOwner 状态已就绪
   setTimeout(() => {
     checkPendingVideo();
+    maybePromptCompleteProfile();
   }, 1000);
 });
 
@@ -717,6 +718,40 @@ function handleEdit() {
   editPetModalVisible.value = true;
 }
 
+// ============================================================
+// 缺失非必填字段检测 & 自动提示
+// ============================================================
+
+const missingOptionalCount = computed(() => {
+  const p = pet.value
+  if (!p) return 0
+  let n = 0
+  if (!p.breed?.trim()) n++
+  if (!p.hometown?.trim()) n++
+  if (!p.personality?.trim()) n++
+  if (!p.birthday) n++
+  if (!p.leaveDate) n++
+  return n
+})
+
+const PROMPT_DISMISSED_KEY = () => `pet_prompt_dismissed_${slug.value}`
+
+function maybePromptCompleteProfile() {
+  if (import.meta.server) return
+  if (!isOwner.value || !pet.value) return
+  if (missingOptionalCount.value === 0) return
+  if (localStorage.getItem(PROMPT_DISMISSED_KEY()) === '1') return
+
+  showConfirmDialog({
+    title: t('profile_complete_title'),
+    message: t('profile_complete_msg', { count: missingOptionalCount.value }),
+    confirmButtonText: t('btn_go_fill'),
+    cancelButtonText: t('btn_later'),
+  })
+    .then(() => { editPetModalVisible.value = true })
+    .catch(() => { localStorage.setItem(PROMPT_DISMISSED_KEY(), '1') })
+}
+
 async function onPetUpdated(updated: PetPublic) {
   if (!pet.value) return;
   pet.value = { ...pet.value, ...updated };
@@ -726,6 +761,7 @@ async function onPetUpdated(updated: PetPublic) {
   } catch (err) {
     console.warn("拉取最新数据失败，使用局部更新", err);
   }
+  localStorage.removeItem(PROMPT_DISMISSED_KEY())
 }
 
 // ============================================================

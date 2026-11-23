@@ -6,6 +6,7 @@ import type { AuthUser } from "~/types/auth";
 import { getPetUrl } from "~/utils/petUrl";
 import VideoCoverCard from "~/components/VideoCoverCard.vue";
 import VideoPlayerModal from "~/components/VideoPlayerModal.vue";
+import AddPetModal from "~/components/AddPetModal.vue";
 
 // ============================================================
 // 类型
@@ -239,6 +240,32 @@ function handleCustomOrder() {
   customOrderModalVisible.value = true;
 }
 
+// ============================================================
+// 宠物入住 CTA
+// ============================================================
+
+const showAddPetBtn = computed(() => {
+  if (!me.value) return true
+  return (me.value.petCount ?? 0) === 0
+})
+
+const addPetModalVisible = ref(false)
+
+function handleAddPetClick() {
+  if (!me.value) {
+    loginModalVisible.value = true
+    return
+  }
+  addPetModalVisible.value = true
+}
+
+async function onPetCreated() {
+  try {
+    const fresh = await $api<{ user: AuthUser | null }>('/api/auth/me')
+    if (fresh.user) me.value = fresh.user
+  } catch {}
+}
+
 // 视频
 // 👇 视频播放与弹窗控制
 const activeVideoModal = ref(false);
@@ -403,6 +430,26 @@ useHead({
         <!-- 空状态 -->
         <div v-else class="home-section__empty">
           <p>{{ t("home_empty_pets") }}</p>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 宠物入住 CTA                                  -->
+      <!-- ============================================ -->
+      <section v-if="showAddPetBtn" class="home-section home-section--cta">
+        <div class="pet-cta">
+          <div class="pet-cta__info">
+            <h3 class="pet-cta__title">{{ t('home_add_pet_title') }}</h3>
+            <p class="pet-cta__desc">{{ t('home_add_pet_desc') }}</p>
+          </div>
+          <button
+            type="button"
+            class="btn btn--primary pet-cta__btn"
+            @click="handleAddPetClick"
+          >
+            {{ t('home_add_pet_cta') }}
+            <van-icon name="arrow" />
+          </button>
         </div>
       </section>
 
@@ -821,6 +868,9 @@ useHead({
 
     <!-- 登录弹窗 -->
     <LoginModal v-model="loginModalVisible" />
+
+    <!-- 宠物添加弹窗 -->
+    <AddPetModal v-model="addPetModalVisible" @success="onPetCreated" />
   </div>
 </template>
 
@@ -1711,5 +1761,58 @@ useHead({
   aspect-ratio: 1 / 1;
   border-radius: @radius-lg;
   width: 100%;
+}
+
+// ============================================================
+// 宠物入住 CTA
+// ============================================================
+.pet-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @sp-5;
+  padding: @sp-6 @sp-7;
+  background: linear-gradient(135deg, #FFF8F0 0%, #F5EDE0 100%);
+  border: 1px solid @border;
+  border-radius: @radius-xl;
+  box-shadow: @shadow-1;
+
+  @media (max-width: @bp-sm) {
+    flex-direction: column;
+    gap: @sp-4;
+    padding: @sp-5 @sp-4;
+    text-align: center;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0 0 @sp-2;
+    font-family: @font-serif;
+    font-size: @fs-xl;
+    font-weight: 700;
+    color: @ink-1;
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: @fs-base;
+    color: @ink-2;
+    line-height: @lh-loose;
+  }
+
+  &__btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: @sp-2;
+    padding: @sp-3 @sp-6;
+    font-size: @fs-md;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
 }
 </style>

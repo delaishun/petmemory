@@ -17,6 +17,9 @@ export default {
   home_recent_gifts: '最近礼物',
   home_recent_messages: '最近留言',
   home_empty_pets: '还没有宠物入住',
+  home_add_pet_title: '让它住进宠忆',
+  home_add_pet_desc: '为它创建专属纪念馆，记录你们的每一段温暖时光。',
+  home_add_pet_cta: '宠物入住',
   home_empty_gifts: '还没有人送出礼物',
   home_empty_messages: '还没有人留言',
   home_about_title: '关于宠忆',
@@ -159,6 +162,8 @@ export default {
   placeholder_hometown: 'ta 来自哪里？（选填）',
   placeholder_birthday: '选择生日（选填）',
   btn_confirm: '确认',
+  btn_go_fill: '去完善',
+  btn_later: '以后再说',
   btn_processing: '处理中…',
   date_picker_title: '选择生日',
 
@@ -168,6 +173,8 @@ export default {
   err_avatar_required: '请上传宠物头像',
   err_species_required: '请输入宠物物种',
   err_please_fill: '请完善必填信息',
+  profile_complete_title: '完善宠物信息',
+  profile_complete_msg: '还有 {count} 项信息未填写，完善后能让更多人了解它哦～',
   err_create_failed: '创建失败，请稍后重试',
   msg_pet_created: '宠物主页已创建',
 
