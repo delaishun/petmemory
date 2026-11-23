@@ -32,6 +32,12 @@ interface HomePet {
   };
 }
 
+interface PetPublic {
+  id: number
+  slug: string
+  [key: string]: any
+}
+
 interface HomeGift {
   id: number;
   createdAt: string;
@@ -259,11 +265,12 @@ function handleAddPetClick() {
   addPetModalVisible.value = true
 }
 
-async function onPetCreated() {
+async function onPetCreated(pet: PetPublic) {
   try {
     const fresh = await $api<{ user: AuthUser | null }>('/api/auth/me')
     if (fresh.user) me.value = fresh.user
   } catch {}
+  await navigateTo(`/pets/${pet.slug ?? pet.id}`)
 }
 
 // 视频
