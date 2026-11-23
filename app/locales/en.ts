@@ -147,6 +147,7 @@ export default {
   add_pet_title: 'Add Pet',
   add_pet_subtitle: 'Create a warm profile for them',
   upload_avatar: 'Upload Avatar',
+  field_avatar: 'Avatar',
   field_name: 'Name',
   field_species: 'Species',
   field_breed: 'Breed',
@@ -166,6 +167,7 @@ export default {
   err_name_too_long: 'Name cannot exceed 50 characters',
   err_avatar_required: 'Please upload pet avatar',
   err_species_required: 'Please enter pet species',
+  err_please_fill: 'Please fill in required fields',
   err_create_failed: 'Creation failed, please try again later',
   msg_pet_created: 'Pet profile created',
 

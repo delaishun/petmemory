@@ -147,6 +147,7 @@ export default {
   add_pet_title: '添加宠物',
   add_pet_subtitle: '为 ta 建立一个温暖的主页',
   upload_avatar: '上传头像',
+  field_avatar: '头像',
   field_name: '名字',
   field_species: '物种',
   field_breed: '品种',
@@ -166,6 +167,7 @@ export default {
   err_name_too_long: '名字不能超过 50 个字符',
   err_avatar_required: '请上传宠物头像',
   err_species_required: '请输入宠物物种',
+  err_please_fill: '请完善必填信息',
   err_create_failed: '创建失败，请稍后重试',
   msg_pet_created: '宠物主页已创建',
 

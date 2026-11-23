@@ -22,7 +22,7 @@ interface PetPublic {
   breed: string
   gender: number
   birthday: string | null
-  leaveDate: string | null // 👈 新增
+  leaveDate: string | null
   hometown: string
   avatarUrl: string
   bio: string
@@ -57,11 +57,6 @@ const visible = computed({
 const form = reactive({
   name: '',
   species: '',
-  breed: '',
-  hometown: '',
-  personality: '',
-  birthday: '',
-  leaveDate: '', // 👈 新增
 })
 
 const errors = reactive({
@@ -112,55 +107,6 @@ function detectSoundEffect(speciesStr: string): string {
 }
 
 // ============================================================
-// 日期选择器（通用逻辑）
-// ============================================================
-
-const minDate = new Date(2000, 0, 1)
-const maxDate = new Date()
-
-// 1. 生日
-const showBirthdayPicker = ref(false)
-const birthdayPickerValue = ref<string[]>(['2020', '01', '01'])
-
-function openBirthdayPicker() {
-  if (form.birthday) {
-    const [y, m, d] = form.birthday.split('-')
-    if (y && m && d) birthdayPickerValue.value = [y, m, d]
-  }
-  showBirthdayPicker.value = true
-}
-
-function onBirthdayConfirm({ selectedValues }: { selectedValues: string[] }) {
-  form.birthday = selectedValues.join('-')
-  showBirthdayPicker.value = false
-}
-
-function clearBirthday() {
-  form.birthday = ''
-}
-
-// 2. 离开日期（Pass Date）
-const showLeaveDatePicker = ref(false)
-const leaveDatePickerValue = ref<string[]>(['2024', '01', '01'])
-
-function openLeaveDatePicker() {
-  if (form.leaveDate) {
-    const [y, m, d] = form.leaveDate.split('-')
-    if (y && m && d) leaveDatePickerValue.value = [y, m, d]
-  }
-  showLeaveDatePicker.value = true
-}
-
-function onLeaveDateConfirm({ selectedValues }: { selectedValues: string[] }) {
-  form.leaveDate = selectedValues.join('-')
-  showLeaveDatePicker.value = false
-}
-
-function clearLeaveDate() {
-  form.leaveDate = ''
-}
-
-// ============================================================
 // 头像选择
 // ============================================================
 
@@ -192,7 +138,7 @@ function onFileChange(e: Event) {
 }
 
 // ============================================================
-// 校验
+// 校验（弹窗提示）
 // ============================================================
 
 function validate(): boolean {
@@ -201,27 +147,33 @@ function validate(): boolean {
   errors.species = ''
   errors.global = ''
 
-  let ok = true
+  const missing: string[] = []
 
   if (!form.name.trim()) {
     errors.name = t('err_name_required')
-    ok = false
+    missing.push(t('field_name'))
   } else if (form.name.trim().length > 50) {
     errors.name = t('err_name_too_long')
-    ok = false
+    showToast(t('err_name_too_long'))
+    return false
   }
 
   if (!avatarFile.value) {
     errors.avatar = t('err_avatar_required')
-    ok = false
+    missing.push(t('field_avatar'))
   }
 
   if (!form.species.trim()) {
     errors.species = t('err_species_required')
-    ok = false
+    missing.push(t('field_species'))
   }
 
-  return ok
+  if (missing.length > 0) {
+    showToast(`${t('err_please_fill')}: ${missing.join(' / ')}`)
+    return false
+  }
+
+  return true
 }
 
 // ============================================================
@@ -248,11 +200,6 @@ async function handleSubmit() {
       body: {
         name: form.name.trim(),
         species: form.species.trim(),
-        breed: form.breed.trim() || undefined,
-        hometown: form.hometown.trim() || undefined,
-        personality: form.personality.trim() || undefined,
-        birthday: form.birthday || undefined,
-        leaveDate: form.leaveDate || undefined, // 👈 新增
         avatarUrl: url,
         soundEffect: detectSoundEffect(form.species),
       },
@@ -283,11 +230,6 @@ async function handleSubmit() {
 function resetForm() {
   form.name = ''
   form.species = ''
-  form.breed = ''
-  form.hometown = ''
-  form.personality = ''
-  form.birthday = ''
-  form.leaveDate = '' // 👈 新增
   avatarFile.value = null
   avatarPreview.value = ''
   errors.name = ''
@@ -381,83 +323,6 @@ watch(
           <span v-if="errors.species" class="field__error">{{ errors.species }}</span>
         </div>
 
-        <!-- 品种 -->
-        <div class="field">
-          <label class="field__label" for="pet-breed">{{ t('field_breed') }}</label>
-          <input
-            id="pet-breed"
-            v-model.trim="form.breed"
-            type="text"
-            class="input"
-            :placeholder="t('placeholder_breed')"
-            maxlength="60"
-            :disabled="loading"
-          />
-        </div>
-
-        <!-- 家乡 -->
-        <div class="field">
-          <label class="field__label" for="pet-hometown">{{ t('field_hometown') }}</label>
-          <input
-            id="pet-hometown"
-            v-model.trim="form.hometown"
-            type="text"
-            class="input"
-            :placeholder="t('placeholder_hometown')"
-            maxlength="100"
-            :disabled="loading"
-          />
-        </div>
-
-        <!-- 性格爱好（非必填） -->
-        <div class="field">
-          <label class="field__label" for="pet-personality">
-            {{ t('field_personality') }}
-          </label>
-          <textarea
-            id="pet-personality"
-            v-model="form.personality"
-            class="input textarea"
-            :placeholder="t('placeholder_personality')"
-            maxlength="200"
-            rows="3"
-            :disabled="loading"
-          ></textarea>
-          <span class="field__hint">{{ form.personality.length }} / 200</span>
-        </div>
-
-        <!-- 生日 -->
-        <div class="field">
-          <label class="field__label" for="pet-birthday">{{ t('field_birthday') }}</label>
-          <div class="date-field" @click="openBirthdayPicker">
-            <span :class="{ 'date-field__placeholder': !form.birthday }">
-              {{ form.birthday || t('placeholder_birthday') }}
-            </span>
-            <van-icon
-              v-if="form.birthday"
-              name="cross"
-              class="date-field__clear"
-              @click.stop="clearBirthday"
-            />
-          </div>
-        </div>
-
-        <!-- 👇 新增：离开日期 -->
-        <div class="field">
-          <label class="field__label" for="pet-leave-date">{{ t('field_leave_date') }}</label>
-          <div class="date-field" @click="openLeaveDatePicker">
-            <span :class="{ 'date-field__placeholder': !form.leaveDate }">
-              {{ form.leaveDate || t('placeholder_leave_date') }}
-            </span>
-            <van-icon
-              v-if="form.leaveDate"
-              name="cross"
-              class="date-field__clear"
-              @click.stop="clearLeaveDate"
-            />
-          </div>
-        </div>
-
         <!-- 全局错误 -->
         <p v-if="errors.global" class="add-pet__error">{{ errors.global }}</p>
 
@@ -481,49 +346,12 @@ watch(
         </div>
       </form>
     </div>
-
-    <!-- 生日选择器 -->
-    <van-popup
-      v-model:show="showBirthdayPicker"
-      position="bottom"
-      round
-      teleport="body"
-    >
-      <van-date-picker
-        v-model="birthdayPickerValue"
-        :title="t('date_picker_title')"
-        :min-date="minDate"
-        :max-date="maxDate"
-        @confirm="onBirthdayConfirm"
-        @cancel="showBirthdayPicker = false"
-      />
-    </van-popup>
-
-    <!-- 👇 新增：离开日期选择器 -->
-    <van-popup
-      v-model:show="showLeaveDatePicker"
-      position="bottom"
-      round
-      teleport="body"
-    >
-      <van-date-picker
-        v-model="leaveDatePickerValue"
-        :title="t('leave_date_picker_title')"
-        :min-date="minDate"
-        :max-date="maxDate"
-        @confirm="onLeaveDateConfirm"
-        @cancel="showLeaveDatePicker = false"
-      />
-    </van-popup>
   </van-popup>
 </template>
 
 <style scoped lang="less">
 @import "~/assets/css/common.less";
 
-// ============================================================
-// 弹窗主体
-// ============================================================
 .add-pet {
   display: flex;
   flex-direction: column;
@@ -588,18 +416,6 @@ watch(
   margin-left: 2px;
 }
 
-// 非必填字段底部的字数提示
-.field__hint {
-  display: block;
-  margin-top: 4px;
-  font-size: @fs-xs;
-  color: @ink-3;
-  text-align: right;
-}
-
-// ============================================================
-// 头像上传
-// ============================================================
 .avatar-upload {
   display: flex;
   flex-direction: column;
@@ -648,57 +464,6 @@ watch(
   &__error {
     margin: 0;
     text-align: center;
-  }
-}
-
-// ============================================================
-// 日期字段
-// ============================================================
-.date-field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 10px 12px;
-  font-size: @fs-base;
-  color: @ink-1;
-  background: @surface;
-  border: 1px solid @border-strong;
-  border-radius: @radius;
-  cursor: pointer;
-  transition: border-color @dur-fast ease;
-
-  &:hover {
-    border-color: @accent;
-  }
-
-  &__placeholder {
-    color: @ink-3;
-  }
-
-  &__clear {
-    color: @ink-3;
-    padding: 4px;
-    cursor: pointer;
-    transition: color @dur-fast ease;
-
-    &:hover { color: @danger; }
-  }
-}
-
-// ============================================================
-// 多行文本（性格爱好）
-// ============================================================
-.textarea {
-  min-height: 76px;
-  resize: vertical;
-  line-height: 1.5;
-  font-family: inherit;
-
-  &:disabled {
-    cursor: not-allowed;
-    background: @surface-2;
-    color: @ink-3;
   }
 }
 </style>
