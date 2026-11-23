@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@vant/nuxt', '@nuxtjs/sitemap'],
+  modules: ['@vant/nuxt', '@nuxtjs/sitemap','@vercel/analytics'],
   css: [
     'vant/lib/index.css',
     '~/assets/css/common.less',

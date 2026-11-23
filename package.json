@@ -12,6 +12,7 @@
   "dependencies": {
     "@nuxtjs/sitemap": "^9.1.0",
     "@vant/nuxt": "^1.0.7",
+    "@vercel/analytics": "^2.0.1",
     "dodopayments-checkout": "^2.1.0",
     "heic2any": "^0.0.4",
     "html2canvas": "^1.4.1",
@@ -26,5 +27,10 @@
   },
   "devDependencies": {
     "less": "^4.9.1"
+  },
+  "overrides": {
+    "@vercel/analytics": {
+      "vue-router": "$vue-router"
+    }
   }
 }
