@@ -35,6 +35,8 @@ export interface AuthUser {
   vnum?: number
   /** 当前用户的已公开宠物数量（由 /api/auth/me 返回） */
   petCount?: number
+  /** 当前用户第一只宠物的 slug（由 /api/auth/me 返回，用于首页"拜访宠物"跳转） */
+  firstPetSlug?: string | null
 }
 
 // ============================================================

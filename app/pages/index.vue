@@ -255,6 +255,10 @@ const showAddPetBtn = computed(() => {
   return (me.value.petCount ?? 0) === 0
 })
 
+const showVisitPetBtn = computed(() => {
+  return !!me.value && (me.value.petCount ?? 0) > 0
+})
+
 const addPetModalVisible = ref(false)
 
 function handleAddPetClick() {
@@ -263,6 +267,13 @@ function handleAddPetClick() {
     return
   }
   addPetModalVisible.value = true
+}
+
+function handleVisitPetClick() {
+  const slug = me.value?.firstPetSlug
+  if (slug) {
+    navigateTo(`/pets/${slug}`)
+  }
 }
 
 async function onPetCreated(pet: PetPublic) {
@@ -441,7 +452,7 @@ useHead({
       </section>
 
       <!-- ============================================ -->
-      <!-- 宠物入住 CTA                                  -->
+      <!-- 宠物入住 CTA（未登录 or 无宠物）                -->
       <!-- ============================================ -->
       <section v-if="showAddPetBtn" class="home-section home-section--cta">
         <div class="pet-cta">
@@ -455,6 +466,26 @@ useHead({
             @click="handleAddPetClick"
           >
             {{ t('home_add_pet_cta') }}
+            <van-icon name="arrow" />
+          </button>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 拜访宠物 CTA（已登录且有宠物）                  -->
+      <!-- ============================================ -->
+      <section v-else-if="showVisitPetBtn" class="home-section home-section--cta">
+        <div class="pet-cta">
+          <div class="pet-cta__info">
+            <h3 class="pet-cta__title">{{ t('home_visit_pet_title') }}</h3>
+            <p class="pet-cta__desc">{{ t('home_visit_pet_desc') }}</p>
+          </div>
+          <button
+            type="button"
+            class="btn btn--primary pet-cta__btn"
+            @click="handleVisitPetClick"
+          >
+            {{ t('home_visit_pet_cta') }}
             <van-icon name="arrow" />
           </button>
         </div>
