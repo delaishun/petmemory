@@ -37,6 +37,8 @@ export interface AuthUser {
   petCount?: number
   /** 当前用户第一只宠物的 slug（由 /api/auth/me 返回，用于首页"拜访宠物"跳转） */
   firstPetSlug?: string | null
+  /** 当前用户第一只宠物的名字（用于生成友好 URL） */
+  firstPetName?: string | null
 }
 
 // ============================================================

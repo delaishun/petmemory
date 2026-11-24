@@ -270,10 +270,10 @@ function handleAddPetClick() {
 }
 
 function handleVisitPetClick() {
-  const slug = me.value?.firstPetSlug
-  if (slug) {
-    navigateTo(`/pets/${slug}`)
-  }
+  const user = me.value
+  if (!user) return
+  const url = getPetUrl({ name: user.firstPetName ?? undefined, slug: user.firstPetSlug ?? undefined })
+  if (url) navigateTo(url)
 }
 
 async function onPetCreated(pet: PetPublic) {
