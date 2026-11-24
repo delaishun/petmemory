@@ -177,7 +177,7 @@ const year = new Date().getFullYear();
             title="PaperSceneCo"
           >
             <img
-              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/paperscene.gif"
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/paperscene.png"
               alt="PaperSceneCo"
               loading="lazy"
             />
