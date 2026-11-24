@@ -165,6 +165,26 @@ const year = new Date().getFullYear();
           }}</NuxtLink>
           <NuxtLink to="/refund" class="site-footer__link">{{ t("refund_title") }}</NuxtLink>
         </div>
+
+        <!-- 友情链接 -->
+        <div class="site-footer__friendly">
+          <div class="site-footer__friendly-title">{{ t("footer_friendly_links") }}</div>
+          <a
+            href="https://www.etsy.com/shop/PaperSceneCo"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="site-footer__friendly-link"
+            title="PaperSceneCo"
+          >
+            <img
+              src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/paperscene.gif"
+              alt="PaperSceneCo"
+              width="88"
+              height="31"
+              loading="lazy"
+            />
+          </a>
+        </div>
       </div>
 
       <div class="site-footer__bottom">
@@ -462,6 +482,35 @@ const year = new Date().getFullYear();
     &:hover {
       color: @accent;
     }
+  }
+
+  &__friendly {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: @sp-2;
+  }
+
+  &__friendly-title {
+    font-size: @fs-sm;
+    font-weight: 500;
+    color: @ink-2;
+  }
+
+  &__friendly-link {
+    display: inline-flex;
+    border: 1px solid @border;
+    border-radius: @radius-sm;
+    overflow: hidden;
+    background: @surface;
+    transition: border-color @dur-fast ease, box-shadow @dur-fast ease;
+
+    &:hover {
+      border-color: @accent;
+      box-shadow: @shadow-1;
+    }
+
+    img { display: block; }
   }
 
   &__bottom {

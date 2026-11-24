@@ -78,6 +78,7 @@ export default {
   footer_wechat: '微信公众号',
   footer_copyright: '© {year} {app_name} · 用心记录每一段陪伴',
   footer_pricing: '价格说明',
+  footer_friendly_links: '友情链接',
 
   // 通用
   gender_boy: '男孩',

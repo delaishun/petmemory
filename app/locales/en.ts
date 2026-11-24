@@ -78,6 +78,7 @@ export default {
   footer_wechat: 'WeChat',
   footer_copyright: '© {year} {app_name} · Record every companionship with heart',
   footer_pricing: 'Pricing',
+  footer_friendly_links: 'Friendly Links',
 
   // 通用
   gender_boy: 'Boy',
