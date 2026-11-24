@@ -179,8 +179,6 @@ const year = new Date().getFullYear();
             <img
               src="https://cc-ukbucket.oss-eu-west-1.aliyuncs.com/pet_bgs/paperscene.gif"
               alt="PaperSceneCo"
-              width="88"
-              height="31"
               loading="lazy"
             />
           </a>
@@ -499,9 +497,11 @@ const year = new Date().getFullYear();
 
   &__friendly-link {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
     border: 1px solid @border;
-    border-radius: @radius-sm;
-    overflow: hidden;
+    border-radius: @radius;
     background: @surface;
     transition: border-color @dur-fast ease, box-shadow @dur-fast ease;
 
@@ -510,7 +510,14 @@ const year = new Date().getFullYear();
       box-shadow: @shadow-1;
     }
 
-    img { display: block; }
+    img {
+      display: block;
+      max-width: 120px;
+      max-height: 48px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
   }
 
   &__bottom {
