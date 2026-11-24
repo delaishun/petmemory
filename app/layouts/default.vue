@@ -499,24 +499,24 @@ const year = new Date().getFullYear();
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 4px;
-    border: 1px solid @border;
-    border-radius: @radius;
-    background: @surface;
-    transition: border-color @dur-fast ease, box-shadow @dur-fast ease;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: transparent;
+    transition: transform @dur-fast ease, box-shadow @dur-fast ease;
 
     &:hover {
-      border-color: @accent;
-      box-shadow: @shadow-1;
+      transform: scale(1.08);
+      box-shadow: 0 2px 10px fade(@ink-1, 15%);
     }
 
     img {
       display: block;
-      max-width: 120px;
-      max-height: 48px;
-      width: auto;
-      height: auto;
-      object-fit: contain;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
   }
 
