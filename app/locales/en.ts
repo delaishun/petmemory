@@ -53,7 +53,7 @@ export default {
   pet_send_gift: 'Send Gift',
   pet_edit_info: 'Edit Info',
   pet_upload_photo: 'Upload Photo',
-  pet_chat: 'Talk to it',
+  pet_chat: 'Chat',
   pet_hidden: 'Hidden',
   pet_no_bio: 'Owner hasn\'t filled in info yet',
 
@@ -712,7 +712,7 @@ export default {
   video_credits_gift: 'Every $5 spent on gifts earns 1 credit ($10 → 2, $15 → 3, …)',
 
   gift_received_title: 'Gift Received!',
-  gift_received_msg: '{name} received your gift and happily wagged its tail!',
+  gift_received_msg: '{name} received your gift and happily wagged their tail!',
   gift_received_hint: 'Generate a Living Memory video to see them interact joyfully with you!',
   go_generate_video: 'Generate Video',
 
