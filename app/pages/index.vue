@@ -1,4 +1,4 @@
-<!-- app/pages/index.vue -->
+﻿<!-- app/pages/index.vue -->
 <script setup lang="ts">
 import { showToast } from "vant";
 import { useI18n } from "~/composables/useI18n";
@@ -1350,7 +1350,7 @@ useHead({
     padding: @sp-3 @sp-4;
     background: linear-gradient(135deg, #FFF7EC 0%, #FFF0F5 100%);
     border: 1px solid #F5D7B8;
-    border-radius: @radius-md;
+    border-radius: @radius;
     display: flex;
     flex-direction: column;
     gap: @sp-2;
