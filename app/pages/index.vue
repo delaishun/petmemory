@@ -549,6 +549,16 @@ useHead({
             />
           </div>
           <p class="home-about__desc">{{ t("home_seo_desc") }}</p>
+          <div class="home-about__promo">
+            <p class="home-about__promo-video">
+              <span class="promo-badge">🎬</span>
+              {{ t("home_about_promo_video") }}
+            </p>
+            <p class="home-about__promo-deadline">
+              <span class="promo-badge">⏰</span>
+              {{ t("home_about_promo_deadline") }}
+            </p>
+          </div>
         </div>
 
         <!-- 👇 新增：首页三列权益卡片 -->
@@ -1333,6 +1343,42 @@ useHead({
     @media (max-width: @bp-sm) {
       text-align: left;
     }
+  }
+
+  &__promo {
+    margin-top: @sp-4;
+    padding: @sp-3 @sp-4;
+    background: linear-gradient(135deg, #FFF7EC 0%, #FFF0F5 100%);
+    border: 1px solid #F5D7B8;
+    border-radius: @radius-md;
+    display: flex;
+    flex-direction: column;
+    gap: @sp-2;
+
+    p {
+      margin: 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: @fs-sm;
+      line-height: 1.6;
+    }
+
+    .promo-badge {
+      flex-shrink: 0;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+  }
+
+  &__promo-video {
+    color: #A85A1A;
+    font-weight: 500;
+  }
+
+  &__promo-deadline {
+    color: #C0392B;
+    font-weight: 600;
   }
 }
 

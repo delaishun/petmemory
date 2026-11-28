@@ -27,6 +27,8 @@ export default {
   home_empty_messages: 'No messages yet',
   home_about_title: 'About Pet Memory',
   home_about_desc: 'At Pet Memory, leave a warm place for your beloved pet.\nYou can visit them anytime, leave a message, have a chat, or send a little gift.\nThey will be secretly delighted to receive it.',
+  home_about_promo_video: 'Pet Memory will create a free memorial video for every beloved pet staying with us. Simply upload one photo in the album.',
+  home_about_promo_deadline: 'The promotion runs until February 28, 2027.',
   home_drawing_title: 'Custom Hand-Drawn Portraits',
   home_drawing_desc: 'Custom hand-drawn portraits for you and your beloved pet to cherish beautiful memories.\nEvery artwork is completely hand-drawn with care.\nA short video of the drawing process will be recorded, allowing you to witness the artwork come to life.',
   home_drawing_example_label: 'Example',

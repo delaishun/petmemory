@@ -94,6 +94,17 @@ const tiers = computed(() => [
       <header class="about-hero">
         <h1 class="about-hero__title">{{ t('about_title') }}</h1>
         <p class="about-hero__subtitle">{{ t('about_subtitle') }}</p>
+
+        <div class="about-promo">
+          <p class="about-promo__video">
+            <span class="promo-badge">🎬</span>
+            {{ t('home_about_promo_video') }}
+          </p>
+          <p class="about-promo__deadline">
+            <span class="promo-badge">⏰</span>
+            {{ t('home_about_promo_deadline') }}
+          </p>
+        </div>
       </header>
 
       <!-- 功能特性区 -->
@@ -215,6 +226,44 @@ const tiers = computed(() => [
   flex-direction: column;
   gap: @sp-4;
   padding-bottom: @sp-8;
+}
+
+.about-promo {
+  max-width: 580px;
+  margin: @sp-4 auto 0;
+  padding: @sp-3 @sp-4;
+  background: linear-gradient(135deg, #FFF7EC 0%, #FFF0F5 100%);
+  border: 1px solid #F5D7B8;
+  border-radius: @radius-md;
+  display: flex;
+  flex-direction: column;
+  gap: @sp-2;
+  text-align: left;
+
+  p {
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: @fs-sm;
+    line-height: 1.6;
+  }
+
+  .promo-badge {
+    flex-shrink: 0;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  &__video {
+    color: #A85A1A;
+    font-weight: 500;
+  }
+
+  &__deadline {
+    color: #C0392B;
+    font-weight: 600;
+  }
 }
 
 .feature-card {

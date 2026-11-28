@@ -27,6 +27,8 @@ export default {
   home_empty_messages: '还没有人留言',
   home_about_title: '关于宠忆',
   home_about_desc: '在宠忆，为心爱的宠物留一片温暖的自留地。\n你可以随时来看看它、给它留言、与它谈心，或是送上一份小礼物。\n收到礼物的它，会偷偷开心很久哦。',
+  home_about_promo_video: 'Pet Memory 将为每一位入住的宠物宝贝免费制作纪念视频，只需在相册中上传一张照片即可。',
+  home_about_promo_deadline: '活动持续到 2027 年 2 月 28 日。',
   home_drawing_title: '宠物手绘',
   home_drawing_desc: '为您与爱宠定制专属手绘画像，留下美好回忆。\n每一幅画作皆由画师纯手工精心绘制。\n绘画过程将录制简短视频，让您见证作品诞生。',
   home_drawing_example_label: '手绘示例',

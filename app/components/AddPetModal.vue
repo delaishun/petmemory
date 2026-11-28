@@ -262,6 +262,17 @@ watch(
         <p class="add-pet__subtitle">{{ t('add_pet_subtitle') }}</p>
       </header>
 
+      <div class="add-pet__promo">
+        <p class="add-pet__promo-video">
+          <span class="promo-badge">🎬</span>
+          {{ t('home_about_promo_video') }}
+        </p>
+        <p class="add-pet__promo-deadline">
+          <span class="promo-badge">⏰</span>
+          {{ t('home_about_promo_deadline') }}
+        </p>
+      </div>
+
       <form class="add-pet__form" @submit.prevent="handleSubmit">
         <!-- 头像上传 -->
         <div class="avatar-upload">
@@ -380,6 +391,43 @@ watch(
     margin: 0;
     font-size: @fs-sm;
     color: @ink-3;
+  }
+
+  &__promo {
+    flex-shrink: 0;
+    margin: 0 0 @sp-3;
+    padding: @sp-2 @sp-3;
+    background: linear-gradient(135deg, #FFF7EC 0%, #FFF0F5 100%);
+    border: 1px solid #F5D7B8;
+    border-radius: @radius-md;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    p {
+      margin: 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .promo-badge {
+      flex-shrink: 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    &-video {
+      color: #A85A1A;
+      font-weight: 500;
+    }
+
+    &-deadline {
+      color: #C0392B;
+      font-weight: 600;
+    }
   }
 
   &__form {
