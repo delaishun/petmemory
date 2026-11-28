@@ -172,7 +172,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'https://api.petmemory.me',
-      siteUrl: 'https://www.petmemory.me', // 确保与你的生产域名一致
+      siteUrl: 'https://petmemory.me', // 确保与你的生产域名一致
       ossBaseUrl: 'https://cc-ukbucket.oss-eu-west-1.aliyuncs.com',
       googleClientId:
         '120679372597-3gu57t735ah595vap1489hm975vq4uqe.apps.googleusercontent.com',
